@@ -1,0 +1,27 @@
+const minimist = require('minimist');
+const webpack = require('webpack');
+
+const argv = minimist(process.argv.slice(2));
+
+if(argv.dev){
+    const app = require('express')();
+    const webpackDevMiddleware = require('webpack-dev-middleware');
+    const devConfig = require('../config/webpack.dev')();
+    const compiler = webpack(devConfig);
+    app.use(webpackDevMiddleware(compiler, {
+        publicPath: devConfig.output.publicPath,
+    }));
+    
+    // Serve the files on port 3000.
+    app.listen(3000, function () {
+        console.log('Example app listening on port 3000!\n');
+    });
+}else{
+    const devConfig = require('../config/webpack.prod')();
+    const compiler = webpack(devConfig);
+    compiler.run((info)=>{
+        if(info){
+            console.error(info);
+        }
+    })
+}
