@@ -8,8 +8,8 @@ export function setStyle(el:HTMLElement,style:ObjectStyleDeclaration){
     })
 }
 
-export function px2Num(px:string,defaultValue:number){
-    const val = parseInt(px);
+export function px2Num(px:string | number,defaultValue:number){
+    const val = parseInt(px as string);
     if(isNaN(val)){
         return defaultValue;
     }

@@ -10,15 +10,24 @@ export interface RenderOptions{
     
 }
 
-export interface IView{
+export interface IView<T>{
     // model:Model
-    appendChild(view:IView):void
-    update(model:Model):void
+    appendChild(view:IView<T>):void
+    update(model:T):void
     getRoot():Node
-    getModel():Model
+    getModel():T
+    destroy():void
 } 
 
+
+export interface ViewOptions{
+    onPostionChange?:OnPositionChange
+}
+
+export type OnPositionChange = (left:number,top:number)=>void
+
 export interface MovableOptions {
-    left:string,
-    top:string
+    left:number,
+    top:number,
+    onPostionChange?:OnPositionChange
 }

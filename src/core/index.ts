@@ -10,7 +10,7 @@ import {Render} from '../render/index'
 
 export interface CoreOptions  {
     canvas?:CanvasOption
-    data:Model[]
+    data:Model
     rulerBackgroundColor?:string
     wheelSpeedX:number
     wheelSpeedY:number

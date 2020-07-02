@@ -2,7 +2,7 @@ import {CanvasEvent} from '../core/event';
 import {ObjectStyleDeclaration} from '../utils/type';
 import {setStyle,px2Num} from '../utils/style';
 import {completeOptions} from '../utils/index';
-import {MovableOptions} from './type';
+import {MovableOptions,OnPositionChange} from './type';
 
 type OnMouseMoveCallback = (e:MouseEvent)=>void
 const DEFAULT_OPTIONS = {
@@ -10,16 +10,18 @@ const DEFAULT_OPTIONS = {
 }
 let tabIndex = 0;
 
-export class Moveable{
+export class Movable{
     static onMouseMoveQueue:OnMouseMoveCallback[] = []
+    static onMouseUpQueue:OnMouseMoveCallback[] = []
     private _options:MovableOptions;
     el:HTMLElement
     left:number = 0
     top:number = 0
-    canMove:boolean
+    canMove:boolean = false
     startX:number
     startY:number
     style:ObjectStyleDeclaration
+    private _onPostionChange:OnPositionChange
     constructor(child:HTMLElement,options:MovableOptions){
         this._options = completeOptions(options,DEFAULT_OPTIONS);
         const {left,top} = this._options;
@@ -39,6 +41,9 @@ export class Moveable{
         this.el = div;
         this.listen();
     }
+    // onPostionChange(onPositionChange:OnPositionChange){
+    //     this._onPostionChange = onPositionChange
+    // }
     getBoundingClientRect(){
         return this.el.getBoundingClientRect();
     }
@@ -48,8 +53,18 @@ export class Moveable{
         this.style.top = `${this.top}px`;
         setStyle(target,this.style);
     }
+    updatePosition(left:number,top:number){
+        this.left = left;
+        this.top = top;
+        this.canMove = false;
+    }
     static onDocMouseMove(e:MouseEvent){
-        Moveable.onMouseMoveQueue.forEach((callback)=>{
+        Movable.onMouseMoveQueue.forEach((callback)=>{
+            callback(e);
+        })
+    } 
+    static onDocUpMove(e:MouseEvent){
+        Movable.onMouseUpQueue.forEach((callback)=>{
             callback(e);
         })
     } 
@@ -72,8 +87,9 @@ export class Moveable{
         this.addEvent(CanvasEvent.MOUSEDOWN,this.onMouseDown.bind(this));
         this.addEvent(CanvasEvent.FOUCS,this.onFoucs.bind(this));
         this.addEvent(CanvasEvent.BLUR,this.onBlur.bind(this));
-        Moveable.onMouseMoveQueue.push(this.onMouseMove.bind(this))
-        this.addEvent(CanvasEvent.MOUSEUP,this.onMouseUp.bind(this));
+        Movable.onMouseMoveQueue.push(this.onMouseMove.bind(this))
+        Movable.onMouseUpQueue.push(this.onMouseUp.bind(this))
+        // this.addEvent(CanvasEvent.MOUSEUP,this.onMouseUp.bind(this));
     }
     onMouseDown(e:MouseEvent){
         this.canMove = true
@@ -93,8 +109,12 @@ export class Moveable{
         
     }
     onMouseUp(e:MouseEvent){
+        if(this.canMove === false) return;
         this.canMove = false;
+        const {onPostionChange} = this._options
+        onPostionChange && onPostionChange(this.left,this.top);
     }
 }
 
-Moveable.addGloablEvent(CanvasEvent.MOUSEMOVE,Moveable.onDocMouseMove,document.body);
+Movable.addGloablEvent(CanvasEvent.MOUSEMOVE,Movable.onDocMouseMove,document.body);
+Movable.addGloablEvent(CanvasEvent.MOUSEUP,Movable.onDocUpMove,document.body);

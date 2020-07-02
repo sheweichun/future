@@ -1,17 +1,17 @@
 {
-    "compilerOptions": {
-      "outDir": "./lib",
-      "rootDir": "./src",
-      "noImplicitAny": true,
-      "module": "es6",
-      "target": "es5",
-      "jsx": "react",
-      "allowJs": true, 
-    },
-    "include":[
-        "./src/**/*"
-    ],
-    "exclude":[
-        "node_modules"
-    ]
+  "compilerOptions": {
+    "baseUrl":"./",
+    "outDir": "./lib",
+    "rootDir": "./src",
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "target": "es5",
+    "allowJs": true, 
+    "paths":{
+    
+    }
+  },
+  "include":[
+      "./src/**/*"
+  ]
 }

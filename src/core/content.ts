@@ -5,7 +5,8 @@ import {IEvent} from '../entities/index'
 import {completeOptions,controlDelta} from '../utils/index';
 import {CanvasEvent} from './event';
 import {ContentOptions} from '../components/type';
-import {Model,createViewModel,ViewModel,ViewModelCollection} from '../render/index'
+import {Model,createViewModel,ViewModel} from '../render/index'
+import {Store,WrapData} from '../render/index'
 import {KeyBoard} from './keyboard';
 
 
@@ -15,32 +16,49 @@ export class Content implements IEvent{
     private _options:ContentOptions
     private _x:number
     private _y:number
-    private _viewModels:ViewModelCollection
+    private _viewModel:ViewModel
     private _curSelectViewModel:ViewModel
     private _keyboard:KeyBoard
-    constructor(private _el:HTMLElement,private _data:Model[],options:ContentOptions){
+    private _store:Store
+    constructor(private _el:HTMLElement,private _data:Model,options:ContentOptions){
         this._options = completeOptions(options,{x:0,y:0});
         this._x = this._options.x;
         this._y = this._options.y;
         this.setStyle();
-        this._viewModels = createViewModel(null,_data,_el);
+        this._store = new Store(_data,{
+            prototype:{
+
+            }
+        });
+        this._store.subscribe((nextState:any)=>{
+            this._viewModel.update(nextState);
+        })
+        //@ts-ignore
+        this._viewModel = createViewModel(null,this._store.currentState,_el);
         this._keyboard = new KeyBoard(_el);
         setTimeout(()=>{
-            _data.push({
-                //@ts-ignore
-                id:'112',
-                tag:'div',
-                attribute:{
-                    style:{
-                        left:'800px',
-                        top:'400px',
-                        width:'150px',
-                        height:'150px',
-                        backgroundColor:'orange'
+            // console.log('children :',this._store.currentState.get('children')._deref());
+            this._store.currentState.get('children').push(WrapData({
+                id:'113',
+                name:'div',
+                style:{
+                    width:'150px',
+                    height:'150px',
+                    backgroundColor:'orange'
+                },
+                extra:{
+                    position:{
+                        left:800,
+                        top:400,
                     }
                 }
-            })
-            this._viewModels.update(_data);
+            }))
+            setTimeout(()=>{
+                this._store.undo();
+                setTimeout(()=>{
+                    this._store.redo();
+                },1000)
+            },1000)
         },2000)
     }
     setStyle(){
