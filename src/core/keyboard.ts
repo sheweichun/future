@@ -1,6 +1,6 @@
 
 import {CanvasEvent,EventHandler} from './event';
-
+import {Store} from '../render/index'
 
 export class KeyBoard extends EventHandler{
     private _keyHandleCenter:{[key:string]:any} = {
@@ -8,22 +8,22 @@ export class KeyBoard extends EventHandler{
         'metaKey+shiftKey+z':this.redo
 
     }
-    constructor(private _el:HTMLElement){
+    constructor(private _el:HTMLElement,private _store:Store){
         super();
         _el.tabIndex = -1000
         this.listen();
     }
     undo(){
-        console.log('undo1!');
+        this._store.undo();
     }
     redo(){
-        console.log('redo!');
+        this._store.redo();
     }
     onKeyDown(e:KeyboardEvent){
         const {key,metaKey,shiftKey} = e;
         let code = [metaKey ? 'metaKey+': '', shiftKey ? 'shiftKey+': '',key.toLowerCase()].join('');
         let target = this._keyHandleCenter[code];
-        target && target();
+        target && target.apply(this);
         e.preventDefault();
         e.stopPropagation();
         

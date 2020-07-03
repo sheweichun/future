@@ -47,14 +47,15 @@ export class ViewModelCollection{
 export class ViewModel{
     children:ViewModelCollection
     view:IView<BaseModel>
+    _rect:DOMRect
     constructor(model:BaseModel,private _parent:ViewModel,mountNode?:HTMLElement){
-        
         if(model.get('isRoot',false)){
             this.view = new FragmentView(model,mountNode);
             mountNode.appendChild((this.view as FragmentView).getFragmentAndChange());
         }else{
             this.view = new View(model,{
-                onPostionChange:this.onPostionChange.bind(this)
+                onPostionChange:this.onPostionChange.bind(this),
+                didUpdate:this.onDidUpdate.bind(this)
             })
         }
         //@ts-ignore
@@ -66,10 +67,15 @@ export class ViewModel{
     }
     onPostionChange(left:number,top:number){
         const model = this.view.getModel();
-        model.set('extra',WrapData({
-            left,
-            top
-        }))
+        model.updateIn(['extra','position'],null,()=>{
+            return WrapData({
+                left,
+                top
+            })
+        })
+    }
+    onDidUpdate(){
+        this._rect = this.view.getRect();
     }
     remove(){
         if(this._parent == null) return;
@@ -81,9 +87,6 @@ export class ViewModel{
     update(model:BaseModel){
         if(model == null) return;
         const prevModel = this.view.getModel();
-        if(model.get('id') === '1112'){
-            console.log(prevModel.toJS(),model.toJS(),isEqual(model,prevModel))
-        }
         if(!isEqual(model,prevModel)){
             //@ts-ignore
             if(!prevModel.get('isRoot')){
@@ -109,13 +112,6 @@ function createViewModels(parent:ViewModel,models:BaseModel):ViewModelCollection
 
 export function createViewModel(parent:ViewModel,model:BaseModel,mountNode?:HTMLElement){
     if(model == null) return;
-    // let viewModel;
-    // if(model.get('isRoot',false)){
-    //     viewModel = new ViewModel(new FragmentView(model,mountNode),null);
-    //     mountNode.appendChild((viewModel.view as FragmentView).getFragmentAndChange());
-    // }else{
-    //     viewModel = new ViewModel(new View(model),parent);
-    // }
     const viewModel = new ViewModel(model,parent,mountNode);
     return viewModel;
 }

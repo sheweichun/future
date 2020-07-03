@@ -31,11 +31,15 @@ export class Content implements IEvent{
             }
         });
         this._store.subscribe((nextState:any)=>{
+            console.log('in update');
             this._viewModel.update(nextState);
         })
         //@ts-ignore
         this._viewModel = createViewModel(null,this._store.currentState,_el);
-        this._keyboard = new KeyBoard(_el);
+        this._keyboard = new KeyBoard(_el,this._store);
+        // this.test();
+    }
+    test(){
         setTimeout(()=>{
             // console.log('children :',this._store.currentState.get('children')._deref());
             this._store.currentState.get('children').push(WrapData({

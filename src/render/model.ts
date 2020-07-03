@@ -19,15 +19,17 @@ export interface UniversalObject{
 }
 
 export interface Model {
+    id?:string
     name?:string
     isRoot?:boolean
     style?:ObjectStyleDeclaration
     propSchemas?:ModelPropSchema[]
     children?:Model[]
-    extra?:{
+    extra:{
         position?:{
             left?:number,
             top?:number
-        }
+        },
+        isSelect:boolean
     }
 }

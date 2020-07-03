@@ -1,7 +1,7 @@
 import {BaseModel} from '../render/index'
 import {Model} from './model';
 import {Movable} from './movable';
-import {IView,ViewOptions} from './type'; 
+import {IView,ViewOptions,ViewLifeCallback} from './type'; 
 import { completeOptions } from '../utils';
 
 
@@ -19,6 +19,7 @@ export class FragmentView implements IView<BaseModel>{
     getModel(){
         return this._model
     }
+    getRect(){return this.getRoot().getBoundingClientRect()}
     destroy(){}
     update(){}
     getFragmentAndChange(){
@@ -34,24 +35,23 @@ export class View implements IView<BaseModel>{
     el:HTMLElement
     topEl:Movable
     private _model:Model
-    constructor(private _baseModel:BaseModel,_options?:ViewOptions){
-        const options = completeOptions(_options,DEFAULT_OPTIONS);
+    private _options:ViewOptions
+    constructor(private _baseModel:BaseModel,options?:ViewOptions){
+        this._options = completeOptions(options,DEFAULT_OPTIONS);
         //@ts-ignore
         this._model = _baseModel.toJS() as Model;
         const {_model} = this;
         const el = document.createElement(_model.name);
         this.el = el;
-        const elPosition = (_model.extra && _model.extra.position) || {};
-        this.topEl = new Movable(el,{
-            left:elPosition.left,
-            top:elPosition.top,
-            onPostionChange:options.onPostionChange
+        this.topEl = new Movable(el,this._model,{
+            onPostionChange:this._options.onPostionChange
         });
         this.updateAttribute();
     }
     getBoundingClientRect(){
         return this.topEl.getBoundingClientRect();
     }
+    getRect(){return this.getRoot().getBoundingClientRect()}
     getModel(){
         return this._baseModel;
     }
@@ -84,12 +84,14 @@ export class View implements IView<BaseModel>{
         const jsModel = model.toJS() as Model;
         this._model = jsModel
         this.updateAttribute();
-        if(jsModel.extra){
-            if(jsModel.extra.position){
-                const {left,top} = jsModel.extra.position
-                this.topEl.updatePosition(left,top);
-            }
-        }
+        this.topEl.update(jsModel);
+        // const {position} = jsModel.extra;
+        // if(position){
+        //     const {left,top} = position
+        //     this.topEl.updatePosition(left,top);
+        // }
+        const {didUpdate} = this._options
+        didUpdate && didUpdate();
     }
     destroy(){
 

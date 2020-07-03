@@ -10,7 +10,7 @@ FreeCanvas('canvas',{
             style:{
                 width:'300px',
                 height:'300px',
-                backgroundColor:'red'
+                backgroundColor:'#ff000055'
             },
             extra:{
                 position:{
@@ -25,7 +25,7 @@ FreeCanvas('canvas',{
                     style:{
                         width:'200px',
                         height:'200px',
-                        backgroundColor:'blue'
+                        backgroundColor:'#00ff0055'
                     },
                     extra:{
                         position:{
@@ -41,7 +41,7 @@ FreeCanvas('canvas',{
                         top:'150',
                         width:'100px',
                         height:'100px',
-                        backgroundColor:'yellow'
+                        backgroundColor:'#ffff0055'
                     },
                     extra:{
                         position:{
@@ -57,7 +57,7 @@ FreeCanvas('canvas',{
             style:{
                 width:'150px',
                 height:'150px',
-                backgroundColor:'black'
+                backgroundColor:'#00000055'
             },
             extra:{
                 position:{
