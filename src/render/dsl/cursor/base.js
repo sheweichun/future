@@ -21,8 +21,9 @@ const NOT_SET = {}; // Sentinel value
 // }
 
 class Base{
-  constructor(rootData, keyPath, updater, deref, size) {
+  constructor(rootData, keyPath, updater, deref,prototype, size) {
     this.size = size;
+    this._prototype = prototype;
     this._rootData = rootData;
     this._keyPath = keyPath;
     this._updater = updater;
@@ -57,7 +58,7 @@ class Base{
     return updateCursor(this, m => m.set(key, value), [key]);
   }
 
-  setIn: Map.prototype.setIn,
+  setIn
 
   // Needs tests
   remove(key) {
@@ -69,12 +70,16 @@ class Base{
     return this.remove.call(this, key);
   }
 
-  deleteIn: Map.prototype.deleteIn
+  deleteIn
 
-  removeIn: Map.prototype.deleteIn
+  removeIn
 
   clear() {
     return updateCursor(this, m => m.clear());
+  }
+
+  searialize(){
+    return this.toJS();
   }
 
   update(keyOrFn, notSetValue, updater) {
@@ -99,7 +104,7 @@ class Base{
     return updateCursor(this, m => m.mergeWith.apply(m, arguments));
   }
 
-  mergeIn: Map.prototype.mergeIn
+  mergeIn
 
   mergeDeep() {
     return updateCursor(this, m => m.mergeDeep.apply(m, arguments));
@@ -109,7 +114,7 @@ class Base{
     return updateCursor(this, m => m.mergeDeepWith.apply(m, arguments));
   }
 
-  mergeDeepIn: Map.prototype.mergeDeepIn
+  mergeDeepIn
 
   withMutations(fn) {
     return updateCursor(this, m => (m || Map()).withMutations(fn));

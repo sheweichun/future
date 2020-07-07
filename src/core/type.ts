@@ -19,9 +19,19 @@ export type ListenRecord = {
     el:HTMLElement
 }
 
+export interface ShortCutItem{
+    context?:any,fn:ShortCutCallback,params?:any[]
+}
 
 export interface IDispose {
     destroy():void
 }
+
+export type ShortCutCallback = ()=>void
+
+export interface IKeyBoard{
+    registerShortcut(keys:string[],item:ShortCutItem):boolean
+}
+
 
 

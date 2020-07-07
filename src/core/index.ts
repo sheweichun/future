@@ -6,7 +6,7 @@ import {isString} from '../utils/is';
 import {completeOptions} from '../utils/index';
 import {CanvasEvent,EventHandler} from './event';
 import {Model} from '../render/index'
-import {Render} from '../render/index'
+
 
 export interface CoreOptions  {
     canvas?:CanvasOption
@@ -43,6 +43,7 @@ export default class Core extends EventHandler{
     private _mouseWheelList:IEvent[] = [];
     private _drawTimeId:number
     private _eventEl:HTMLElement;
+
     margin:number = 20
     constructor(el: string,options?:CoreOptions){
         super();

@@ -30,7 +30,7 @@ export function makeCursor(rootData, keyPath, updater, deref, prototype ,value) 
   const size = value && value.size;
   const Cursor = Iterable.isIndexed(value) ? IndexedCursor : KeyedCursor;
   Cursor.prototype = Object.create(Object.assign(Cursor.prototype, prototype));
-  const cursor = new Cursor(rootData, keyPath, updater, deref, size);
+  const cursor = new Cursor(rootData, keyPath, updater, deref, prototype, size);
 
   if (value instanceof Record) {
     defineRecordProperties(cursor, value);
@@ -60,37 +60,66 @@ export function valToKeyPath(val) {
 }
 
 export function subCursor(cursor, keyPath, value) {
-  if (arguments.length < 3) {
-    return makeCursor( // call without value
-      cursor._rootData,
-      newKeyPath(cursor._keyPath, keyPath),
-      cursor._updater,
-      cursor._deref
-    );
-  }
+  // if (arguments.length < 3) {
+  //   return makeCursor( // call without value
+  //     cursor._rootData,
+  //     newKeyPath(cursor._keyPath, keyPath),
+  //     cursor._updater,
+  //     cursor._deref,
+  //     cursor._prototype
+  //   );
+  // }
   return makeCursor(
     cursor._rootData,
     newKeyPath(cursor._keyPath, keyPath),
     cursor._updater,
     cursor._deref,
+    cursor._prototype,
     value
   );
 }
 
 export function updateCursor(cursor, changeFn, keyPath) {
   const deepChange = arguments.length > 2;
-  const updateFn = oldState => oldState.updateIn(
-    cursor._keyPath,
-    deepChange ? Map() : undefined,
-    changeFn
-  );
+  // console.log('_keyPath :',cursor._keyPath,keyPath,cursor._deref().toJS());
+  // console.log('before update :',cursor._deref().getIn(cursor._keyPath).toJS().extra);
+  const updateFn = (oldState) => {
+    const ret = oldState.updateIn(
+      cursor._keyPath,
+      deepChange ? Map() : undefined,
+      changeFn
+    );
+    return ret;
+  }
   return makeCursor(
     cursor._updater(updateFn, newKeyPath(cursor._keyPath, keyPath)),
     cursor._keyPath,
     cursor._updater,
-    cursor._deref
+    cursor._deref,
+    cursor._prototype
+    
   );
 }
+
+// export function updateCursor(cursor, changeFn, changeKeyPath) {
+//   var deepChange = arguments.length > 2;
+//   var newRootData = cursor._rootData.updateIn(
+//     cursor._keyPath,
+//     deepChange ? Map() : undefined,
+//     changeFn
+//   );
+//   var keyPath = cursor._keyPath || [];
+//   var result = cursor._onChange && cursor._onChange.call(
+//     undefined,
+//     newRootData,
+//     cursor._rootData,
+//     deepChange ? newKeyPath(keyPath, changeKeyPath) : keyPath
+//   );
+//   if (result !== undefined) {
+//     newRootData = result;
+//   }
+//   return makeCursor(newRootData, cursor._keyPath, cursor._onChange, null, cursor.store);
+// }
 
 export function wrappedValue(cursor, keyPath, value) {
   return Iterable.isIterable(value) ? subCursor(cursor, keyPath, value) : value;

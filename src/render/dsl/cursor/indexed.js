@@ -2,8 +2,8 @@ import {Seq} from 'immutable';
 import Base from './base';
 import {updateCursor} from './util';
 
-function Indexed(rootData, keyPath, updater, deref, size) {
-  Base.call(this, rootData, keyPath, updater, deref, size);
+function Indexed(rootData, keyPath, updater, deref, prototype, size) {
+  Base.call(this, rootData, keyPath, updater, deref, prototype, size);
 }
 
 Indexed.prototype = Object.create(Seq.Indexed.prototype);

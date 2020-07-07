@@ -8,7 +8,8 @@
  */
 
 import {valToKeyPath, makeCursor} from './util';
-import createAtom from 'atom-store';
+import createAtom from '../atom/atom'
+// import createAtom from 'atom-store';
 
 function cursorFrom(data, keyPath, prototype, onChange) {
   const atom = createAtom(data);
@@ -25,7 +26,22 @@ function cursorFrom(data, keyPath, prototype, onChange) {
     atom.watch(onChange);
   }
 
-  return makeCursor(data, keyPath, atom.write.bind(atom), atom.read,prototype);
+  const cursor = makeCursor(data, keyPath, atom.write,atom.read,prototype);
+  // ret.reset(); 
+  cursor._atom_reset = atom.clear;
+  return cursor;
 }
+
+// function cursorFrom(rootData, keyPath, prototype, onChange) {
+//   if (arguments.length === 1) {
+//     keyPath = [];
+//   } else if (typeof keyPath === 'function') {
+//     onChange = keyPath;
+//     keyPath = [];
+//   } else {
+//     keyPath = valToKeyPath(keyPath);
+//   }
+//   return makeCursor(rootData, keyPath, onChange, ()=>rootData, prototype);
+// }
 
 exports.from = cursorFrom;

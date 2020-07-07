@@ -1,4 +1,4 @@
-import {BaseModel} from '../render/index'
+// import {Model} from '../render/index'
 import {Model} from './model';
 import {Movable} from './movable';
 import {IView,ViewOptions,ViewLifeCallback} from './type'; 
@@ -10,10 +10,10 @@ const DEFAULT_OPTIONS = {
 }
 
 
-export class FragmentView implements IView<BaseModel>{
+export class FragmentView implements IView<Model>{
     rootEl:Node = document.createDocumentFragment()
-    constructor(private _model:BaseModel,private _el:HTMLElement){}
-    appendChild(view:IView<BaseModel>){
+    constructor(private _model:Model,private _el:HTMLElement){}
+    appendChild(view:IView<Model>){
         this.rootEl.appendChild(view.getRoot());
     }
     getModel(){
@@ -31,29 +31,21 @@ export class FragmentView implements IView<BaseModel>{
         return this._el
     }
 }
-export class View implements IView<BaseModel>{
+export class View implements IView<Model>{
     el:HTMLElement
-    topEl:Movable
-    private _model:Model
     private _options:ViewOptions
-    constructor(private _baseModel:BaseModel,options?:ViewOptions){
+    constructor(private _model:Model,options?:ViewOptions){
         this._options = completeOptions(options,DEFAULT_OPTIONS);
-        //@ts-ignore
-        this._model = _baseModel.toJS() as Model;
-        const {_model} = this;
         const el = document.createElement(_model.name);
         this.el = el;
-        this.topEl = new Movable(el,this._model,{
-            onPostionChange:this._options.onPostionChange
-        });
         this.updateAttribute();
     }
-    getBoundingClientRect(){
-        return this.topEl.getBoundingClientRect();
-    }
+    // getBoundingClientRect(){
+    //     return this.el.getBoundingClientRect();
+    // }
     getRect(){return this.getRoot().getBoundingClientRect()}
     getModel(){
-        return this._baseModel;
+        return this._model;
     }
     updateAttribute(){
         const {el ,_model} = this;
@@ -72,26 +64,24 @@ export class View implements IView<BaseModel>{
         }
     }
     getRoot(){
-        return this.topEl.el;
+        return this.el;
     }
-    appendChild(view:IView<BaseModel>){
+    appendChild(view:IView<Model>){
         if(view == null) return;
         this.el.appendChild(view.getRoot());
     }
-    update(model:BaseModel){
-        this._baseModel = model;
-        //@ts-ignore
-        const jsModel = model.toJS() as Model;
-        this._model = jsModel
+
+    update(model:Model){
+        const prevModel = this._model;
+        this._model = model
         this.updateAttribute();
-        this.topEl.update(jsModel);
         // const {position} = jsModel.extra;
         // if(position){
         //     const {left,top} = position
         //     this.topEl.updatePosition(left,top);
         // }
         const {didUpdate} = this._options
-        didUpdate && didUpdate();
+        didUpdate && didUpdate(prevModel,model);
     }
     destroy(){
 
@@ -100,6 +90,6 @@ export class View implements IView<BaseModel>{
 
 
 
-export function createView(model:BaseModel){
+export function createView(model:Model){
     return new View(model);
 }

@@ -1,8 +1,8 @@
 import {Seq} from 'immutable';
 import Base from './base';
 
-function Keyed(rootData, keyPath, updater, deref, size) {
-  Base.call(this, rootData, keyPath, updater, deref, size);
+function Keyed(rootData, keyPath, updater, deref, prototype,size) {
+  Base.call(this, rootData, keyPath, updater, deref, prototype,size);
 }
 
 Keyed.prototype = Object.create(Seq.Keyed.prototype);

@@ -55,6 +55,17 @@ export class History implements HistoryApi {
         this.triggerEvent(state, prevState);
         return state;
     }
+
+    replace(state:any){
+        const prevState = this.currentState;
+        // const startIndex = this.currentIndex + 1;
+        // this.recordStack.splice(startIndex, this.recordStack.length - 1, state);
+        this.recordStack.splice(this.currentIndex, 1, state);
+        
+        this.triggerEvent(state, prevState);
+        return state;
+    }
+
     clear() {
         this.recordStack = [];
         return this.currentState;
