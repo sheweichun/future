@@ -22,6 +22,8 @@ export function defineRecordProperties(cursor, value) {
     // Object.defineProperty failed. Probably IE8.
   }
 }
+// IndexedCursor.prototype = Object.create(Object.assign(Cursor.prototype, prototype))
+// KeyedCursor.prototype = Object.create(Object.assign(Cursor.prototype, prototype))
 
 export function makeCursor(rootData, keyPath, updater, deref, prototype ,value) {
   if (arguments.length < 6) {
@@ -29,7 +31,7 @@ export function makeCursor(rootData, keyPath, updater, deref, prototype ,value) 
   }
   const size = value && value.size;
   const Cursor = Iterable.isIndexed(value) ? IndexedCursor : KeyedCursor;
-  Cursor.prototype = Object.create(Object.assign(Cursor.prototype, prototype));
+  // Cursor.prototype = Object.create(Object.assign(Cursor.prototype, prototype));
   const cursor = new Cursor(rootData, keyPath, updater, deref, prototype, size);
 
   if (value instanceof Record) {

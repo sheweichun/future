@@ -19,7 +19,8 @@ export class RulerGroup extends DrawEntity{
         const {_drawer} = this;
         this._options = completeOptions(options,DEFAULT_OPTIONS);
         const {lineStyle,length,rulerBackgroundColor} = this._options
-        const halfLineWidth = _drawer.getLineWidth() / 2;
+        // const halfLineWidth = _drawer.getLineWidth() / 2;
+        const halfLineWidth = 0;
         this._topRuler = new Ruler({
             start:new Point(20-halfLineWidth,halfLineWidth),
             size:length - halfLineWidth * 2,

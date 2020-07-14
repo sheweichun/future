@@ -4,7 +4,7 @@ import {LabelOptions} from './type';
 import { completeOptions } from '../utils/index';
 
 const DEFAULT_OPTION = {
-    fontSize:'10px',
+    fontSize:10,
     fontStyle:'normal',
     fontWeight:'normal',
     fontFamily:'sans-serif',
@@ -36,7 +36,7 @@ class HLabel extends Line{
         const {context} = drawer;
         super.draw(drawer);
         context.save();
-        context.font = `${fontStyle} ${fontWeight} ${fontSize} ${fontFamily}`
+        context.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`
         context.fillStyle = color;
         context.fillText(value,start.x + padding,end.y + padding * 2);
         context.restore();

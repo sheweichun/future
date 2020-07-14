@@ -15,14 +15,8 @@ export interface LabelOptions extends LineOption{
     fontStyle?:string
     fontWeight?:string
     padding?:number
-    fontSize?:string
+    fontSize?:number
     fontFamily?:string
 }
 
 
-export interface ContentOptions{
-    wheelSpeedX:number,
-    wheelSpeedY:number,
-    x?:number,
-    y?:number
-}

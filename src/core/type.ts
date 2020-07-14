@@ -1,8 +1,25 @@
+import { MakerData } from "./operation/type"
 
 export interface CanvasOption {
     onMouseEvent?:(eventName:string,e:MouseEvent)=>void
 }
 
+
+export enum KeyBoardKeys {
+    METAKEY = 'metaKey',
+    SHIFTKEY = 'shiftKey',
+    ALTKEY = 'altKey',
+    ARROWUP = 'ArrowUp',
+    ARROWDOWN = 'ArrowDown',
+    ARROWLEFT = 'ArrowLeft',
+    ARROWRIGHT = 'ArrowRight',
+    BACKSPACE = 'Backspace'
+}
+
+export interface OperationOptions{
+    margin:number,
+    updateMakers:(data?:MakerData[])=>void
+}
 
 export interface ICanvas{
     context:CanvasRenderingContext2D;
@@ -20,7 +37,9 @@ export type ListenRecord = {
 }
 
 export interface ShortCutItem{
-    context?:any,fn:ShortCutCallback,params?:any[]
+    context?:any,
+    fn:ShortCutCallback,
+    params?:any[]
 }
 
 export interface IDispose {
@@ -34,4 +53,39 @@ export interface IKeyBoard{
 }
 
 
+export interface IDisposable{
+    destroy():void
+}
 
+export interface OperationSizeOptions{
+    onMove:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
+    onChange:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
+    // onStart:()=>void
+}
+
+// export type OperationPos = {left:number,top:number,width:number,height:number}
+
+export enum HANDLER_ITEM_DIRECTION{
+    LEFT,
+    TOP,
+    RIGHT,
+    BOTTOM,
+    LEFT_TOP,
+    RIGHT_TOP,
+    LEFT_BOTTOM,
+    RIGHT_BOTTOM
+}
+
+export interface ContentOptions{
+    // getRect:()=>OperationPos
+    updateMakers:(data?:MakerData[])=>void
+    wheelSpeedX:number,
+    wheelSpeedY:number,
+    margin:number,
+    x?:number,
+    y?:number
+}
+
+export interface HanlerItemOption extends OperationSizeOptions{
+  
+}

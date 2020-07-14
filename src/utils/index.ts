@@ -1,5 +1,6 @@
 
 
+
 export function controlDelta(val:number,speed:number = 5){
     return Math.floor(val / speed);
 }
@@ -14,4 +15,16 @@ export function completeOptions(options:any,defaultOptions:any){
         }
         return ret;
     },Object.assign({},options))
+}
+
+let throttleId:any;
+let curFn:()=>void;
+
+export function throttle(fn:()=>void,tm:number){
+    curFn = fn;
+    if(throttleId != null) return;
+    throttleId = setTimeout(function(){
+        curFn && curFn();
+        throttleId = null;
+    },tm)
 }

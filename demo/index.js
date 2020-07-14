@@ -4,11 +4,12 @@ const FreeCanvas = require('../lib/index').default
 FreeCanvas('canvas',{
     data:{
         isRoot:true,
+        // isGroup:false,
         children:[{
             id:'111',
             name:'div',
             style:{
-                width:'300px',
+                width:'400px',
                 height:'300px',
                 backgroundColor:'#ff000055'
             },
@@ -33,6 +34,23 @@ FreeCanvas('canvas',{
                             top:10
                         }
                     },
+                    children:[
+                        {
+                            id:'11111',
+                            name:'div',
+                            style:{
+                                width:'100px',
+                                height:'100px',
+                                backgroundColor:'#00ff3355'
+                            },
+                            extra:{
+                                position:{
+                                    left:20,
+                                    top:20
+                                }
+                            },
+                        }
+                    ]
                 } ,{
                     id:'1112',
                     name:'div',
@@ -45,7 +63,7 @@ FreeCanvas('canvas',{
                     },
                     extra:{
                         position:{
-                            left:150,
+                            left:250,
                             top:150
                         }
                     }
@@ -63,6 +81,20 @@ FreeCanvas('canvas',{
                 position:{
                     left:400,
                     top:300
+                }
+            }
+        },{
+            id:'113',
+            name:'div',
+            style:{
+                width:'150px',
+                height:'150px',
+                backgroundColor:'#00000055'
+            },
+            extra:{
+                position:{
+                    left:600,
+                    top:400
                 }
             }
         }]

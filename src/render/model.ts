@@ -9,9 +9,13 @@ import {ObjectStyleDeclaration} from '../utils/type'
 // }
 
 export interface ModelPropSchema{
-    name:string
+    // name:string
     value:string,
     expression:any
+}
+
+export interface ModelPropSchemas{
+    [key:string]:ModelPropSchema
 }
 
 export interface UniversalObject{
@@ -22,8 +26,9 @@ export interface Model {
     id?:string
     name?:string
     isRoot?:boolean
+    isGroup?:boolean
     style?:ObjectStyleDeclaration
-    propSchemas?:ModelPropSchema[]
+    propSchemas?:ModelPropSchemas
     children?:Model[]
     extra:{
         position?:{
@@ -31,5 +36,23 @@ export interface Model {
             top?:number
         },
         isSelect:boolean
+    }
+}
+
+
+export function createGroupModel(left:number,top:number,width:number,height:number){
+    return {
+        name:'div',
+        isGroup:true,
+        style:{
+            width:width+'px',
+            height:height+'px'
+        },
+        extra:{
+            position:{
+                left,
+                top
+            }
+        }
     }
 }

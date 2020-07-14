@@ -3,13 +3,17 @@ import {ListenRecord,ListenFunc} from './type';
 export enum CanvasEvent {
     MOUSEWHEEL="mousewheel",
     CLICK="click",
+    DBCLICK="dblclick",
     MOUSEDOWN="mousedown",
     MOUSEMOVE="mousemove",
+    MOUSEENTER="mouseenter",
+    MOUSELEAVE="mouseleave",
     MOUSEUP="mouseup",
     FOUCS="focus",
     BLUR="blur",
     KEYDOWN="keydown",
-    KEYUP="keyup"
+    KEYUP="keyup",
+    DRAGSTART="dragstart"
 }
 
 

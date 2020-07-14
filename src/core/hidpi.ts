@@ -28,78 +28,91 @@ function RenderContext(pixelRatio: number, prototype: any) {
     createLinearGradient: "all",
   };
 
-  if (pixelRatio === 1) return;
-
-  forEach(ratioArgs, function (value: string, key: any) {
-    prototype[key] = (function (_super) {
-      return function () {
-        var i,
-          len,
-          args = Array.prototype.slice.call(arguments);
-
-        if (value === "all") {
-          args = args.map(function (a) {
-            return a * pixelRatio;
-          });
-        } else if (Array.isArray(value)) {
-          for (i = 0, len = value.length; i < len; i++) {
-            args[value[i]] *= pixelRatio;
+  if (pixelRatio > 1) {
+    forEach(ratioArgs, function (value: string, key: any) {
+      prototype[key] = (function (_super) {
+        return function () {
+          var i,
+            len,
+            args = Array.prototype.slice.call(arguments);
+  
+          if (value === "all") {
+            args = args.map(function (a) {
+              return a * pixelRatio;
+            });
+          } else if (Array.isArray(value)) {
+            for (i = 0, len = value.length; i < len; i++) {
+              args[value[i]] *= pixelRatio;
+            }
           }
-        }
-
-        return _super.apply(this, args);
+  
+          return _super.apply(this, args);
+        };
+      })(prototype[key]);
+    });
+  
+    // Stroke lineWidth adjustment
+    // prototype.stroke = (function (_super) {
+    //   return function () {
+    //     // this.lineWidth *= pixelRatio;
+    //     _super.apply(this, arguments);
+    //     // this.lineWidth /= pixelRatio;
+    //   };
+    // })(prototype.stroke);
+  
+    // Text
+    //
+    prototype.fillText = (function (_super) {
+      return function () {
+        var args = Array.prototype.slice.call(arguments);
+  
+        args[1] *= pixelRatio; // x
+        args[2] *= pixelRatio; // y
+  
+        this.font = this.font.replace(/(\d+)(px|em|rem|pt)/g, function (w, m, u) {
+          return m * pixelRatio + u;
+        });
+  
+        _super.apply(this, args);
+  
+        this.font = this.font.replace(/(\d+)(px|em|rem|pt)/g, function (w, m, u) {
+          return m / pixelRatio + u;
+        });
       };
-    })(prototype[key]);
-  });
+    })(prototype.fillText);
+  
+    prototype.strokeText = (function (_super) {
+      return function () {
+        var args = Array.prototype.slice.call(arguments);
+  
+        args[1] *= pixelRatio; // x
+        args[2] *= pixelRatio; // y
+  
+        this.font = this.font.replace(/(\d+)(px|em|rem|pt)/g, function (w, m, u) {
+          return m * pixelRatio + u;
+        });
+  
+        _super.apply(this, args);
+  
+        this.font = this.font.replace(/(\d+)(px|em|rem|pt)/g, function (w, m, u) {
+          return m / pixelRatio + u;
+        });
+      };
+    })(prototype.strokeText);
+  };
+  if(pixelRatio % 2 === 1){
+    prototype.moveTo = (function (_super) {
+      return function (x:numebr,y:number) {
+        _super.call(this, x - 0.5, y - 0.5);
+      };
+    })(prototype.moveTo);
+    prototype.lineTo = (function (_super) {
+      return function (x:numebr,y:number) {
+        _super.call(this, x - 0.5, y - 0.5);
+      };
+    })(prototype.lineTo);
+  }
 
-  // Stroke lineWidth adjustment
-  prototype.stroke = (function (_super) {
-    return function () {
-      this.lineWidth *= pixelRatio;
-      _super.apply(this, arguments);
-      this.lineWidth /= pixelRatio;
-    };
-  })(prototype.stroke);
-
-  // Text
-  //
-  prototype.fillText = (function (_super) {
-    return function () {
-      var args = Array.prototype.slice.call(arguments);
-
-      args[1] *= pixelRatio; // x
-      args[2] *= pixelRatio; // y
-
-      this.font = this.font.replace(/(\d+)(px|em|rem|pt)/g, function (w, m, u) {
-        return m * pixelRatio + u;
-      });
-
-      _super.apply(this, args);
-
-      this.font = this.font.replace(/(\d+)(px|em|rem|pt)/g, function (w, m, u) {
-        return m / pixelRatio + u;
-      });
-    };
-  })(prototype.fillText);
-
-  prototype.strokeText = (function (_super) {
-    return function () {
-      var args = Array.prototype.slice.call(arguments);
-
-      args[1] *= pixelRatio; // x
-      args[2] *= pixelRatio; // y
-
-      this.font = this.font.replace(/(\d+)(px|em|rem|pt)/g, function (w, m, u) {
-        return m * pixelRatio + u;
-      });
-
-      _super.apply(this, args);
-
-      this.font = this.font.replace(/(\d+)(px|em|rem|pt)/g, function (w, m, u) {
-        return m / pixelRatio + u;
-      });
-    };
-  })(prototype.strokeText);
 }
 
 export function getRatio(context: CanvasRenderingContext2D){
@@ -127,8 +140,8 @@ export default function hidpi(
   canvas.width = width * ratio;
   canvas.height = height * ratio;
   // }
-  if(ratio > 1){
+  // if(ratio > 1){
     RenderContext(ratio,CanvasRenderingContext2D.prototype);
-  }
+  // }
   
 }

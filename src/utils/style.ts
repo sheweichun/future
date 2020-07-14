@@ -15,3 +15,18 @@ export function px2Num(px:string | number,defaultValue:number){
     }
     return val;
 }
+
+export function createStyle(val:string){
+    const  style = document.createElement("style") as HTMLStyleElement;
+    style.type = "text/css";
+    try{
+
+    　　style.appendChild(document.createTextNode(val));
+    }catch(ex){
+        //@ts-ignore
+    　　style.styleSheet.cssText = "body{background-color:red}";//针对IE
+    }
+    var head = document.getElementsByTagName("head")[0];
+
+    head.appendChild(style);
+}

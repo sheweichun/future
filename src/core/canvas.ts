@@ -23,6 +23,7 @@ export default class Canvas implements ICanvas{
         this._options = completeOptions(option,DEFAULT_OPTION);
         this.context = _el.getContext('2d');
         this.resize();
+        this.context.lineWidth = this.getLineWidth();
     }
     getLineWidth(){
         return this.context.lineWidth * this._radio

@@ -1,7 +1,8 @@
 // import {Model} from '../render/index'
-import {Model} from './model';
+import {Model,ModelPropSchemas} from './model';
+import {ObjectStyleDeclaration} from '../utils/type'
 import {Movable} from './movable';
-import {IView,ViewOptions,ViewLifeCallback} from './type'; 
+import {IView,ViewOptions} from './type'; 
 import { completeOptions } from '../utils';
 
 
@@ -19,7 +20,8 @@ export class FragmentView implements IView<Model>{
     getModel(){
         return this._model
     }
-    getRect(){return this.getRoot().getBoundingClientRect()}
+    updateStyle(){}
+    // getRect(){return this.getRoot().getBoundingClientRect()}
     destroy(){}
     update(){}
     getFragmentAndChange(){
@@ -43,18 +45,40 @@ export class View implements IView<Model>{
     // getBoundingClientRect(){
     //     return this.el.getBoundingClientRect();
     // }
-    getRect(){return this.getRoot().getBoundingClientRect()}
+    // getRect(){return this.getRoot().getBoundingClientRect()}
     getModel(){
         return this._model;
     }
-    updateAttribute(){
+    updateStyle(width:number,height:number){
+        const elStyle = this.el.style
+        elStyle.width = `${width}px`
+        elStyle.height = `${height}px`
+    }
+    updateAttribute(beforePropSchemas:ModelPropSchemas = {},beforeStyle:ObjectStyleDeclaration={}){
         const {el ,_model} = this;
         const {propSchemas,style} = _model
-        propSchemas && propSchemas.forEach((item)=>{
-            if(item.name === 'style'){
-                return
+        if(beforePropSchemas){
+            Object.keys(beforePropSchemas).forEach((key)=>{
+                if(!propSchemas[key]){
+                    propSchemas[key] = null
+                }
+            })
+        }
+        if(beforeStyle){
+            Object.keys(beforeStyle).forEach((key:any)=>{
+                if(!style[key]){
+                    style[key] = ''
+                }
+            })
+        }
+        propSchemas && Object.keys(propSchemas).forEach((key)=>{
+            const item = propSchemas[key];
+            if(key === 'style') return;
+            if(item == null){
+                el.removeAttribute(key);
+            }else{
+                el.setAttribute(key,item.value);
             }
-            el.setAttribute(name,item.value);
         })
         if(style){
             Object.keys(style).forEach(styleName => {
@@ -72,16 +96,9 @@ export class View implements IView<Model>{
     }
 
     update(model:Model){
-        const prevModel = this._model;
+        const {propSchemas,style} = this._model;
         this._model = model
-        this.updateAttribute();
-        // const {position} = jsModel.extra;
-        // if(position){
-        //     const {left,top} = position
-        //     this.topEl.updatePosition(left,top);
-        // }
-        const {didUpdate} = this._options
-        didUpdate && didUpdate(prevModel,model);
+        this.updateAttribute(propSchemas,style);
     }
     destroy(){
 

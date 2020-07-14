@@ -16,15 +16,21 @@ export class Line extends Entity{
         super()
         this._options = completeOptions(options || {},DEFAULT_LINESTYLE);        
     }
+    drawPath(context:CanvasRenderingContext2D){
+        const {start,end} = this;
+        context.beginPath();
+        context.moveTo(start.x ,start.y);
+        context.lineTo(end.x ,end.y);
+        context.closePath();
+        context.stroke(); 
+    }
     draw(drawer:ICanvas):void{
         const {context} = drawer;
-        const {start,end,_options} = this;
+        const {lineStyle,lineDash} = this._options;
         context.save();
-        _options.lineStyle && (context.strokeStyle = _options.lineStyle)
-        context.beginPath();
-        context.moveTo(start.x,start.y);
-        context.lineTo(end.x,end.y);
-        context.stroke(); 
+        lineStyle && (context.strokeStyle = lineStyle)
+        lineDash && (context.setLineDash(lineDash)) 
+        this.drawPath(context)
         context.restore();
     }
     changeX(x:number){

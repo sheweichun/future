@@ -1,12 +1,21 @@
 
 import {CanvasEvent,EventHandler} from './event';
-import {Store} from '../render/index'
-import {IKeyBoard,ShortCutCallback,ShortCutItem} from './type'
+// import {Store} from '../render/index'
+import {IKeyBoard,ShortCutCallback,ShortCutItem,KeyBoardKeys} from './type'
 
-export enum KeyBoardKeys {
-    METAKEY = 'metaKey',
-    SHIFTKEY = 'shiftKey',
-    ALTKEY = 'altKey'
+
+function keysToKeyStr(keys:string[],split='+'){
+    let ret:string = null;
+    keys.forEach((val)=>{
+        if(!val) return ret;
+        const valStr = val.toLowerCase();
+        if(ret == null){
+            ret = valStr
+        }else{
+            ret += split + valStr;
+        }
+    })
+    return ret;
 }
 
 export class KeyBoard  extends EventHandler implements IKeyBoard{
@@ -15,14 +24,43 @@ export class KeyBoard  extends EventHandler implements IKeyBoard{
         // 'metaKey+shiftKey+z':{fn:this.redo}
 
     }
-    constructor(private _el:HTMLElement){
+    private _keyHandleNameSpaceCenter:{
+        [key:string]:KeyBoard
+    } = {}
+    constructor(private _el?:HTMLElement){
         super();
-        _el.tabIndex = -1000
-        this.listen();
+        if(_el != null){
+            _el.tabIndex = -1000
+            this.listen();
+        }
+    }
+    getKeyHandlerCenter(){
+        return this._keyHandleCenter;
+    }
+    createNameSpace(ns:string){
+        if(this._keyHandleNameSpaceCenter[ns]) return this._keyHandleNameSpaceCenter[ns];
+        const keyboard = new KeyBoard();
+        this._keyHandleNameSpaceCenter[ns] = keyboard;
+        const prevDestroy = keyboard.destroy;
+        keyboard.destroy = function(){
+            prevDestroy.apply(keyboard)
+            this._keyHandleNameSpaceCenter[ns] = null;
+            delete this._keyHandleNameSpaceCenter[ns]
+        }
+        return keyboard;
     }
     registerShortcut(keys:string[],item:ShortCutItem):boolean{
-        this._keyHandleCenter[keys.join('+')] = item;
+        this._keyHandleCenter[keysToKeyStr(keys)] = item;
         return true;
+    }
+    unregisterShortcut(keys:string[]){
+        this._keyHandleCenter[keys.join('+')] = null;
+        delete this._keyHandleCenter[keysToKeyStr(keys)];
+        return true;
+    }
+    destroy(){
+        this._keyHandleCenter = {};
+        super.destroy();
     }
     // undo(){
     //     this._store.undo();
@@ -32,17 +70,27 @@ export class KeyBoard  extends EventHandler implements IKeyBoard{
     // }
     onKeyDown(e:KeyboardEvent){
         const {key,metaKey,shiftKey} = e;
-        let code = [metaKey ? 'metaKey+': '', shiftKey ? 'shiftKey+': '',key.toLowerCase()].join('');
+        // console.log('E :',e);
+        let code = keysToKeyStr([metaKey ? 'metaKey': null, shiftKey ? 'shiftKey': null,key]);
         let target = this._keyHandleCenter[code];
         if(target){
             const {fn,params,context} = target;
             fn.apply(context,params);
         }
+        Object.keys(this._keyHandleNameSpaceCenter).forEach((ns)=>{
+            const keyboard = this._keyHandleNameSpaceCenter[ns];
+            let nsTarget = keyboard.getKeyHandlerCenter()[code];
+            if(nsTarget){
+                const {fn,params,context} = nsTarget;
+                fn.apply(context,params);
+            }
+        })
         e.preventDefault();
         e.stopPropagation();
         
     }
     listen(){
+        if(this._el == null) return;
         this.addEvent(this._el,CanvasEvent.KEYDOWN,this.onKeyDown.bind(this))
     }
 }

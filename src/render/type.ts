@@ -1,6 +1,8 @@
 import {Model} from './model';
 import {ObjectStyleDeclaration} from '../utils/type'
 import { BaseModel } from './dsl/store';
+import { ViewModel } from './viewModel';
+import { OperationPos } from '../core/operation/pos';
 
 export interface ViewAttribute{
     style?:ObjectStyleDeclaration
@@ -15,9 +17,10 @@ export interface IView<T>{
     // model:Model
     appendChild(view:IView<T>):void
     update(model:T):void
-    getRect():DOMRect
+    // getRect():DOMRect
     getRoot():Node
     getModel():T
+    updateStyle(width:number,height:number):void
     destroy():void
 } 
 
@@ -32,12 +35,40 @@ export interface ViewOptions{
     // onPostionChange?:OnPositionChange
     // onSelect?:OnSelect
    
-    didUpdate?:(prevModel:Model,curModel:Model)=>void
-    didMount?:ViewLifeCallback
+    // didUpdate?:(prevModel:Model,curModel:Model)=>void
+    // didMount?:ViewLifeCallback
+}
+
+export interface IViewModelCollection{
+    viewModelList:IViewModel[]
+    didMount:()=>void
+    didUpdate:()=>void
+    update:(data:any)=>void
 }
 
 export interface IViewModel{
+    isRoot:boolean
+    children:IViewModelCollection
     getModel():BaseModel
+    getParent():IViewModel
+    isChildren(vm:IViewModel):boolean
+    getRect():OperationPos
+    getView():IMovable
+    getViewModelByXY(x:number,y:number):IViewModel
+    getRelativeRect(rect:OperationPos):{left:number,top:number,width:number,height:number}
+    // isInside(vm:IViewModel):boolean
+    // moveLeft(diffx:number):void
+    // moveTop(diffy:number):void
+    // moveRight(diffx:number):void
+    // moveBottom(diffy:number):void
+    // canMove():boolean
+    // disableMove():void
+    changePosition(diffx:number,diffy:number):void
+}
+
+export interface IMovable{
+    focus(x:number,y:number,shiftKey:boolean):void
+    // mark():void
 }
 
 
@@ -61,7 +92,7 @@ export interface CommanderOption {
     params?:any[]
 }
 
-export type CommanderCallback = (vm:IViewModel,data?:any)=>void
+export type CommanderCallback = (vm:IViewModel | IViewModel[],data?:any)=>void
 
 export interface ICommander{
     register(name:number,callback: CommanderCallback,context?:any,params?:any[]):void
@@ -70,7 +101,10 @@ export interface ICommander{
 }
 
 export interface ViewModelOptions extends MovableOptions{
-    commander?:ICommander
+    commander?:ICommander,
+    addViewModel:(viewModel:IViewModel)=>void
+    removeViewModel:(ViewModel:IViewModel)=>void
+    getRect:()=>OperationPos
 }
 
 export interface MovableOptions extends ViewOptions{
@@ -80,4 +114,5 @@ export interface MovableOptions extends ViewOptions{
     mountNode?:HTMLElement
     excute(name:number,data?:any):void
     isRoot?:boolean
+    isChild?:boolean
 }

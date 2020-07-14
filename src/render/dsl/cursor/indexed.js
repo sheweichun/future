@@ -14,6 +14,11 @@ Indexed.prototype.push = function() {
   return updateCursor(this, m => m.push.apply(m, prevArguments));
 };
 
+Indexed.prototype.delete = function() {
+  const prevArguments = arguments
+  return updateCursor(this, m => m.delete.apply(m, prevArguments));
+};
+
 Indexed.prototype.pop = function() {
   return updateCursor(this, m => m.pop());
 };
