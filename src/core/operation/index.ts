@@ -319,7 +319,7 @@ export class Operation implements IDisposable{
         // };
         if(!this._canMove) return;
         this._changed = true;
-        this._size.hide();
+        this._size && this._size.hide();
         const {x,y} = e;
         const pos = this._pos;
         const diffx = x - this._startX;
@@ -383,7 +383,7 @@ export class Operation implements IDisposable{
         if(this._canMove === false) return;
         this._canMove = false;
         if(this._changed){
-            this._size.show();
+            this._size && this._size.show();
             this._mutation.onPostionChanges(this._selectViewModels,{
                 left:this._startX - this._originX,
                 top: this._startY - this._originY

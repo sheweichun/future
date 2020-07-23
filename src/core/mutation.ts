@@ -221,8 +221,6 @@ export class Mutation{
     }
     group(vms:IViewModel[],pos:OperationPos){ //编组
         if(vms == null || vms.length <= 1) return 
-        // let left:number,top:number,width:number,height:number
-        // let initFlag = false;
        this.transition(()=>{
         const groupModel = createGroupModel(pos.left,pos.top,pos.width,pos.height);
         const childs:BaseModel[] = []
@@ -274,22 +272,6 @@ export class Mutation{
         this.transition(()=>{
             this._removeModelsFromEachModel([].concat(vms),dslData);
         })
-        
-        // this.each(dslData,(curModel:BaseModel)=>{
-        //     if(curModel.getIn(['extra','isSelect'],false)){
-        //         curModel.updateIn(['extra','isSelect'],null,()=>false)
-        //         return true;
-        //     }
-        //     return true;
-        // })
-        // const ret = fn(curModel);
-        // if(!ret) return;
-        // const children = curModel.get('children',null);
-        // if(children){
-        //     children.forEach((child:BaseModel)=>{
-        //         this.each(child,fn);
-        //     })
-        // }
     }
     onPostionChanges(vms:IViewModel[],data:{left:number,top:number}){
         this.transition(()=>{
