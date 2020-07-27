@@ -1,0 +1,23 @@
+{
+  "name": "free-canvas-tree",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "test-c": "jest --coverage",
+    "clean": "rm -rf lib tsconfig.tsbuildinfo"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "main": "lib/index.js",
+  "devDependencies": {
+    "@types/react": "^16.9.43",
+    "@types/react-dom": "^16.9.8"
+  },
+  "dependencies": {
+    "@alife/next": "^1.19.31",
+    "free-canvas-shared": "0.0.1"
+  }
+}
