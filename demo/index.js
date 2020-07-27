@@ -1,4 +1,4 @@
-const FreeCanvas = require('../lib/index').default
+const FreeCanvas = require('../packages/free-canvas-core/lib/index').default
 
 
 FreeCanvas('canvas',{

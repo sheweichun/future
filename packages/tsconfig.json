@@ -1,0 +1,7 @@
+{
+    "files":[],
+    "references": [
+        { "path": "free-canvas-tree" },
+        { "path": "free-canvas-core" }
+    ]
+}

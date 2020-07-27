@@ -1,0 +1,22 @@
+{
+    "name":"free-canvas-core",
+    "version":"0.0.1",
+    "scripts": {
+      "build": "tsc",
+      "watch": "tsc -w",
+      "clean": "rm -rf lib tsconfig.tsbuildinfo",
+      "test": "jest",
+      "test-c": "jest --coverage"
+    },
+    "jest": {
+      "testEnvironment": "node"
+    },
+    "devDependencies": {
+    },
+    "dependencies": {
+      "atom-store": "^0.0.4",
+      "immutable": "^4.0.0-rc.12",
+      "shortid": "^2.2.15"
+    }
+  }
+  

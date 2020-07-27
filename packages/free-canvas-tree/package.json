@@ -1,0 +1,20 @@
+{
+    "name":"free-canvas-tree",
+    "version":"0.0.1",
+    "scripts": {
+      "build": "tsc",
+      "watch": "tsc -w",
+      "test": "jest",
+      "test-c": "jest --coverage",
+      "clean": "rm -rf lib tsconfig.tsbuildinfo"
+    },
+    "jest": {
+      "testEnvironment": "node"
+    },
+    "devDependencies": {
+    },
+    "dependencies": {
+
+    }
+  }
+  
