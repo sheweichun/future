@@ -1,8 +1,9 @@
+import {COMMANDERS,Utils} from 'free-canvas-shared';
 import {CanvasEvent} from '../events/event';
 import {ObjectStyleDeclaration} from '../utils/type';
 import {setStyle} from '../utils/style';
 import {completeOptions} from '../utils/index';
-import {MovableOptions,OnPositionChange,IView,IMovable,COMMANDERS} from './type';
+import {MovableOptions,OnPositionChange,IView,IMovable} from './type';
 import {View, FragmentView} from './view';
 import {Model} from './model';
 import {OperationPos} from '../core/operation/pos'
@@ -38,6 +39,8 @@ export class Movable implements IMovable{
     changed:boolean = false
     left:number
     top:number
+    width:number
+    height:number
     startX:number
     startY:number
     outline:string
@@ -47,17 +50,17 @@ export class Movable implements IMovable{
         this._options = completeOptions(options,DEFAULT_OPTIONS);
         const {mountNode,isRoot} = this._options;
         if(isRoot){
-            this.view = new FragmentView(_data,mountNode)
+            this.view = new FragmentView(this.fixData(_data),mountNode)
         }else{
-            this.view = new View(_data,this._options);
+            this.view = new View(this.fixData(_data),this._options);
         }
         this.parsePosition();
         const div = document.createElement('div');
+        div.id = Utils.encode2ShortId(options.id);
         div.className = MOVABLE_CLASSNAME
         this.style = {
             position:'absolute'
         }
-        this.setStyle(div);
         this.el = div;
         // div.appendChild(this.view.getRoot());
         // if(isRoot){
@@ -67,9 +70,19 @@ export class Movable implements IMovable{
         // }
         
     }
+    fixData(data:Model){
+        const {position} = data.extra
+        const {style} = data;
+        style.width = `${position.width}px`
+        style.height = `${position.height}px`
+        return data;
+    }
+    render(){
+        this.setStyle(this.el);
+    }
     mount(){
         const {isRoot,mountNode} = this._options;
-  
+        this.render();
         if(isRoot){
             mountNode.appendChild((this.view as FragmentView).getFragmentAndChange());
             // const {didMount} = this._options;
@@ -106,6 +119,8 @@ export class Movable implements IMovable{
         const {position} = this._data.extra
         this.left = position.left || 0;
         this.top = position.top || 0;
+        this.width = position.width || 0;
+        this.height = position.height || 0;
     }
     appendChild(movable:Movable){
         if(movable == null) return;
@@ -162,11 +177,11 @@ export class Movable implements IMovable{
     // }
     destroy(){
         const {isChild} = this._options
-        if(!isChild){
+        // if(!isChild){
             this.removeEvent(CanvasEvent.MOUSEDOWN,this.onMouseDown);
             this.removeEvent(CanvasEvent.MOUSEENTER,this.onMouseEnter);
             this.removeEvent(CanvasEvent.MOUSELEAVE,this.onMouseLeave);
-        }
+        // }
     }
     listen(){
         const {isChild} = this._options
@@ -176,11 +191,11 @@ export class Movable implements IMovable{
         // this.onDbClick = this.onDbClick.bind(this);
         
         // this.addEvent(CanvasEvent.DBCLICK,this.onDbClick);
-        if(!isChild){
+        // if(!isChild){
             this.addEvent(CanvasEvent.MOUSEDOWN,this.onMouseDown);
             this.addEvent(CanvasEvent.MOUSEENTER,this.onMouseEnter);
             this.addEvent(CanvasEvent.MOUSELEAVE,this.onMouseLeave);
-        }
+        // }
     }
     // onMouseEnter(e:MouseEvent){
     //     this.outline = '#3D7FFF solid 1px'
@@ -192,7 +207,7 @@ export class Movable implements IMovable{
     //     this.setStyle();
     //     e.stopPropagation();
     // }
-    update(newModel:Model){
+    update(_newModel:Model){
         // if(this.changed){
         //     // this.canMove = false;
         // }
@@ -206,6 +221,7 @@ export class Movable implements IMovable{
         //     this.el.focus();
         //     this.addEvent(CanvasEvent.FOUCS,this.onFoucs);
         // }
+        const newModel = this.fixData(_newModel);
         const {extra} = newModel;
         if(!extra.isSelect){
             this.canMove = false
@@ -219,14 +235,22 @@ export class Movable implements IMovable{
         const {isSelect} = this._data.extra
         
         const target = el || this.el;
-        // if(isSelect){
-        //     this.style.borderColor = 'blue';
+
+        // const parentVm = this._options.vm.getParent();
+        // if(parentVm && !parentVm.isRoot){
+        //     const pos = parentVm.getModel().getIn(['extra','position'],null)
+        //     this.style.left = `${this.left * 100 / pos.get('width')}%`;
+        //     this.style.top = `${this.top * 100 / pos.get('height')}%`;
+        //     // this.style.left = `${this.left}px`;
+        //     // this.style.top = `${this.top}px`;
         // }else{
-        //     this.style.borderColor = 'transparent';
+        //     this.style.left = `${this.left}px`;
+        //     this.style.top = `${this.top}px`;
         // }
+
         this.style.left = `${this.left}px`;
         this.style.top = `${this.top}px`;
-        // this.style.outline = this.outline;
+
         setStyle(target,this.style);
         if(isSelect){
             target.style.outline = `1px solid ${styleSizeColor}`
@@ -242,14 +266,7 @@ export class Movable implements IMovable{
     // onDbClick(e:MouseEvent){
     //     console.log('target :',e.currentTarget,e.target);
     // }
-    onMouseEnter(e:MouseEvent){
-        this.el.style.outline = `${styleSizeHoverColor} solid 1px`;
-    }
-    onMouseLeave(e:MouseEvent){
-        const {isSelect} = this._data.extra
-        if(isSelect) return;
-        this.el.style.outline = 'none';
-    }
+    
     focus(x:number,y:number,shiftKey:boolean = false){
         this.canMove = true;
         this.onFocus({
@@ -268,9 +285,19 @@ export class Movable implements IMovable{
             y
         });
     }
+    onMouseEnter(e:MouseEvent){
+        const {isChild} = this._options
+        if(isChild && !e.shiftKey) return;
+        this.el.style.outline = `${styleSizeHoverColor} solid 1px`;
+    }
+    onMouseLeave(e:MouseEvent){
+        const {isSelect} = this._data.extra
+        if(isSelect) return;
+        this.el.style.outline = 'none';
+    }
     onMouseDown(e:MouseEvent){
         const {isChild} = this._options
-        if(isChild) return;
+        if(isChild && !e.shiftKey) return;
         this.canMove = true
         // this.changed = false
         // const {x,y} = e;

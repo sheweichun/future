@@ -12,9 +12,13 @@
       "testEnvironment": "node"
     },
     "devDependencies": {
+      
     },
+    "main":"lib/index.js",
+    "typings":"lib/index.d.js",
     "dependencies": {
       "atom-store": "^0.0.4",
+      "free-canvas-shared":"0.0.1",
       "immutable": "^4.0.0-rc.12",
       "shortid": "^2.2.15"
     }

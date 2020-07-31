@@ -1,22 +1,23 @@
-const FreeCanvas = require('../packages/free-canvas-core/lib/index').default
+import FreeCanvas from '@pkg/free-canvas-core';
 
 
-FreeCanvas('canvas',{
+const canvas = FreeCanvas('canvas',{
     data:{
         isRoot:true,
+        extra:{},
         // isGroup:false,
         children:[{
             id:'111',
             name:'div',
             style:{
-                width:'400px',
-                height:'300px',
                 backgroundColor:'#ff000055'
             },
             extra:{
                 position:{
                     left:200,
-                    top:10
+                    top:10,
+                    width:400,
+                    height:300,
                 }
             },
             children:[
@@ -24,14 +25,14 @@ FreeCanvas('canvas',{
                     id:'1111',
                     name:'div',
                     style:{
-                        width:'200px',
-                        height:'200px',
                         backgroundColor:'#00ff0055'
                     },
                     extra:{
                         position:{
                             left:10,
-                            top:10
+                            top:10,
+                            width:200,
+                            height:200,
                         }
                     },
                     children:[
@@ -39,14 +40,14 @@ FreeCanvas('canvas',{
                             id:'11111',
                             name:'div',
                             style:{
-                                width:'100px',
-                                height:'100px',
                                 backgroundColor:'#00ff3355'
                             },
                             extra:{
                                 position:{
                                     left:20,
-                                    top:20
+                                    top:20,
+                                    width:100,
+                                    height:100,
                                 }
                             },
                         }
@@ -55,16 +56,14 @@ FreeCanvas('canvas',{
                     id:'1112',
                     name:'div',
                     style:{
-                        left:'150',
-                        top:'150',
-                        width:'100px',
-                        height:'100px',
                         backgroundColor:'#ffff0055'
                     },
                     extra:{
                         position:{
                             left:250,
-                            top:150
+                            top:150,
+                            width:100,
+                            height:100,
                         }
                     }
                 } 
@@ -73,30 +72,35 @@ FreeCanvas('canvas',{
             id:'112',
             name:'div',
             style:{
-                width:'150px',
-                height:'150px',
                 backgroundColor:'#00000055'
             },
             extra:{
                 position:{
                     left:400,
-                    top:300
+                    top:300,
+                    width:150,
+                    height:150,
                 }
             }
         },{
             id:'113',
             name:'div',
             style:{
-                width:'150px',
-                height:'150px',
                 backgroundColor:'#00000055'
             },
             extra:{
                 position:{
                     left:600,
-                    top:400
+                    top:400,
+                    width:150,
+                    height:150,
                 }
             }
         }]
     }
 });
+//@ts-ignore
+const {$$onCanvasLoaded} = window.top;
+if($$onCanvasLoaded){
+    $$onCanvasLoaded(canvas);
+}

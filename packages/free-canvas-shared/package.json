@@ -1,5 +1,5 @@
 {
-    "name":"free-canvas-tree",
+    "name":"free-canvas-shared",
     "version":"0.0.1",
     "scripts": {
       "build": "tsc",
@@ -8,6 +8,8 @@
       "test-c": "jest --coverage",
       "clean": "rm -rf lib tsconfig.tsbuildinfo"
     },
+    "typings":"lib/index.d.ts",
+    "main":"lib/index.js",
     "jest": {
       "testEnvironment": "node"
     },

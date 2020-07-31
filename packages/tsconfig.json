@@ -1,7 +1,10 @@
 {
-    "files":[],
+    "extends":"./tsconfig.base.json",
     "references": [
-        { "path": "free-canvas-tree" },
-        { "path": "free-canvas-core" }
-    ]
+      { "path": "free-canvas-editor" },
+      { "path": "free-canvas-core" },
+      { "path": "free-canvas-shared" }
+    ],
+    "files":[],
+ 
 }

@@ -6,7 +6,8 @@ import {ICanvas} from '../core/type';
 import {CanvasEvent} from '../events/event';
 
 const DEFAULT_OPTIONS = {
-    length:5
+    length:5,
+    // rulerBackgroundColor:'red'
 }
 
 
@@ -20,11 +21,14 @@ export class RulerGroup extends DrawEntity{
         this._options = completeOptions(options,DEFAULT_OPTIONS);
         const {lineStyle,length,rulerBackgroundColor} = this._options
         // const halfLineWidth = _drawer.getLineWidth() / 2;
+        // const lineWidth = _drawer.getLineWidth();
         const halfLineWidth = 0;
+        const lineOffset = _drawer.getLineOffset();
         this._topRuler = new Ruler({
             start:new Point(length-halfLineWidth,halfLineWidth),
             size:length - halfLineWidth * 2,
             backgroundColor:rulerBackgroundColor,
+            lineOffset,
             lineStyle:lineStyle,
             end:new Point(_drawer.width,halfLineWidth)
         })
@@ -33,6 +37,7 @@ export class RulerGroup extends DrawEntity{
             start:new Point(halfLineWidth,length-halfLineWidth),
             size:length - halfLineWidth * 2,
             lineStyle:lineStyle,
+            lineOffset,
             backgroundColor:rulerBackgroundColor,
             end:new Point(halfLineWidth,_drawer.height)
         })

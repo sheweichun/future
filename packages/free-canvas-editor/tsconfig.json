@@ -5,6 +5,9 @@
       "outDir": "lib",
       "rootDir": "src",
     },
+    "references": [
+      { "path": "../free-canvas-shared" }
+    ],
     "include":[
       "src"
     ]

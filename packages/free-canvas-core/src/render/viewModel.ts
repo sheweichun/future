@@ -61,10 +61,14 @@ export class ViewModel implements IViewModel{
     view:Movable
     _rect:OperationPos
     isRoot:boolean
+    isGroup:boolean
     constructor(public model:BaseModel,private _parent:ViewModel,private _options:ViewModelOptions){
         this.isRoot = model.get('isRoot',false)
+        this.isGroup = model.get('isGroup',false);
         this.view = new Movable(model.searialize() as Model,Object.assign({},_options || {},{
             isRoot:this.isRoot,
+            id:model._keyPath,
+            vm:this,
             isChild:_parent != null && !_parent.isRoot,
             excute:this.excute.bind(this)
         }))
@@ -83,7 +87,10 @@ export class ViewModel implements IViewModel{
         this.view.appendChild(viewModel.view);
     }
     excute(type:number,data:any[]){
-        this._options.commander.excute(type,this,data);
+        this._options.commander.excute(type,{
+            data:data,
+            vm:this
+        }); 
     }
     getView(){
         return this.view;
@@ -108,7 +115,7 @@ export class ViewModel implements IViewModel{
         let stack = [].concat(this.children.viewModelList);
         while(stack.length > 0){
             const curVm = stack.pop();
-            if(curVm.getRect().include(x,y)){
+            if(curVm.getRect().include(curLeft,curTop)){
                 return curVm
             }else{
                 if(curVm.children){
@@ -174,41 +181,47 @@ export class ViewModel implements IViewModel{
     //     })
     // }
     updateRect(){ //更新当前viewModel 是相对画布的坐标
-        // let pos:OperationPos;
-        // if(_parent){
-        //     pos = _parent.view.getBoundingClientRect()
-        // }else{
-        //     pos = _options.getRect();
-        // }
         const pos = this._options.getRect();
         const cur = this.view.getBoundingClientRect();
         this._rect = new OperationPos(cur.left - pos.left,cur.top - pos.top,cur.width,cur.height,(rect)=>{
             this.view.updatePosAndSize(this.getRelativeRect(rect)) //当更新的时候需要还原到父容器下的相对坐标
-            // this.view.updatePosAndSize(rect);
         })
+    }
+    changePosition(diffx:number,diffy:number){
+        this._rect.moveLeftAndTop(diffx,diffy);
+        // this.view.move(diffx,diffy);
+    }
+    // updateRectByWheel(scrollX:number,scrollY:number){
+    //     this._rect.moveLeftAndTop(scrollX,scrollY,true);
+    //     this.children && this.children.viewModelList.forEach((vm)=>{
+    //         vm.updateRectByWheel(scrollX,scrollY);
+    //     })
+    // }
+    getRect(){ //相对rect
+        if(this._rect == null) {
+            this.updateRect();
+        }
+        return this._rect
     }
     getRelativeRect(rect:OperationPos){
         const {_parent,_options} = this;
-        const pos = _options.getRect();
-        let curRect:OperationPos;
+        let curRect:{left:number,top:number};
         if(_parent == null || _parent.isRoot){
-            curRect = _options.getRect();
+            curRect = {left:0,top:0};
         }else{
-            curRect = _parent.view.getBoundingClientRect();
+            curRect = _parent.getRect();
         }
         return {
-            left:rect.left + pos.left - curRect.left ,
-            top:rect.top + pos.left - curRect.top,
+            left:rect.left  - curRect.left ,
+            top:rect.top  - curRect.top,
             width:rect.width,
             height:rect.height
         }
+        // return new OperationPos(rect.left  - curRect.left,rect.top  - curRect.top,rect.width,rect.height)
     }
     getAbsRect(){
         const pos = this._options.getRect();
         return this._rect.moveLeftAndTop_immutation(pos.left,pos.top)
-    }
-    getRect(){
-        return this._rect
     }
     onDidUpdate(){
         this.view.onDidUpdate();
@@ -222,9 +235,7 @@ export class ViewModel implements IViewModel{
         // console.log(`【${this.model.get('id',null)}】mounted!`);
         this.updateRect();
     }
-    changePosition(diffx:number,diffy:number){
-        this.view.move(diffx,diffy);
-    }
+    
     remove(){  //销毁
         if(this._parent == null) return;
         // this._parent.view.removeChild(this.view);
@@ -245,6 +256,7 @@ export class ViewModel implements IViewModel{
             this.view.update(model.searialize());
         }
         this.model = model;
+        this.isGroup = model.get('isGroup',false)
         const modelChildren = model.get('children',WrapData([]));
         if(this.children){
             this.children.update(modelChildren);

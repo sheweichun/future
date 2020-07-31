@@ -32,6 +32,7 @@ export interface ICanvas{
     height:number;
     resize():void;
     getLineWidth():number;
+    getLineOffset():number;
 }
 
 export type ListenFunc = (e:MouseEvent) => void
@@ -94,4 +95,8 @@ export interface ContentOptions{
 
 export interface HanlerItemOption extends OperationSizeOptions{
   
+}
+
+export interface MutationOptions{
+    getRect:()=>OperationPos
 }

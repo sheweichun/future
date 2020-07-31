@@ -3,7 +3,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const baseConfigGen = require('./webpack.base');
 const path = require('path');
 const webpack = require('webpack');
-
+const entry = require('./entry');
 
 
 module.exports = function(){
@@ -16,12 +16,15 @@ module.exports = function(){
     });
     config.plugins = config.plugins.concat([
         new CleanWebpackPlugin(),
-        new HtmlWebpackPlugin({
-            title: 'Hot Module Replacement',
-            template:path.resolve(__dirname,'../demo/index.html')
-        }),
         new webpack.HotModuleReplacementPlugin()
-    ]);
+    ],Object.keys(entry).map((name)=>{
+        return new HtmlWebpackPlugin({
+            title: name,
+            filename:`${name}.html`,
+            chunks: [name],
+            template:path.resolve(__dirname,`../template/${name}.html`)
+        })
+    }));
     config.output.publicPath = '/';
     return config
 }

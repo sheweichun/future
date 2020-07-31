@@ -1,1 +1,1 @@
-export type ObjectStyleDeclaration = Partial<CSSStyleDeclaration>
+export {ObjectStyleDeclaration} from 'free-canvas-shared'

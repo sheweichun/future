@@ -2,7 +2,14 @@
 import Core,{CoreOptions} from './core/index';
 
 
+// const isInIframe = window.top !== window;
+
 export default function(el:string,options:CoreOptions){
-    console.log('hello');
-    return new Core(el,options); 
+    let corOptions = options;
+    // if(isInIframe){
+    //     corOptions = Object.assign({
+
+    //     })
+    // }
+    return new Core(el,corOptions); 
 } 

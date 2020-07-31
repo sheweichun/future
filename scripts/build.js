@@ -13,6 +13,7 @@ if(argv.dev){
         hot: true,
         host: 'localhost',
         stats: 'errors-only',
+        index: 'editor.html',
         open:true
     };
     const devConfig = require('../config/webpack.dev')();

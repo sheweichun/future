@@ -10,7 +10,7 @@ import {
 } from './util';
 
 const {Iterator} = Collection;
-const NOT_SET = {}; // Sentinel value
+export const NOT_SET = {}; // Sentinel value
 
 // function Base(rootData, keyPath, updater, deref, size) {
 //   this.size = size;
@@ -41,7 +41,6 @@ class Base{
   get(key, notSetValue) {
     return this.getIn([key], notSetValue);
   }
-
   getIn(keyPath, notSetValue) {
     const constructKeyPath = listToKeyPath(keyPath);
     if (constructKeyPath.length === 0) {
@@ -84,9 +83,9 @@ class Base{
 
   update(keyOrFn, notSetValue, updater) {
     if (arguments.length === 1) {
-      updateCursor(this, keyOrFn);
+      return updateCursor(this, keyOrFn);
     } else {
-      this.updateIn([keyOrFn], notSetValue, updater);
+      return this.updateIn([keyOrFn], notSetValue, updater);
     }
   }
 

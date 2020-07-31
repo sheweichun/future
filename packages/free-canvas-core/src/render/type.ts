@@ -1,8 +1,7 @@
-import {Model} from './model';
 import {ObjectStyleDeclaration} from '../utils/type'
 import { BaseModel } from './dsl/store';
-import { ViewModel } from './viewModel';
 import { OperationPos } from '../core/operation/pos';
+import {ICommander} from 'free-canvas-shared'
 
 export interface ViewAttribute{
     style?:ObjectStyleDeclaration
@@ -48,6 +47,7 @@ export interface IViewModelCollection{
 
 export interface IViewModel{
     isRoot:boolean
+    isGroup:boolean
     children:IViewModelCollection
     getModel():BaseModel
     getParent():IViewModel
@@ -57,6 +57,7 @@ export interface IViewModel{
     getView():IMovable
     getViewModelByXY(x:number,y:number):IViewModel
     getRelativeRect(rect:OperationPos):{left:number,top:number,width:number,height:number}
+    // updateRectByWheel(scrollX:number,scrollY:number):void
     // isInside(vm:IViewModel):boolean
     // moveLeft(diffx:number):void
     // moveTop(diffy:number):void
@@ -73,33 +74,31 @@ export interface IMovable{
 }
 
 
-export enum COMMANDERS {
-    POSITIONCHANGE,
-    SELECTED,
-    UNSELECTED
-    // VIEWFOCUS,
-    // VIEWBLUR
-}
+// export enum COMMANDERS {
+//     POSITIONCHANGE,
+//     SELECTED,
+//     UNSELECTED
+// }
 
-export interface CommanderData{
-    type:COMMANDERS
-    vm:IViewModel
-    data:any
-}
+// export interface CommanderData{
+//     type:COMMANDERS
+//     vm:IViewModel
+//     data:any
+// }
 
-export interface CommanderOption {
-    callback:CommanderCallback,
-    context?:any,
-    params?:any[]
-}
+// export interface CommanderOption {
+//     callback:CommanderCallback,
+//     context?:any,
+//     params?:any[]
+// }
 
-export type CommanderCallback = (vm:IViewModel | IViewModel[],data?:any)=>void
+// export type CommanderCallback = (data?:any)=>void
 
-export interface ICommander{
-    register(name:number,callback: CommanderCallback,context?:any,params?:any[]):void
-    unregister(name:number):void
-    excute(name:number,vm:IViewModel,data?:any):void
-}
+// export interface ICommander{
+//     register(name:number,callback: CommanderCallback,context?:any,params?:any[]):void
+//     unregister(name:number):void
+//     excute(name:number,data?:any):void
+// }
 
 export interface ViewModelOptions extends MovableOptions{
     commander?:ICommander,
@@ -112,8 +111,10 @@ export interface MovableOptions extends ViewOptions{
     onPostionChange?:OnPositionChange,
     onFocus?:ViewLifeCallback,
     onBlur?:ViewLifeCallback
+    id:string[],
     mountNode?:HTMLElement
     excute(name:number,data?:any):void
     isRoot?:boolean
     isChild?:boolean
+    vm:IViewModel
 }

@@ -3,9 +3,12 @@
 
 
 export const STYLE_PREFIX = 'free-canvas-'
+export const CONTAINER = `${STYLE_PREFIX}container`
 export const MOVABLE_CLASSNAME = `${STYLE_PREFIX}movable`
 export const OPERATION_CLASSNAME = `${STYLE_PREFIX}operation`
 export const OPERATION_SIZE_CLASSNAME = `${STYLE_PREFIX}operation-size`
+
+export const DRAG_OVER = `${STYLE_PREFIX}drag-over`
 // export const OPERATION_SIZE_LEFT_CLASSNAME = `${STYLE_PREFIX}operation-size-left`
 // export const OPERATION_SIZE_TOP_CLASSNAME = `${STYLE_PREFIX}operation-size-top`
 // export const OPERATION_SIZE_RIGHT_CLASSNAME = `${STYLE_PREFIX}operation-size-right`

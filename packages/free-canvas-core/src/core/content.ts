@@ -1,4 +1,4 @@
-import { Entity } from "../entities/index";
+// import { Entity } from "../entities/index";
 
 
 import {IEvent} from '../entities/index'
@@ -9,12 +9,13 @@ import {Model,createViewModel,ViewModel} from '../render/index'
 import {Store,WrapData} from '../render/index'
 import {KeyBoard} from './keyboard';
 import {Commander} from './commander'
-import { COMMANDERS } from "../render/type";
+import {COMMANDERS, IPlugin} from 'free-canvas-shared'
 import {Mutation} from './mutation'
 import {Operation} from './operation/index'
 import {OperationPos} from './operation/pos'
 import {RectSelect} from './rectSelect'
 import { MoveEventData } from "../events/type";
+import {PluginManager} from './pluginManager';
 
 
 function completeData(data:Model){
@@ -64,6 +65,7 @@ export class Content implements IEvent{
     private _wrapEl:HTMLElement
     private _rect:OperationPos
     private _rectSelect:RectSelect
+    private _pluginManager:PluginManager
     constructor(private _el:HTMLElement,private _data:Model,options:ContentOptions){
         this._options = completeOptions(options,{x:0,y:0});
         
@@ -84,13 +86,19 @@ export class Content implements IEvent{
             console.log('In 【content.update】');
         })
         this._commander = new Commander(this._store);
-        this._mutation = new Mutation(this._store,this._commander);
+        this._pluginManager = new PluginManager(this._commander,{
+            getContentRect:this.getRect
+        });
+        this._mutation = new Mutation(this._el,this._store,this._commander,{
+            getRect:this.getRect
+        });
         this.createWrapEl();
         this._keyboard = new KeyBoard(_el);
         this._operation = new Operation(this._el,this._mutation,this._keyboard.createNameSpace('operation'),{
             margin:this._options.margin,
             updateMakers:this._options.updateMakers
         });
+        this._mutation.setOperation(this._operation);
         //@ts-ignore
         this._viewModel = createViewModel(null,this._store.currentState.get('data'),{
             mountNode:this._wrapEl,
@@ -99,7 +107,7 @@ export class Content implements IEvent{
             removeViewModel:this._operation.removeViewModel,
             getRect:this.getRect
         });
-        this._rectSelect = new RectSelect(_el,{
+        this._rectSelect = new RectSelect(document.body,{
             updateRectSelect:this.updateRectSelect.bind(this)
         })
         this._operation.setRootViewModel(this._viewModel);
@@ -109,8 +117,16 @@ export class Content implements IEvent{
         this.registerCommands();
         // this.test();
     }
+    installPlugin(plugin:IPlugin){
+        this._pluginManager.install(plugin);
+    }
+    uninstallPlugin(plugin:IPlugin){
+        this._pluginManager.uninstall(plugin);
+    }
     destroy(){
         this._keyboard.destroy();
+        this._pluginManager.destroy();
+        this._mutation.destroy();
     }
     getRect(){
         return this._rect
@@ -161,35 +177,35 @@ export class Content implements IEvent{
     redo(){
         this._store.redo();
     }
-    test(){
-        setTimeout(()=>{
-            // console.log('children :',this._store.currentState.get('children')._deref());
-            this._store.currentState.getIn(['data','children']).push(WrapData({
-                id:'113',
-                name:'div',
-                style:{
-                    width:'150px',
-                    height:'150px',
-                    backgroundColor:'orange'
-                },
-                extra:{
-                    position:{
-                        left:800,
-                        top:400,
-                    }
-                }
-            }))
-            setTimeout(()=>{
-                this._store.undo();
-                setTimeout(()=>{
-                    this._store.redo();
-                },1000)
-            },1000)
-        },2000)
-    }
+    // test(){
+    //     setTimeout(()=>{
+    //         // console.log('children :',this._store.currentState.get('children')._deref());
+    //         this._store.currentState.getIn(['data','children']).push(WrapData({
+    //             id:'113',
+    //             name:'div',
+    //             style:{
+    //                 width:'150px',
+    //                 height:'150px',
+    //                 backgroundColor:'orange'
+    //             },
+    //             extra:{
+    //                 position:{
+    //                     left:800,
+    //                     top:400,
+    //                 }
+    //             }
+    //         }))
+    //         setTimeout(()=>{
+    //             this._store.undo();
+    //             setTimeout(()=>{
+    //                 this._store.redo();
+    //             },1000)
+    //         },1000)
+    //     },2000)
+    // }
     setStyle(){
         const {_el,_x,_y} = this;
-        _el.setAttribute('style',`outline:none !important;background:#dddddd;width:100%;height:100%;transform:translate3d(${_x}px,${_y}px,0)`);
+        _el.setAttribute('style',`outline:none !important;width:100%;height:100%;transform:translate3d(${_x}px,${_y}px,0)`);
     }
     onMousewheel(deltaX:number,deltaY:number){
         // console.log('on mouse!! :',deltaX,deltaY,this._x,this._y);

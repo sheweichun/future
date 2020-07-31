@@ -8,6 +8,7 @@ export interface RulerOptions{
     backgroundColor?:string
     start:Point, //起点坐标
     end:Point,
+    lineOffset:number,
     lineStyle:string,
     base?:number, // 起点值
     size?:number,
@@ -42,7 +43,7 @@ class VerticalRulerModel extends RulerModel{
     }
     initEntities(){
         const {_options} = this;
-        const {start,end,base,size,unit,backgroundColor} = _options;
+        const {start,end,base,size,unit,backgroundColor,lineOffset} = _options;
         const baseRemain = base % unit;
         const baseDiff = unit - baseRemain;
         // this._base = baseRemain === 0 ? base : (base + diff);
@@ -52,10 +53,7 @@ class VerticalRulerModel extends RulerModel{
         }
         this.entities = [
             new Line(start,end,lineOpt),
-            new Line(start.addX(size),end.addX(size),lineOpt),
-            new Rect(start.x,start.y,size,end.y - start.y,{
-                color:backgroundColor
-            })
+            new Line(start.addX(size),end.addX(size),lineOpt)
         ]
         const startY = start.y;
         const baseY = startY + (this._base - base);
@@ -82,6 +80,9 @@ class VerticalRulerModel extends RulerModel{
             }
             this.entities.push(entity);
         }
+        this.entities.push(new Rect(start.x + lineOffset,start.y,size - lineOffset,end.y - start.y,{
+            color:backgroundColor
+        }))
     }
 }
 
@@ -98,7 +99,7 @@ class HorizontalRulerModel extends RulerModel{
     }
     initEntities(){
         const {_options} = this;
-        const {start,end,base,size,unit,backgroundColor} = _options;
+        const {start,end,base,size,unit,backgroundColor,lineOffset} = _options;
         const baseRemain = base % unit;
         const baseDiff = unit - baseRemain;
         this._base = baseRemain === 0 ? base : (baseRemain > 0 ? base + baseDiff : base - baseRemain);
@@ -108,9 +109,6 @@ class HorizontalRulerModel extends RulerModel{
         this.entities = [
             new Line(start,end,lineOpt),
             new Line(start.addY(size),end.addY(size),lineOpt),
-            new Rect(start.x,start.y,end.x - start.x,size,{
-                color:backgroundColor
-            })
         ]
         const startX = start.x;
         const baseX = startX + (this._base - base);
@@ -137,6 +135,9 @@ class HorizontalRulerModel extends RulerModel{
             }
             this.entities.push(entity)
         }
+        this.entities.push(new Rect(start.x,start.y + lineOffset,end.x - start.x,size - lineOffset,{
+            color:backgroundColor
+        }))
     }
 }
 

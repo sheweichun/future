@@ -1,8 +1,9 @@
 
 import {Mutation} from '../mutation'
 import { IViewModel } from '../../render/type';
+import {IOperation} from './type';
 import {OperationOptions,IDisposable, HANDLER_ITEM_DIRECTION,KeyBoardKeys} from '../type';
-import {encode} from '../util'
+import {Utils} from 'free-canvas-shared'
 import { completeOptions } from '../../utils';
 import { CanvasEvent } from '../../events/event';
 import {OPERATION_CLASSNAME} from '../../utils/constant'
@@ -10,7 +11,7 @@ import {Size} from './size';
 import { OperationPos } from './pos';
 import {calculateLatestVm,transformCalculateItem2MarkerData, transformAliItem2MarkerData} from './service'
 import { KeyBoard } from '../keyboard';
-
+const {encode} = Utils
 // import { ViewModel } from 'src/render';
 const DEFAULT_OPTIONS = {
     margin:10
@@ -51,7 +52,7 @@ function eachViewModelExcludeSelected(selectModels:IViewModel[],vm:IViewModel,fn
     if(selectModels.indexOf(vm) >= 0){
         return defaultVal
     };
-    if(!vm.isRoot){
+    if(!vm.isRoot && !vm.isGroup){
         fnRet = fn(fnRet,vm);
     }
     if(vm.children){
@@ -65,9 +66,9 @@ function eachViewModelExcludeSelected(selectModels:IViewModel[],vm:IViewModel,fn
 const MOVE_UNIT = 1;
 const SHITF_MOVE_UNIT = 4 * MOVE_UNIT;
 
-export class Operation implements IDisposable{
+export class Operation implements IDisposable,IOperation{
     private _root:HTMLElement
-    private _viewModelMap:Map<string,IViewModel> = new Map()
+    // private _viewModelMap:Map<string,IViewModel> = new Map()
     private _selectViewModels:IViewModel[]
     private _options:OperationOptions
     private _canMove:boolean = false
@@ -90,15 +91,69 @@ export class Operation implements IDisposable{
         _parent.appendChild(div);
         this.addViewModel = this.addViewModel.bind(this)
         this.removeViewModel = this.removeViewModel.bind(this)
-        this._mutation.registerOnSelect(this.onPositionStart.bind(this)) //todo 需要感知点击的坐标，保证蒙层可以在点击之后能够移动，实现不够优雅，待优化
         this.onMouseDown = this.onMouseDown.bind(this)
         this.onMouseMove = this.onMouseMove.bind(this)
+        this._onUnSelect = this._onUnSelect.bind(this)
+        this._onSelectMove = this._onSelectMove.bind(this) 
         this.onMouseUp = this.onMouseUp.bind(this)
         this.onSizeMove = this.onSizeMove.bind(this)
         this.onSizeChange = this.onSizeChange.bind(this)
         this.onOperationUpdate = this.onOperationUpdate.bind(this);
         this.onDbClick = this.onDbClick.bind(this);
+        this.onPositionStart = this.onPositionStart.bind(this)
+        this._onPositionStart = this._onPositionStart.bind(this)
+        this._mutation.registerSelectCallbacks(
+            this.onPositionStart,
+            // this.onPositionStart,
+            this._onPositionStart,
+            this._onSelectMove,
+            this._onUnSelect) //todo 需要感知点击的坐标，保证蒙层可以在点击之后能够移动，实现不够优雅，待优化
+
         // this.onSizeStart = this.onSizeStart.bind(this)
+    }
+    _onPositionStart(data:{x:number,y:number}){
+        const {x,y} = data;
+        this._startX = x;
+        this._startY = y;
+        this._originX = x;
+        this._originY = y;
+    }
+    _onSelectMove(data:{x:number,y:number}){
+        if(data == null) return;
+        this._changed = true;
+        this._size && this._size.hide();
+        const {x,y} = data;
+        const pos = this._pos;
+        const diffx = x - this._startX;
+        const diffy = y - this._startY;
+        pos.left += diffx;
+        pos.top += diffy;
+        this._startX = x;
+        this._startY = y;
+        this.setStyle();
+        this._selectViewModels.forEach((vm)=>{
+            vm.changePosition(diffx,diffy)
+        })
+        if(this._showMakerTmId){
+            clearTimeout(this._showMakerTmId);
+            this.showMakers();
+        }
+        this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
+            this.showMakers();
+        },50)
+    }
+    _onUnSelect(data:{x:number,y:number}){
+        if(this._changed){
+            this._size && this._size.show();
+            this._mutation.onPostionChanges({
+                vms:this._selectViewModels,
+                data:{
+                    left:this._startX - this._originX,
+                    top: this._startY - this._originY
+                }
+            })
+        }
+        this.hideMakers()
     }
     registerShortcut(key:string,fn:any,params?:any[]){
         this.registerShortcuts([key],fn,params);
@@ -146,9 +201,12 @@ export class Operation implements IDisposable{
         _pos.top += diffy;
         this.showMakers();
 
-        this._mutation.onPostionChanges(this._selectViewModels,{
-            top:diffy || 0,
-            left:diffx || 0
+        this._mutation.onPostionChanges({
+            vms:this._selectViewModels,
+            data:{
+                top:diffy || 0,
+                left:diffx || 0
+            }
         })
         this._hideMakerTmId = setTimeout(()=>{
             this.hideMakers();
@@ -170,33 +228,38 @@ export class Operation implements IDisposable{
         }
     }
     addViewModel(viewModel:IViewModel){
-        this._viewModelMap.set(encode(viewModel.getModel()._keyPath),viewModel);
+        this._mutation.addViewModel(viewModel);
+        // this._viewModelMap.set(encode(viewModel.getModel()._keyPath),viewModel);
     }
     removeViewModel(viewModel:IViewModel){
-        this._viewModelMap.delete(encode(viewModel.getModel()._keyPath))
+        this._mutation.removeViewModel(viewModel);
+        // this._viewModelMap.delete(encode(viewModel.getModel()._keyPath))
     }
     destroy(){
         this._root.removeEventListener(CanvasEvent.MOUSEDOWN,this.onMouseDown)
         document.body.removeEventListener(CanvasEvent.MOUSEMOVE,this.onMouseMove)
         document.body.removeEventListener(CanvasEvent.MOUSEUP,this.onMouseUp)
-        this._root.removeEventListener(CanvasEvent.DBCLICK,this.onDbClick)
+        document.body.removeEventListener(CanvasEvent.MOUSELEAVE,this.onMouseUp);
+        document.body.removeEventListener(CanvasEvent.DBCLICK,this.onDbClick)
         this._keyboard.destroy()
     }
     listen(){
         this._root.addEventListener(CanvasEvent.MOUSEDOWN,this.onMouseDown)
         document.body.addEventListener(CanvasEvent.MOUSEMOVE,this.onMouseMove)
         document.body.addEventListener(CanvasEvent.MOUSEUP,this.onMouseUp)
-        this._root.addEventListener(CanvasEvent.DBCLICK,this.onDbClick)
+        document.body.addEventListener(CanvasEvent.MOUSELEAVE,this.onMouseUp);
+        document.body.addEventListener(CanvasEvent.DBCLICK,this.onDbClick)
         this.setUpKeyboard();
     }
     update(){
-        const arr:IViewModel[] = [];
-        this._mutation.reduceSelectedKeyPath((keyPath:string)=>{
-            const item = this._viewModelMap.get(keyPath);
-            if(item){
-                arr.push(item)
-            }
-        })
+        // const arr:IViewModel[] = [];
+        // this._mutation.reduceSelectedKeyPath((keyPath:string)=>{
+        //     const item = this._viewModelMap.get(keyPath);
+        //     if(item){
+        //         arr.push(item)
+        //     }
+        // })
+        const arr:IViewModel[] = this._mutation.getSelectedViewModels()
         this._selectViewModels = arr;
         this.calculate(arr);
     }
@@ -270,13 +333,10 @@ export class Operation implements IDisposable{
         const pos = this._pos;
         this._root.setAttribute('style',`display:block;left:${pos.left}px;top:${pos.top}px;width:${pos.width}px;height:${pos.height}px`)
     }
-    onPositionStart(x:number,y:number){
+    onPositionStart(data:{x:number,y:number}){
         this._canMove = true
         this._changed = false
-        this._startX = x;
-        this._startY = y;
-        this._originX = x;
-        this._originY = y;
+        this._onPositionStart(data);
     }
     onDbClick(e:MouseEvent){
         const {x,y} = e;
@@ -286,11 +346,14 @@ export class Operation implements IDisposable{
             const vm = _selectViewModels[i];
             const target = vm.getViewModelByXY(x,y);
             if(target){
-                this._mutation.onSelected(target,{
-                    needKeep:false,
+                this._mutation.onSelected({
+                    vm:target,
+                    data:{
+                        needKeep:false,
                     x,
                     y,
                     noTrigger:true
+                    }
                 })
                 this._canMove = false;
                 this._changed = false;
@@ -300,10 +363,11 @@ export class Operation implements IDisposable{
     }
     onMouseDown(e:MouseEvent){
         const {x,y} = e;
-        this.onPositionStart(x,y)
+        this.onPositionStart({x,y})
         // this.onFocus(e);
         e.stopPropagation()
     }
+    
     onMouseMove(e:MouseEvent){
         // if(!this._canMove) {
         //     if(e.currentTarget === this._root){
@@ -318,27 +382,11 @@ export class Operation implements IDisposable{
         //     return;
         // };
         if(!this._canMove || this._pos == null) return;
-        this._changed = true;
-        this._size && this._size.hide();
+        
         const {x,y} = e;
-        const pos = this._pos;
-        const diffx = x - this._startX;
-        const diffy = y - this._startY;
-        pos.left += diffx;
-        pos.top += diffy;
-        this._startX = x;
-        this._startY = y;
-        this.setStyle();
-        this._selectViewModels.forEach((vm)=>{
-            vm.changePosition(diffx,diffy)
+        this._onSelectMove({
+            x,y
         })
-        if(this._showMakerTmId){
-            clearTimeout(this._showMakerTmId);
-            this.showMakers();
-        }
-        this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
-            this.showMakers();
-        },50)
         
         // const result = this.eachRootViewModelExcludeSelected(calculateLatestVm,{
         //     curPos:this._pos,
@@ -379,16 +427,12 @@ export class Operation implements IDisposable{
         }
         updateMakers() 
     }
+    disableMove(){
+        this._canMove = false;
+    }
     onMouseUp(e:MouseEvent){
         if(this._canMove === false) return;
         this._canMove = false;
-        if(this._changed){
-            this._size && this._size.show();
-            this._mutation.onPostionChanges(this._selectViewModels,{
-                left:this._startX - this._originX,
-                top: this._startY - this._originY
-            })
-        }
-        this.hideMakers()
+        this._onUnSelect(null);
     }
 }

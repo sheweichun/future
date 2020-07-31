@@ -1,0 +1,17 @@
+{
+    "extends":"./packages/tsconfig.base.json",
+    "references": [
+      { "path": "packages/free-canvas-editor" },
+      { "path": "packages/free-canvas-core" },
+      { "path": "packages/free-canvas-shared" }
+    ],
+    "compilerOptions": {
+      "outDir": "lib",
+      "rootDir": "src",
+      "baseUrl": "./",
+      "paths":{
+        "@pkg/*":["./packages/*"]
+      }
+    },
+    "include":["src"]
+}

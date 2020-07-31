@@ -1,4 +1,4 @@
-import {ICommander,CommanderOption,IViewModel,CommanderCallback} from '../render/type'
+import {ICommander,CommanderCallback,CommanderOption} from 'free-canvas-shared'
 import {Store} from '../render/dsl/store';
 
 
@@ -17,10 +17,13 @@ export class Commander implements ICommander{
     unregister(name:number):void{
         this._map.delete(name);
     }
-    excute(name:number,vm:IViewModel,data?:any):void{
+    clear(){
+        this._map.clear();
+    }
+    excute(name:number,data?:any):any{
         const item = this._map.get(name);
         if(item == null) return;
         const {callback,context,params} = item
-        callback.apply(context,[vm,...(params || []),data]);
+        return callback.apply(context,[...(params || []),data]);
     }
 }

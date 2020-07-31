@@ -1,3 +1,4 @@
+import {IPlugin} from 'free-canvas-shared'
 import Canvas from './canvas'
 import {CanvasOption} from './type';
 import {Line,Point, Entity,IEvent,LineMark,Rect} from '../entities/index';
@@ -5,7 +6,8 @@ import {RulerGroup,Content} from '../components/index';
 import {completeOptions} from '../utils/index';
 import {createStyle} from '../utils/style'
 import {CanvasEvent,EventHandler} from '../events/event';
-import {MoveEventData} from '../events/type';
+// import {MoveEventData} from '../events/type';
+import {CONTAINER} from '../utils/constant';
 import allStyle from './style'
 import {Model} from '../render/index'
 import { MakerData,MarkEntityType } from './operation/type';
@@ -16,8 +18,8 @@ export interface CoreOptions  {
     canvas?:CanvasOption
     data:Model
     rulerBackgroundColor?:string
-    wheelSpeedX:number
-    wheelSpeedY:number
+    wheelSpeedX?:number
+    wheelSpeedY?:number
 }
 
 const DEFAULT_OPTIONS:CoreOptions = {
@@ -94,10 +96,17 @@ export default class Core extends EventHandler{
             this._selectRect && this._selectRect.draw(this._canvas);
         })
     }
+    installPlugin(plugin:IPlugin){
+        this._content.installPlugin(plugin);
+    }
+    uninstallPlugin(plugin:IPlugin){
+        this._content.uninstallPlugin(plugin);
+    }
     createEventElement(parent:DocumentFragment,children?:HTMLCollection){
         const {wheelSpeedX,wheelSpeedY,data} = this._options
         const div = document.createElement('div');
-        div.setAttribute('style',`width:100%;height:100%;position:absolute;padding:${this.margin}px 0 0 ${this.margin}px`);
+        div.className = CONTAINER
+        div.setAttribute('style',`padding:${this.margin}px 0 0 ${this.margin}px`);
         const contentDiv = document.createElement('div');
         this._content = new Content(contentDiv,data,{
             wheelSpeedX,

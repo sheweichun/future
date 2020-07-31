@@ -1,6 +1,9 @@
 import { IViewModel } from "../../render/type";
 
-
+export interface IOperation{
+    hideMakers():void
+    disableMove():void
+}
 
 export interface CalculateItem{
     val:number,
