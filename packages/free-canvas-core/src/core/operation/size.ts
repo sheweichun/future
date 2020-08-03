@@ -57,7 +57,8 @@ abstract class HanlerItem{
         throttle(()=>{
             const {x,y} = e;
             const {onMove} = this._options
-            onMove && onMove(x - this._startX,y - this._startY,this._direction);
+            // onMove && onMove(x - this._startX,y - this._startY,this._direction);
+            onMove && onMove(x - this._originX,y - this._originY,this._direction);
             this._startX = x;
             this._startY = y;
         },12)

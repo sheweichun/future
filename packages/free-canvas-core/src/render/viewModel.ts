@@ -206,13 +206,13 @@ export class ViewModel implements IViewModel{
     }
     changeRect(target:string,diffx:number,diffy:number){
         const curRect = this._rect;
-        const hPercent = fixPercent((diffx + curRect.width) / curRect.width),vPercent = fixPercent((diffy + curRect.height) / curRect.height);
+        const hPercent = fixPercent((diffx + curRect._width) / curRect._width),vPercent = fixPercent((diffy + curRect._height) / curRect._height);
         // const curWidth = curRect.width,curHeight = curRect.height;
         //@ts-ignore
-        this._rect = this._rect[target](diffx,diffy);
-        // this.children && this.children.viewModelList.forEach((child)=>{
-        //     ViewModel.changeRectByPercent(`${target}Percent`,child,hPercent,vPercent)
-        // })
+        this._rect[target](diffx,diffy);
+        this.children && this.children.viewModelList.forEach((child)=>{
+            ViewModel.changeRectByPercent(`${target}Percent`,child,hPercent,vPercent)
+        })
     }
     setRect(rect:OperationPos){
         this._rect = rect;
@@ -220,16 +220,16 @@ export class ViewModel implements IViewModel{
     static changeRectByPercent(target:string,vm:IViewModel,xPercent:number,yPercent:number):void{
         const vmRect = vm.getRect();
         const parentPos = vm.getParentRect();
-        const pos = vm.getRelativeRect(vmRect,parentPos);
+        // const pos = vm.getRelativeRect(vmRect,parentPos);
         // const curWidth = vmRect.width,curHeight = vmRect.height;
         //@ts-ignore
-        const newRect = vmRect[target](parentPos,pos,xPercent,yPercent)
+        vmRect[target](parentPos,xPercent,yPercent)
         //需要重新计算 
-        const childHPercent = fixPercent(newRect.width / vmRect.width),childVPercent = fixPercent(newRect.height / vmRect.height);
+        // const childHPercent = fixPercent(newRect.width / vmRect.width),childVPercent = fixPercent(newRect.height / vmRect.height);
         vm.children && vm.children.viewModelList.forEach((child)=>{
-            ViewModel.changeRectByPercent(target,child,childHPercent,childVPercent);
+            ViewModel.changeRectByPercent(target,child,xPercent,yPercent);
         })
-        vm.setRect(newRect);
+        // vm.setRect(newRect);
     }
     changePosition(diffx:number,diffy:number){
         this._rect = this._rect.moveLeftAndTop(diffx,diffy);
@@ -284,8 +284,15 @@ export class ViewModel implements IViewModel{
         this.view.onDidMount();
         // console.log(`【${this.model.get('id',null)}】mounted!`);
         this.updateRect();
+        // ViewModel.updateChildrenPosAndSize(this);
     }
-    
+     
+    // static updateChildrenPosAndSize(vm:IViewModel){
+    //     const parent = vm.getParent();
+    //     if(parent == null || parent.isRoot) return;
+    //     const {width,height} = parent.getRect();
+        
+    // }
     remove(){  //销毁
         if(this._parent == null) return;
         // this._parent.view.removeChild(this.view);

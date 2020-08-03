@@ -128,7 +128,7 @@ export class Operation implements IDisposable,IOperation{
         const diffy = y - this._startY;
         // pos.left += diffx;
         // pos.top += diffy;
-        this._pos = this._pos.moveLeftAndTop(diffx,diffy);
+        this._pos.moveLeftAndTop(diffx,diffy);
         this._startX = x;
         this._startY = y;
         this.setStyle();
@@ -324,7 +324,7 @@ export class Operation implements IDisposable,IOperation{
         this.eachSelect((vm:IViewModel)=>{
             vm.changeRect(target,diffX,diffY);
             //@ts-ignore
-            this._pos = this._pos[target](diffX,diffY);
+            this._pos[target](diffX,diffY);
         })
         if(this._showMakerTmId){
             clearTimeout(this._showMakerTmId);
