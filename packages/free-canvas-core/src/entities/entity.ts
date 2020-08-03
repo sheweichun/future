@@ -31,6 +31,12 @@ export class Point{
             )
         ))
     }
+    changeX(x:number){
+        return new Point(x,this.y)
+    }
+    changeY(y:number){
+        return new Point(this.x,y);
+    }   
     getYDistance(point:Point){
         return Math.abs(point.y - this.y)
     }

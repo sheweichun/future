@@ -8,10 +8,10 @@ import {Button} from '@alife/next';
 
 function postionAddData(data:Model,x:number,y:number){
     if(!data.extra) {
-        data.extra = {position:{left:x,top:y},isSelect:true}
+        data.extra = {position:{left:x,top:y,width:100,height:100},isSelect:true}
         return data;
     }
-    data.extra.position = {left:x,top:y}
+    data.extra.position = Object.assign(data.extra.position || {},{left:x,top:y})
     data.extra.isSelect = true
     return data;
 }
@@ -106,20 +106,75 @@ export class Market implements IPlugin{
             onDragEnd={this.onDragEnd}
             data={{
                 id:'114',
-                name:'div',
+                name:'Button',
                 style:{
-                    width:'150px',
-                    height:'150px',
-                    backgroundColor:'pink'
+                },
+                propSchemas:{
+                    type:{
+                        value:'primary'
+                    },
+                    children:{
+                        value:'Click Me!'
+                    }
                 },
                 extra:{
                     position:{
-                        left:1200,
-                        top:200
+                        // width:200,
+                        // height:70
                     }
                 }
             }}>
-                add buttong
+                add Button
+            </Drag>
+            <Drag onDragStart={this.onDragStart} 
+            onDragMove={this.onDragMove}
+            previewEle={this._previewEle}
+            onDragEnd={this.onDragEnd}
+            data={{
+                id:'114',
+                name:'Progress',
+                style:{
+                },
+                propSchemas:{
+                    percent:{
+                        value:50
+                    }
+                },
+                extra:{
+                    position:{
+                        width:150
+                    }
+                }
+            }}>
+                add Progess
+            </Drag>
+            <Drag onDragStart={this.onDragStart} 
+            onDragMove={this.onDragMove}
+            previewEle={this._previewEle}
+            onDragEnd={this.onDragEnd}
+            data={{
+                id:'114',
+                name:'Card',
+                style:{
+                },
+                propSchemas:{
+                    subTitle:{
+                        value:'Subtitle'
+                    },
+                    title:{
+                        value:'Title'
+                    },
+                    extra:{
+                        value:'Link'
+                    }
+                },
+                extra:{
+                    position:{
+                        width:300
+                    }
+                }
+            }}>
+                add Card
             </Drag>
         </div>,this._el);
     }

@@ -138,6 +138,8 @@ export function getRatio(context: CanvasRenderingContext2D){
   return (window.devicePixelRatio || 1) / backingStore;
 }
 
+let hasRenderContext:boolean = false;
+
 export default function hidpi(
   canvas: HTMLCanvasElement,
   width:number,
@@ -151,7 +153,11 @@ export default function hidpi(
   canvas.height = height * ratio;
   // }
   // if(ratio > 1){
+  if(!hasRenderContext){
     RenderContext(ratio,CanvasRenderingContext2D.prototype);
+    hasRenderContext = true;
+  }
+    
   // }
   
 }

@@ -3,7 +3,8 @@
     "references": [
       { "path": "packages/free-canvas-editor" },
       { "path": "packages/free-canvas-core" },
-      { "path": "packages/free-canvas-shared" }
+      { "path": "packages/free-canvas-shared" },
+      { "path": "packages/free-canvas-fusion-render" }
     ],
     "compilerOptions": {
       "outDir": "lib",

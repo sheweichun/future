@@ -6,6 +6,16 @@ import {Movable} from './movable';
 import {IViewModel,IViewModelCollection,ViewModelOptions} from './type'
 import { OperationPos } from '../core/operation/pos';
 
+const MINI_NUMBER = 0.0000000001
+
+function fixPercent(percent:number){
+    return percent < MINI_NUMBER ? MINI_NUMBER : percent
+}
+
+function fixData(val:number){
+    return Math.floor(val);
+}
+
 export class ViewModelCollection implements IViewModelCollection{
     viewModelList:ViewModel[]
     constructor(private _parent:ViewModel,private _models:BaseModel,private _options:ViewModelOptions){
@@ -37,8 +47,14 @@ export class ViewModelCollection implements IViewModelCollection{
             //@ts-ignore
             const newModel = newModels.get(index);
             if(newModel){
-                item.update(newModel);
-                newModelList.push(item);
+                const prevModel = item.getModel();
+                if(prevModel.get('name',null) !== newModel.get('name',null)){
+                    item.remove();
+                    newModelList.push(new ViewModel(newModel,this._parent,this._options))
+                }else{
+                    item.update(newModel);
+                    newModelList.push(item);
+                }
             }else{
                 item.remove();
             }
@@ -67,6 +83,7 @@ export class ViewModel implements IViewModel{
         this.isGroup = model.get('isGroup',false);
         this.view = new Movable(model.searialize() as Model,Object.assign({},_options || {},{
             isRoot:this.isRoot,
+            isGroup:this.isGroup,
             id:model._keyPath,
             vm:this,
             isChild:_parent != null && !_parent.isRoot,
@@ -180,15 +197,42 @@ export class ViewModel implements IViewModel{
     //         return false
     //     })
     // }
-    updateRect(){ //更新当前viewModel 是相对画布的坐标
+    updateRect(){ //更新当前viewModel 是相对画布的坐标 todo 当isGroup的时候需要动态更新
         const pos = this._options.getRect();
         const cur = this.view.getBoundingClientRect();
-        this._rect = new OperationPos(cur.left - pos.left,cur.top - pos.top,cur.width,cur.height,(rect)=>{
+        this._rect = new OperationPos(fixData(cur.left - pos.left),fixData(cur.top - pos.top),fixData(cur.width),fixData(cur.height),(rect)=>{
             this.view.updatePosAndSize(this.getRelativeRect(rect)) //当更新的时候需要还原到父容器下的相对坐标
         })
     }
+    changeRect(target:string,diffx:number,diffy:number){
+        const curRect = this._rect;
+        const hPercent = fixPercent((diffx + curRect.width) / curRect.width),vPercent = fixPercent((diffy + curRect.height) / curRect.height);
+        // const curWidth = curRect.width,curHeight = curRect.height;
+        //@ts-ignore
+        this._rect = this._rect[target](diffx,diffy);
+        // this.children && this.children.viewModelList.forEach((child)=>{
+        //     ViewModel.changeRectByPercent(`${target}Percent`,child,hPercent,vPercent)
+        // })
+    }
+    setRect(rect:OperationPos){
+        this._rect = rect;
+    }
+    static changeRectByPercent(target:string,vm:IViewModel,xPercent:number,yPercent:number):void{
+        const vmRect = vm.getRect();
+        const parentPos = vm.getParentRect();
+        const pos = vm.getRelativeRect(vmRect,parentPos);
+        // const curWidth = vmRect.width,curHeight = vmRect.height;
+        //@ts-ignore
+        const newRect = vmRect[target](parentPos,pos,xPercent,yPercent)
+        //需要重新计算 
+        const childHPercent = fixPercent(newRect.width / vmRect.width),childVPercent = fixPercent(newRect.height / vmRect.height);
+        vm.children && vm.children.viewModelList.forEach((child)=>{
+            ViewModel.changeRectByPercent(target,child,childHPercent,childVPercent);
+        })
+        vm.setRect(newRect);
+    }
     changePosition(diffx:number,diffy:number){
-        this._rect.moveLeftAndTop(diffx,diffy);
+        this._rect = this._rect.moveLeftAndTop(diffx,diffy);
         // this.view.move(diffx,diffy);
     }
     // updateRectByWheel(scrollX:number,scrollY:number){
@@ -203,7 +247,7 @@ export class ViewModel implements IViewModel{
         }
         return this._rect
     }
-    getRelativeRect(rect:OperationPos){
+    getParentRect():{left:number,top:number}{
         const {_parent,_options} = this;
         let curRect:{left:number,top:number};
         if(_parent == null || _parent.isRoot){
@@ -211,9 +255,15 @@ export class ViewModel implements IViewModel{
         }else{
             curRect = _parent.getRect();
         }
+        return curRect;
+    }
+    getRelativeRect(rect:OperationPos,parentRect?:{left:number,top:number}){
+        if(!parentRect){
+            parentRect = this.getParentRect();
+        }
         return {
-            left:rect.left  - curRect.left ,
-            top:rect.top  - curRect.top,
+            left:rect.left  - parentRect.left ,
+            top:rect.top  - parentRect.top,
             width:rect.width,
             height:rect.height
         }
@@ -257,6 +307,7 @@ export class ViewModel implements IViewModel{
         }
         this.model = model;
         this.isGroup = model.get('isGroup',false)
+        this.view.setIsGroup(this.isGroup);
         const modelChildren = model.get('children',WrapData([]));
         if(this.children){
             this.children.update(modelChildren);

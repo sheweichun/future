@@ -16,6 +16,7 @@ import {OperationPos} from './operation/pos'
 import {RectSelect} from './rectSelect'
 import { MoveEventData } from "../events/type";
 import {PluginManager} from './pluginManager';
+import { IViewModel } from '../render/type';
 
 
 function completeData(data:Model){
@@ -56,7 +57,7 @@ export class Content implements IEvent{
     private _options:ContentOptions
     private _x:number
     private _y:number
-    private _viewModel:ViewModel
+    private _viewModel:IViewModel
     private _keyboard:KeyBoard
     private _store:Store
     private _commander:Commander
@@ -103,6 +104,7 @@ export class Content implements IEvent{
         this._viewModel = createViewModel(null,this._store.currentState.get('data'),{
             mountNode:this._wrapEl,
             commander:this._commander,
+            createView:this._options.createView,
             addViewModel:this._operation.addViewModel,
             removeViewModel:this._operation.removeViewModel,
             getRect:this.getRect
@@ -162,6 +164,14 @@ export class Content implements IEvent{
         _keyboard.registerShortcut([KeyBoardKeys.METAKEY,KeyBoardKeys.SHIFTKEY,'z'],{
             fn:this.redo,
             context:this
+        })
+        _keyboard.registerShortcut([KeyBoardKeys.METAKEY,'c'],{
+            fn:this._mutation.copy,
+            context:this._mutation
+        })
+        _keyboard.registerShortcut([KeyBoardKeys.METAKEY,'v'],{
+            fn:this._mutation.paste,
+            context:this._mutation
         })
     }
     updateRectSelect(data:MoveEventData){

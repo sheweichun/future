@@ -42,6 +42,10 @@ export class RulerGroup extends DrawEntity{
             end:new Point(halfLineWidth,_drawer.height)
         })
     }
+    changeSize(width:number,height:number){
+        this._topRuler.changeSize(width,height)
+        this._leftRuler.changeSize(width,height)
+    }
     onMousewheel(deltaX:number,deltaY:number,repaint:()=>void){
         let shouldUpdate = false;
         if(deltaX != 0){

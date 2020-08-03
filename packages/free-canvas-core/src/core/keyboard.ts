@@ -70,7 +70,6 @@ export class KeyBoard  extends EventHandler implements IKeyBoard{
     // }
     onKeyDown(e:KeyboardEvent){
         const {key,metaKey,shiftKey} = e;
-        // console.log('E :',e);
         let code = keysToKeyStr([metaKey ? 'metaKey': null, shiftKey ? 'shiftKey': null,key]);
         let target = this._keyHandleCenter[code];
         if(target){

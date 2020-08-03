@@ -23,9 +23,13 @@ const DEFAUL_OPTIONS = {
 }
 
 abstract class RulerModel{
+    
+    constructor(protected _start:Point,
+        protected _end:Point){}
     entities:Entity[]
     protected _options:RulerOptions
     abstract initEntities():void
+    abstract changeSize(width:number,height:number):void
     changeValue(val:number){
         this._options.base += val;
         this.initEntities();
@@ -38,12 +42,17 @@ class VerticalRulerModel extends RulerModel{
 
     entities:Entity[]
     constructor(protected _options:RulerOptions){
-        super();
+        super(_options.start,_options.end);
+        this.initEntities();
+    }
+    changeSize(width:number,height:number){
+        // console.log('height :',height,this._end.y);
+        this._end = this._end.changeY(height);
         this.initEntities();
     }
     initEntities(){
-        const {_options} = this;
-        const {start,end,base,size,unit,backgroundColor,lineOffset} = _options;
+        const {_options,_start:start,_end:end} = this;
+        const {base,size,unit,backgroundColor,lineOffset} = _options;
         const baseRemain = base % unit;
         const baseDiff = unit - baseRemain;
         // this._base = baseRemain === 0 ? base : (base + diff);
@@ -94,7 +103,11 @@ class HorizontalRulerModel extends RulerModel{
     entities:Entity[]
     
     constructor(protected _options:RulerOptions){
-        super();
+        super(_options.start,_options.end);
+        this.initEntities();
+    }
+    changeSize(width:number,height:number){
+        this._end = this._end.changeX(width);
         this.initEntities();
     }
     initEntities(){
@@ -155,6 +168,9 @@ export class Ruler extends Entity{
         super();
         this._rulerModel = createRulerModel(completeOptions(options,DEFAUL_OPTIONS));
 
+    }
+    changeSize(width:number,height:number){
+        this._rulerModel.changeSize(width,height);
     }
     changeValue(val:number){
         this._rulerModel.changeValue(val);

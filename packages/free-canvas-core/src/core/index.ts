@@ -1,26 +1,26 @@
-import {IPlugin} from 'free-canvas-shared'
+import {IPlugin, IView,Model} from 'free-canvas-shared'
 import Canvas from './canvas'
-import {CanvasOption} from './type';
+import {CanvasOption,CoreOptions} from './type';
 import {Line,Point, Entity,IEvent,LineMark,Rect} from '../entities/index';
 import {RulerGroup,Content} from '../components/index';
-import {completeOptions} from '../utils/index';
+import {completeOptions,debounce} from '../utils/index';
 import {createStyle} from '../utils/style'
 import {CanvasEvent,EventHandler} from '../events/event';
 // import {MoveEventData} from '../events/type';
 import {CONTAINER} from '../utils/constant';
 import allStyle from './style'
-import {Model} from '../render/index'
 import { MakerData,MarkEntityType } from './operation/type';
 import {OperationPos} from './operation/pos'
 
 
-export interface CoreOptions  {
-    canvas?:CanvasOption
-    data:Model
-    rulerBackgroundColor?:string
-    wheelSpeedX?:number
-    wheelSpeedY?:number
-}
+// export interface CoreOptions  {
+//     canvas?:CanvasOption
+//     data:Model
+//     createView?:(data:Model)=>IView<Model>
+//     rulerBackgroundColor?:string
+//     wheelSpeedX?:number
+//     wheelSpeedY?:number
+// }
 
 const DEFAULT_OPTIONS:CoreOptions = {
     wheelSpeedX:5,
@@ -111,6 +111,7 @@ export default class Core extends EventHandler{
         this._content = new Content(contentDiv,data,{
             wheelSpeedX,
             wheelSpeedY,
+            createView:this._options.createView,
             margin:this.margin,
             updateMakers:this.updateMakers,
             updateRectSelect:this.updateRectSelect
@@ -162,7 +163,7 @@ export default class Core extends EventHandler{
                         new Point(startX + left,startY + top),
                         new Point(endX + left,endY + top),
                         {
-                            val:val+''
+                            val:Math.floor(val)+''
                         }
                     )
                 }else if(type === MarkEntityType.Line){
@@ -200,6 +201,13 @@ export default class Core extends EventHandler{
                 e.preventDefault();
             })
         })
+        //@ts-ignore
+        this.addEvent(window,CanvasEvent.RESIZE,debounce(()=>{
+            const {_canvas} = this;
+            _canvas.resize();
+            this._rulerGroup.changeSize(_canvas.width,_canvas.height);
+            this.draw()
+        },100))
     }
     createStyle(){
         if(styleCreated) return;

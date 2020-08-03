@@ -2,7 +2,6 @@ const SPLIT = '.'
 
 
 export function encode(val:any[]){
-
     const retVal = val.reduce((ret,item)=>{
         if(item == null) return ret;
         if(typeof item === 'number'){

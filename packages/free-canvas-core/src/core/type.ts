@@ -1,6 +1,7 @@
 import { MakerData } from "./operation/type"
 import {MoveEventData} from '../events/type'
 import { OperationPos } from "./operation/pos"
+import {Model,CreateView} from 'free-canvas-shared' 
 
 export interface CanvasOption {
     onMouseEvent?:(eventName:string,e:MouseEvent)=>void
@@ -89,6 +90,7 @@ export interface ContentOptions{
     wheelSpeedX:number,
     wheelSpeedY:number,
     margin:number,
+    createView?:CreateView
     x?:number,
     y?:number
 }
@@ -100,3 +102,13 @@ export interface HanlerItemOption extends OperationSizeOptions{
 export interface MutationOptions{
     getRect:()=>OperationPos
 }
+
+export interface CoreOptions  {
+    canvas?:CanvasOption
+    data:Model
+    createView?:CreateView
+    rulerBackgroundColor?:string
+    wheelSpeedX?:number
+    wheelSpeedY?:number
+}
+

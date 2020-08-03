@@ -84,7 +84,8 @@ export class Mutation extends EventHandler{
     private _isDragOver:boolean = false
     private _viewModelMap:Map<string,IViewModel> = new Map()
     private _operation:IOperation
-    private _lastEnter:EventTarget;
+    private _copyTarget:BaseModel[]
+    // private _lastEnter:EventTarget;
     constructor(private _el:HTMLElement,private _store:Store,private _commander:Commander,private _options:MutationOptions){
         super()
         this.listen();
@@ -111,6 +112,16 @@ export class Mutation extends EventHandler{
     }
     setOperation(operation:IOperation){
         this._operation = operation;
+    }
+    _getSelectedBaseModels(){
+        const arr:BaseModel[] = [];
+        this.reduceSelectedKeyPath((keyPath:string)=>{
+            const item = this._viewModelMap.get(keyPath);
+            if(item){
+                arr.push(item.getModel())
+            }
+        })
+        return arr;
     }
     getSelectedViewModels(){
         const arr:IViewModel[] = [];
@@ -143,6 +154,36 @@ export class Mutation extends EventHandler{
         this._isDragOver = true;
         // this._lastEnter = e.target;
         // document.body.classList.add(DRAG_OVER)
+    }
+    copy(){
+        this._copyTarget = this._getSelectedBaseModels();
+    }
+    paste(){
+        if(this._copyTarget == null) return;
+        const addKeyPaths:string[][] = []
+        this.transition(()=>{
+            this._onUnSelected();
+            const dslData = this.getDSLData();
+            const originPath = dslData._keyPath;
+            dslData.update('children',(old:BaseModel)=>{
+                const oldSize = old.size;
+                //@ts-ignore
+                return old.push(...this._copyTarget.map((item:BaseModel,index:number)=>{
+                    const cloneData = item.searialize();
+                    const {position} = cloneData.extra;
+                    cloneData.extra.position = Object.assign({},position,{
+                        left : position.left + 20,
+                        top: position.top + 20
+                    })
+                    cloneData.extra.isSelect = true;
+                    addKeyPaths.push([].concat(originPath,['children',oldSize + index]));
+                    return WrapData(cloneData);
+                }));
+            })
+            this.addKeyPath(...addKeyPaths);
+        })
+        // console.log('addKeyPaths :',addKeyPaths);
+        
     }
     // onDragOver(e:DragEvent){
     //     this._isDragOver = true;
@@ -247,8 +288,13 @@ export class Mutation extends EventHandler{
         }
         // console.log('in each :',Date.now() - now);
     }
-    addKeyPath(keyPath:any[]){
-        this.getSelectedKeyPaths().push(encode(keyPath));
+    // addKeyPath(keyPath:any[]){
+    //     this.getSelectedKeyPaths().push(encode(keyPath));
+    // }
+    addKeyPath(...keyPaths:any[][]){
+        this.getSelectedKeyPaths().push(...(keyPaths.map((item)=>{
+            return encode(item)
+        })));
     }
     keyPathsIsNotEmpty(){
         return this.getSelectedKeyPaths().size > 0
@@ -419,6 +465,7 @@ export class Mutation extends EventHandler{
     addModel(data:Model){
         if(data == null) return;
         let target:BaseModel;
+        data.extra.isSelect = true;
         this.transition(()=>{
             this._onUnSelected();
             const dslData = this.getDSLData();

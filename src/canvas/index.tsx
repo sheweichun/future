@@ -1,7 +1,9 @@
 import FreeCanvas from '@pkg/free-canvas-core';
+import {createView} from '@pkg/free-canvas-fusion-render';
 
 
 const canvas = FreeCanvas('canvas',{
+    createView,
     data:{
         isRoot:true,
         extra:{},

@@ -1,10 +1,10 @@
-import {COMMANDERS,Utils} from 'free-canvas-shared';
+import {COMMANDERS,Utils,IView,View} from 'free-canvas-shared';
 import {CanvasEvent} from '../events/event';
 import {ObjectStyleDeclaration} from '../utils/type';
 import {setStyle} from '../utils/style';
 import {completeOptions} from '../utils/index';
-import {MovableOptions,OnPositionChange,IView,IMovable} from './type';
-import {View, FragmentView} from './view';
+import {MovableOptions,OnPositionChange,IMovable} from './type';
+import {FragmentView,createView} from './view';
 import {Model} from './model';
 import {OperationPos} from '../core/operation/pos'
 import {MOVABLE_CLASSNAME,styleSizeHoverColor,styleSizeColor} from '../utils/constant'
@@ -52,8 +52,11 @@ export class Movable implements IMovable{
         if(isRoot){
             this.view = new FragmentView(this.fixData(_data),mountNode)
         }else{
-            this.view = new View(this.fixData(_data),this._options);
+            const createViewFn = this._options.createView || createView
+            this.view = createViewFn(this.fixData(_data),this._options);
+            // this.view = new View(this.fixData(_data),this._options);
         }
+        this.view.render();
         this.parsePosition();
         const div = document.createElement('div');
         div.id = Utils.encode2ShortId(options.id);
@@ -70,11 +73,14 @@ export class Movable implements IMovable{
         // }
         
     }
+    setIsGroup(isGroup:boolean){
+        this._options.isGroup = isGroup
+    }
     fixData(data:Model){
         const {position} = data.extra
         const {style} = data;
-        style.width = `${position.width}px`
-        style.height = `${position.height}px`
+        style.width = position.width == null  ? 'auto': `${position.width}px`
+        style.height = position.height == null ? 'auto': `${position.height}px`
         return data;
     }
     render(){

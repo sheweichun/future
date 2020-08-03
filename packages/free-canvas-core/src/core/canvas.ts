@@ -35,9 +35,19 @@ export default class Canvas implements ICanvas{
     clear(){
         this.context.clearRect(0,0,this.width,this.height);
     }
+    // initSize(){
+    //     const {_el} = this;
+    //     const rect = _el.getBoundingClientRect();
+    //     this.width = rect.width;
+    //     this.height = rect.height;
+    //     this._radio = getRatio(this.context);
+    //     hidpi(_el,this.width,this.height,this._radio);
+    //     this._lineOffset = this._radio % 2 === 1 ? 0.5 : 0;
+    // }
     resize(){
         const {_el} = this;
-        const rect = _el.getBoundingClientRect();
+        const target = _el.parentElement;
+        const rect = target.getBoundingClientRect();
         this.width = rect.width;
         this.height = rect.height;
         this._radio = getRatio(this.context);

@@ -123,11 +123,12 @@ export class Operation implements IDisposable,IOperation{
         this._changed = true;
         this._size && this._size.hide();
         const {x,y} = data;
-        const pos = this._pos;
+        // const pos = this._pos;
         const diffx = x - this._startX;
         const diffy = y - this._startY;
-        pos.left += diffx;
-        pos.top += diffy;
+        // pos.left += diffx;
+        // pos.top += diffy;
+        this._pos = this._pos.moveLeftAndTop(diffx,diffy);
         this._startX = x;
         this._startY = y;
         this.setStyle();
@@ -137,10 +138,11 @@ export class Operation implements IDisposable,IOperation{
         if(this._showMakerTmId){
             clearTimeout(this._showMakerTmId);
             this.showMakers();
+        }else{
+            this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
+                this.showMakers();
+            },50)
         }
-        this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
-            this.showMakers();
-        },50)
     }
     _onUnSelect(data:{x:number,y:number}){
         if(this._changed){
@@ -224,7 +226,7 @@ export class Operation implements IDisposable,IOperation{
     onOperationUpdate(){
         this.setStyle(); 
         if(this._size){
-            this._size.setStyle();
+            this._size.setStyle(this._pos);
         }
     }
     addViewModel(viewModel:IViewModel){
@@ -318,16 +320,28 @@ export class Operation implements IDisposable,IOperation{
         this._selectViewModels.forEach(fn);
     }
     onSizeMove(diffX:number,diffY:number,direct:HANDLER_ITEM_DIRECTION){
-        const target = HANDLER_ITEM_DIRECTION_HANDLER_MAP[direct];
+        const target = HANDLER_ITEM_DIRECTION_HANDLER_MAP[direct] as string;
         this.eachSelect((vm:IViewModel)=>{
+            vm.changeRect(target,diffX,diffY);
             //@ts-ignore
-            vm.getRect()[target](diffX,diffY);
-            //@ts-ignore
-            this._pos[target](diffX,diffY);
+            this._pos = this._pos[target](diffX,diffY);
         })
+        if(this._showMakerTmId){
+            clearTimeout(this._showMakerTmId);
+            this.showMakers();
+        }else{
+            this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
+                this.showMakers();
+            },50)
+        }
     }
     onSizeChange(){// todo 有BUG
         this._mutation.changePosAndSize(this._selectViewModels)
+        if(this._showMakerTmId){
+            clearTimeout(this._showMakerTmId);
+            this._showMakerTmId = null
+        }
+        this.hideMakers()
     }
     setStyle(){
         const pos = this._pos;

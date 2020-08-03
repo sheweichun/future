@@ -1,5 +1,6 @@
 
-import Core,{CoreOptions} from './core/index';
+import Core from './core/index';
+import {CoreOptions} from './core/type';
 
 
 // const isInIframe = window.top !== window;

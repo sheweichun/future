@@ -45,13 +45,13 @@ export function createGroupModel(left:number,top:number,width:number,height:numb
         name:'div',
         isGroup:true,
         style:{
-            width:width+'px',
-            height:height+'px'
         },
         extra:{
             position:{
                 left,
-                top
+                top,
+                width,
+                height
             }
         }
     }

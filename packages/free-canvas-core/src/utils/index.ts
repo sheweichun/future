@@ -19,6 +19,8 @@ export function completeOptions(options:any,defaultOptions:any){
 
 let throttleId:any;
 let curFn:()=>void;
+// let debounceId:any;
+// let curDebounceFn:()=>void;
 
 export function throttle(fn:()=>void,tm:number){
     curFn = fn;
@@ -27,4 +29,17 @@ export function throttle(fn:()=>void,tm:number){
         curFn && curFn();
         throttleId = null;
     },tm)
+}
+
+export function debounce(fn:()=>void,tm:number){
+    let debounceId:any;
+    return function(){
+        if(debounceId != null){
+            clearTimeout(debounceId)
+        }
+        debounceId = setTimeout(function(){
+            fn();
+            debounceId = null;
+        },tm)
+    }
 }

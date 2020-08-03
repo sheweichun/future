@@ -65,6 +65,7 @@ export interface ICommander{
 }
 export enum CanvasEvent {
     MOUSEWHEEL="mousewheel",
+    RESIZE="resize",
     CLICK="click",
     DBCLICK="dblclick",
     MOUSEDOWN="mousedown",
@@ -110,8 +111,8 @@ export interface IPlugin{
 
 export interface ModelPropSchema{
     // name:string
-    value:string,
-    expression:any
+    value:any,
+    expression?:any
 }
 
 export interface ModelPropSchemas{

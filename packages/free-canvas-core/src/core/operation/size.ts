@@ -179,8 +179,8 @@ export class Size{
             item.update(pos)
         })
     }
-    setStyle(){
-        this._handlerList.forEach((item)=>item.setStyle())
+    setStyle(pos:OperationPos){
+        this._handlerList.forEach((item)=>item.update(pos))
     }
     destroy(){
         this._handlerList.forEach((item)=>item.destroy())
