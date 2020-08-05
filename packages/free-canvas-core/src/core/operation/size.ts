@@ -10,6 +10,32 @@ import {OperationPos} from './pos'
 const HALF_STYLE_SIZE_SIZE = styleSizeSize / 2
 
 
+function calcuateLockScalXY(originX:number,originY:number,x:number,y:number,pos:OperationPos,direction:HANDLER_ITEM_DIRECTION){
+    const scale = pos._width / pos._height;
+    const diffx = x - originX,diffy = y - originY;
+    let curScale:number;
+    if(diffy === 0){
+        curScale = Infinity //需要重新计算diffy
+    }else{
+        curScale = Math.abs(diffx / diffy);
+    }
+    let baseFlag:number;
+    if(direction === HANDLER_ITEM_DIRECTION.RIGHT_TOP || direction === HANDLER_ITEM_DIRECTION.LEFT_BOTTOM){
+        baseFlag =  -1 
+    }else{
+        baseFlag = 1
+    }
+    const ret = {x:0,y:0};
+    if(curScale < scale){
+        ret.x = Math.floor(Math.abs(diffy) * scale) * (diffy < 0 ? -1 : 1) * baseFlag
+        ret.y = diffy;
+    }else{
+        ret.x = diffx
+        ret.y = Math.floor(Math.abs(diffx) / scale) * (diffx < 0 ? -1 : 1) * baseFlag
+    }
+    return ret;
+}
+
 abstract class HanlerItem{
     protected _el:HTMLElement
     private _startX:number
@@ -19,13 +45,14 @@ abstract class HanlerItem{
     private _canMove:boolean = false
     private _hasChanged:boolean = false
     private _isShow:boolean
+    protected _needLockScale:boolean = false
     // private _x:number
     // private _y:number
     constructor(private _direction:HANDLER_ITEM_DIRECTION,protected _pos:OperationPos,private _options:HanlerItemOption){
         this._el = document.createElement('div')
         this._el.className = OPERATION_SIZE_CLASSNAME
         this.onMouseDown = this.onMouseDown.bind(this);
-        this.onMouseMove = this.onMouseMove.bind(this);
+        this.onMouseMove = throttle(this.onMouseMove.bind(this),12);
         this.onMouseUp = this.onMouseUp.bind(this);
         this._isShow = true;
         this.setStyle();
@@ -45,8 +72,8 @@ abstract class HanlerItem{
         this._canMove = true;
         this._hasChanged = false;
         const {x,y} = e;
-        this._startX = x
-        this._startY = y
+        // this._startX = x
+        // this._startY = y
         this._originX = x;
         this._originY = y;
         e.stopPropagation();
@@ -54,14 +81,19 @@ abstract class HanlerItem{
     onMouseMove(e:MouseEvent){
         if(!this._canMove) return
         this._hasChanged = true;
-        throttle(()=>{
-            const {x,y} = e;
-            const {onMove} = this._options
-            // onMove && onMove(x - this._startX,y - this._startY,this._direction);
-            onMove && onMove(x - this._originX,y - this._originY,this._direction);
-            this._startX = x;
-            this._startY = y;
-        },12)
+        const {x,y} = e;
+        const {onMove} = this._options
+        let changeData = {
+            x:x - this._originX,
+            y:y - this._originY
+        }
+        if(this._needLockScale && e.shiftKey){
+            changeData = calcuateLockScalXY(this._originX,this._originY,x,y,this._pos,this._direction);
+        }
+        onMove && onMove(changeData.x,changeData.y,this._direction);
+        // onMove && onMove(x - this._startX,y - this._startY,this._direction);
+        // this._startX = x;
+        // this._startY = y;
         e.stopPropagation();
     }
     onMouseUp(e:MouseEvent){
@@ -108,6 +140,8 @@ class LeftHandlerItem extends HanlerItem{
     }
 }
 
+
+
 class TopHandlerItem extends HanlerItem{
     constructor(_pos:OperationPos,_options:HanlerItemOption){
         super(HANDLER_ITEM_DIRECTION.TOP,_pos,_options);
@@ -149,6 +183,67 @@ class BottomHandlerItem extends HanlerItem{
         `)
     }
 }
+
+
+class LeftTopHandlerItem extends HanlerItem{
+    constructor(_pos:OperationPos,_options:HanlerItemOption){
+        super(HANDLER_ITEM_DIRECTION.LEFT_TOP,_pos,_options);
+        this._needLockScale = true;
+    }
+    setStyle(){
+        // const {width} = this._pos;
+        this._el.setAttribute('style',`
+            cursor: nwse-resize;
+            top:-${HALF_STYLE_SIZE_SIZE}px;
+            left:-${HALF_STYLE_SIZE_SIZE}px;
+        `)
+    }
+}
+class RightTopHandlerItem extends HanlerItem{
+    constructor(_pos:OperationPos,_options:HanlerItemOption){
+        super(HANDLER_ITEM_DIRECTION.RIGHT_TOP,_pos,_options);
+        this._needLockScale = true;
+    }
+    setStyle(){
+        // const {width} = this._pos;
+        this._el.setAttribute('style',`
+            cursor: nesw-resize;
+            top:-${HALF_STYLE_SIZE_SIZE}px;
+            right:${-HALF_STYLE_SIZE_SIZE}px;
+        `)
+    }
+}
+
+class RightBottomHandlerItem extends HanlerItem{
+    constructor(_pos:OperationPos,_options:HanlerItemOption){
+        super(HANDLER_ITEM_DIRECTION.RIGHT_BOTTOM,_pos,_options);
+        this._needLockScale = true;
+    }
+    setStyle(){
+        // const {width} = this._pos;
+        this._el.setAttribute('style',`
+            cursor: nwse-resize;
+            bottom:${-HALF_STYLE_SIZE_SIZE}px;
+            right:${-HALF_STYLE_SIZE_SIZE}px;
+        `)
+    }
+}
+
+class LeftBottomHandlerItem extends HanlerItem{
+    constructor(_pos:OperationPos,_options:HanlerItemOption){
+        super(HANDLER_ITEM_DIRECTION.LEFT_BOTTOM,_pos,_options);
+        this._needLockScale = true;
+    }
+    setStyle(){
+        // const {width} = this._pos;
+        this._el.setAttribute('style',`
+            cursor: nesw-resize;
+            bottom:${-HALF_STYLE_SIZE_SIZE}px;
+            left:-${HALF_STYLE_SIZE_SIZE}px;
+        `)
+    }
+}
+
 //  bottom:${height - HALF_STYLE_SIZE_SIZE}px;
 
 export class Size{
@@ -160,7 +255,11 @@ export class Size{
             new LeftHandlerItem(_pos,_options).appendTo(fragment),
             new TopHandlerItem(_pos,_options).appendTo(fragment),
             new RightHandlerItem(_pos,_options).appendTo(fragment),
-            new BottomHandlerItem(_pos,_options).appendTo(fragment)
+            new BottomHandlerItem(_pos,_options).appendTo(fragment),
+            new LeftTopHandlerItem(_pos,_options).appendTo(fragment),
+            new LeftBottomHandlerItem(_pos,_options).appendTo(fragment),
+            new RightBottomHandlerItem(_pos,_options).appendTo(fragment),
+            new RightTopHandlerItem(_pos,_options).appendTo(fragment),
         ]
         _parentEl.appendChild(fragment)
     }

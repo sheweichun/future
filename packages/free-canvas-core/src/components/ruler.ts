@@ -61,8 +61,8 @@ class VerticalRulerModel extends RulerModel{
             lineStyle:_options.lineStyle,
         }
         this.entities = [
-            new Line(start,end,lineOpt),
-            new Line(start.addX(size),end.addX(size),lineOpt)
+            // new Line(start,end,lineOpt),
+            // new Line(start.addX(size),end.addX(size),lineOpt)
         ]
         const startY = start.y;
         const baseY = startY + (this._base - base);
@@ -89,9 +89,9 @@ class VerticalRulerModel extends RulerModel{
             }
             this.entities.push(entity);
         }
-        this.entities.push(new Rect(start.x + lineOffset,start.y,size - lineOffset,end.y - start.y,{
-            color:backgroundColor
-        }))
+        // this.entities.push(new Rect(start.x + lineOffset,start.y,size - lineOffset,end.y - start.y,{
+        //     color:backgroundColor
+        // }))
     }
 }
 
@@ -148,9 +148,9 @@ class HorizontalRulerModel extends RulerModel{
             }
             this.entities.push(entity)
         }
-        this.entities.push(new Rect(start.x,start.y + lineOffset,end.x - start.x,size - lineOffset,{
-            color:backgroundColor
-        }))
+        // this.entities.push(new Rect(start.x,start.y + lineOffset,end.x - start.x,size - lineOffset,{
+        //     color:backgroundColor
+        // }))
     }
 }
 

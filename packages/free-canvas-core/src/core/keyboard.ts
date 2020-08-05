@@ -29,17 +29,25 @@ export class KeyBoard  extends EventHandler implements IKeyBoard{
     } = {}
     constructor(private _el?:HTMLElement){
         super();
-        if(_el != null){
-            _el.tabIndex = -1000
-            this.listen();
-        }
+        // if(_el != null){
+        //     _el.tabIndex = -1000
+        //     this.listen();
+        // }
+    }
+    listen(){
+        if(this._el == null) return;
+        this._el.tabIndex = -1000
+        this.addEvent(this._el,CanvasEvent.KEYDOWN,this.onKeyDown.bind(this))
+    }
+    focus(){
+        this._el.focus();
     }
     getKeyHandlerCenter(){
         return this._keyHandleCenter;
     }
     createNameSpace(ns:string){
         if(this._keyHandleNameSpaceCenter[ns]) return this._keyHandleNameSpaceCenter[ns];
-        const keyboard = new KeyBoard();
+        const keyboard = new KeyBoard(this._el);
         this._keyHandleNameSpaceCenter[ns] = keyboard;
         const prevDestroy = keyboard.destroy;
         keyboard.destroy = function(){
@@ -87,9 +95,5 @@ export class KeyBoard  extends EventHandler implements IKeyBoard{
         e.preventDefault();
         e.stopPropagation();
         
-    }
-    listen(){
-        if(this._el == null) return;
-        this.addEvent(this._el,CanvasEvent.KEYDOWN,this.onKeyDown.bind(this))
     }
 }

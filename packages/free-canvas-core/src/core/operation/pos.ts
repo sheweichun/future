@@ -1,6 +1,6 @@
 
 
-export {OperationPos} from 'free-canvas-shared'
+export {OperationPos,calculateIncludeRect} from 'free-canvas-shared'
 
 // export class OperationPos{
 //     constructor(

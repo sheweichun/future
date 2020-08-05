@@ -17,18 +17,22 @@ export function completeOptions(options:any,defaultOptions:any){
     },Object.assign({},options))
 }
 
-let throttleId:any;
-let curFn:()=>void;
+
 // let debounceId:any;
 // let curDebounceFn:()=>void;
 
-export function throttle(fn:()=>void,tm:number){
-    curFn = fn;
-    if(throttleId != null) return;
-    throttleId = setTimeout(function(){
-        curFn && curFn();
-        throttleId = null;
-    },tm)
+export function throttle(fn:(...args:any[])=>void,tm:number){
+    let throttleId:any;
+    let curFn:(...args:any[])=>void;
+    return function(...args:any[]){
+        curFn = fn;
+        if(throttleId != null) return;
+        throttleId = setTimeout(function(){
+            curFn && curFn(...args);
+            throttleId = null;
+        },tm)
+        return throttleId
+    }
 }
 
 export function debounce(fn:()=>void,tm:number){

@@ -1,4 +1,4 @@
-import {IPlugin,ICommander,ImutBase, COMMANDERS,Model, CanvasEvent, IPluginOptions, OperationPos} from 'free-canvas-shared'  
+import {IPlugin,ICommander,ImutBase, COMMANDERS,Model, CanvasEvent, IPluginOptions, OperationPos,ModelFromType} from 'free-canvas-shared'  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {Drag} from '../dnd';
@@ -118,6 +118,11 @@ export class Market implements IPlugin{
                     }
                 },
                 extra:{
+                    import:{
+                        from :'@alife/next',
+                        version:'1.0.0',
+                        type:ModelFromType.INDEFAULT
+                    },
                     position:{
                         // width:200,
                         // height:70
@@ -141,6 +146,11 @@ export class Market implements IPlugin{
                     }
                 },
                 extra:{
+                    import:{
+                        from :'@alife/next',
+                        version:'1.0.0',
+                        type:ModelFromType.INDEFAULT
+                    },
                     position:{
                         width:150
                     }
@@ -169,6 +179,11 @@ export class Market implements IPlugin{
                     }
                 },
                 extra:{
+                    import:{
+                        from :'@alife/next',
+                        version:'1.0.0',
+                        type:ModelFromType.INDEFAULT
+                    },
                     position:{
                         width:300
                     }

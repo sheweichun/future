@@ -125,6 +125,13 @@ export interface UniversalObject{
 
 export type ObjectStyleDeclaration = Partial<CSSStyleDeclaration>
 
+
+export enum ModelFromType {
+    ISDEFAULT,
+    INDEFAULT,
+    ITEM
+}
+
 export interface Model {
     id?:string
     name?:string
@@ -134,6 +141,11 @@ export interface Model {
     propSchemas?:ModelPropSchemas
     children?:Model[]
     extra:{
+        import?:{
+            from :string,
+            version:string,
+            type:ModelFromType
+        },
         position?:{
             left?:number,
             top?:number,
@@ -142,6 +154,30 @@ export interface Model {
         },
         isSelect?:boolean
     }
+}
+
+
+function getValFromBaseModel(key:string,data:ImutBase){
+    return data.get(key,null);
+}
+
+function getJSValFromBaseModel(key:string,data:ImutBase,defaultValue?:any){
+    const result = data.get(key,defaultValue)
+    if(result == null) return result;
+    return result.toJS()
+}
+
+export function baseModel2Model(data:ImutBase){
+    const ret = {
+        id:getValFromBaseModel('id',data),
+        name:getValFromBaseModel('name',data),
+        isRoot:getValFromBaseModel('isRoot',data),
+        isGroup:getValFromBaseModel('isGroup',data),
+        style:getJSValFromBaseModel('style',data),
+        propSchemas:getJSValFromBaseModel('propSchemas',data),
+        extra:getJSValFromBaseModel('extra',data)
+    }
+    return ret;
 }
 
 export interface IRender{

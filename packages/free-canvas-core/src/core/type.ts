@@ -57,6 +57,7 @@ export type ShortCutCallback = ()=>void
 
 export interface IKeyBoard{
     registerShortcut(keys:string[],item:ShortCutItem):boolean
+    focus():void
 }
 
 

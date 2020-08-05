@@ -8,7 +8,7 @@ import {CanvasEvent,EventHandler} from '../events/event'
 import {Model} from '../render/model';
 import {IOperation} from './operation/type';
 // import {isEqual} from '../render/dsl/store'
-import { OperationPos } from './operation/pos';
+import { OperationPos,calculateIncludeRect } from './operation/pos';
 import {MutationOptions} from './type';
 // import {DRAG_OVER} from '../utils/constant';
 
@@ -84,7 +84,7 @@ export class Mutation extends EventHandler{
     private _isDragOver:boolean = false
     private _viewModelMap:Map<string,IViewModel> = new Map()
     private _operation:IOperation
-    private _copyTarget:BaseModel[]
+    private _copyTarget:IViewModel[]
     // private _lastEnter:EventTarget;
     constructor(private _el:HTMLElement,private _store:Store,private _commander:Commander,private _options:MutationOptions){
         super()
@@ -156,7 +156,7 @@ export class Mutation extends EventHandler{
         // document.body.classList.add(DRAG_OVER)
     }
     copy(){
-        this._copyTarget = this._getSelectedBaseModels();
+        this._copyTarget = this.getSelectedViewModels();
     }
     paste(){
         if(this._copyTarget == null) return;
@@ -168,12 +168,14 @@ export class Mutation extends EventHandler{
             dslData.update('children',(old:BaseModel)=>{
                 const oldSize = old.size;
                 //@ts-ignore
-                return old.push(...this._copyTarget.map((item:BaseModel,index:number)=>{
+                return old.push(...this._copyTarget.map((vm:IViewModel,index:number)=>{
+                    const item = vm.getModel();
+                    const itemRect = vm.getRect();
                     const cloneData = item.searialize();
                     const {position} = cloneData.extra;
                     cloneData.extra.position = Object.assign({},position,{
-                        left : position.left + 20,
-                        top: position.top + 20
+                        left : itemRect.left + 20,
+                        top: itemRect.top + 20
                     })
                     cloneData.extra.isSelect = true;
                     addKeyPaths.push([].concat(originPath,['children',oldSize + index]));
@@ -459,9 +461,13 @@ export class Mutation extends EventHandler{
     removeModels(vms:IViewModel[]){
         const dslData = this.getDSLData();
         this.transition(()=>{
+            this._onUnSelected();
             this._removeModelsFromEachModel([].concat(vms),dslData);
         })
     }
+    // removeSelectedModels(){
+    //     this.removeModels(this.getSelectedViewModels());
+    // }
     addModel(data:Model){
         if(data == null) return;
         let target:BaseModel;
@@ -495,20 +501,26 @@ export class Mutation extends EventHandler{
             })
         })
     }
+    _changeVmPosAndSize(vm:IViewModel){
+        const oldVm = vm.getModel();
+        const {left,top,width,height} = vm.getRelativeRect(vm.getRect());
+        // let newPos:{left:number,top:number,width:number,height:number};
+        const newPos = {left,top,width,height}
+        oldVm.withMutations((md:any)=>{
+            return md.setIn(['extra','position'],WrapData(newPos))
+        })
+        if(vm.children){
+            vm.children.viewModelList.forEach((child)=>{
+                this._changeVmPosAndSize(child)
+            })
+        }
+    }
     // changePosAndSize(vms:IViewModel[],data:{left:number,top:number,width:number,height:number}){
     changePosAndSize(vms:IViewModel[]){
         this.transition(()=>{
             vms.forEach((vm)=>{
                 //@ts-ignore
-                const oldVm = vm.getModel();
-                const {left,top,width,height} = vm.getRelativeRect(vm.getRect());
-                oldVm.withMutations((md:any)=>{
-                    return md.setIn(['extra','position'],WrapData({left,top,width,height}))
-                    // .updateIn(['style'],(nStyle:any)=>{
-                    //     return nStyle.set('width',`${width}px`).set('height',`${height}px`);
-                    // })
-                    // console.log('data :',data);
-                })
+                this._changeVmPosAndSize(vm);
             })
         })
     }

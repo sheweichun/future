@@ -1,16 +1,17 @@
 
 // import {ViewAttribute} from './type';
+import {baseModel2Model} from 'free-canvas-shared'
 import {BaseModel,WrapData,isEqual} from './index'
 import {Model} from './model';
 import {Movable} from './movable';
 import {IViewModel,IViewModelCollection,ViewModelOptions} from './type'
 import { OperationPos } from '../core/operation/pos';
 
-const MINI_NUMBER = 0.0000000001
+// const MINI_NUMBER = 0.0000000001
 
-function fixPercent(percent:number){
-    return percent < MINI_NUMBER ? MINI_NUMBER : percent
-}
+// function fixPercent(percent:number){
+//     return percent < MINI_NUMBER ? MINI_NUMBER : percent
+// }
 
 function fixData(val:number){
     return Math.floor(val);
@@ -72,6 +73,8 @@ export class ViewModelCollection implements IViewModelCollection{
 }
 
 
+
+
 export class ViewModel implements IViewModel{
     children:IViewModelCollection
     view:Movable
@@ -81,7 +84,7 @@ export class ViewModel implements IViewModel{
     constructor(public model:BaseModel,private _parent:ViewModel,private _options:ViewModelOptions){
         this.isRoot = model.get('isRoot',false)
         this.isGroup = model.get('isGroup',false);
-        this.view = new Movable(model.searialize() as Model,Object.assign({},_options || {},{
+        this.view = new Movable(baseModel2Model(model),Object.assign({},_options || {},{
             isRoot:this.isRoot,
             isGroup:this.isGroup,
             id:model._keyPath,
@@ -205,34 +208,36 @@ export class ViewModel implements IViewModel{
         })
     }
     changeRect(target:string,diffx:number,diffy:number){
-        const curRect = this._rect;
-        const hPercent = fixPercent((diffx + curRect._width) / curRect._width),vPercent = fixPercent((diffy + curRect._height) / curRect._height);
+        // const curRect = this._rect;
+        // const hPercent = fixPercent((diffx + curRect._width) / curRect._width),vPercent = fixPercent((diffy + curRect._height) / curRect._height);
+        // console.log('hPercent :',hPercent,diffx);
         // const curWidth = curRect.width,curHeight = curRect.height;
         //@ts-ignore
         this._rect[target](diffx,diffy);
         this.children && this.children.viewModelList.forEach((child)=>{
-            ViewModel.changeRectByPercent(`${target}Percent`,child,hPercent,vPercent)
+            ViewModel.changeRectByPercent(`${target}Percent`,child,this._rect)
         })
     }
-    setRect(rect:OperationPos){
-        this._rect = rect;
-    }
-    static changeRectByPercent(target:string,vm:IViewModel,xPercent:number,yPercent:number):void{
+    // setRect(rect:OperationPos){
+    //     this._rect = rect;
+    // }
+    static changeRectByPercent(target:string,vm:IViewModel,rootPos:OperationPos):void{
         const vmRect = vm.getRect();
         const parentPos = vm.getParentRect();
         // const pos = vm.getRelativeRect(vmRect,parentPos);
         // const curWidth = vmRect.width,curHeight = vmRect.height;
         //@ts-ignore
-        vmRect[target](parentPos,xPercent,yPercent)
+        // vmRect[target](parentPos,diffX,diffY)
+        vmRect[target](parentPos,rootPos)
         //需要重新计算 
         // const childHPercent = fixPercent(newRect.width / vmRect.width),childVPercent = fixPercent(newRect.height / vmRect.height);
         vm.children && vm.children.viewModelList.forEach((child)=>{
-            ViewModel.changeRectByPercent(target,child,xPercent,yPercent);
+            ViewModel.changeRectByPercent(target,child,rootPos);
         })
         // vm.setRect(newRect);
     }
     changePosition(diffx:number,diffy:number){
-        this._rect = this._rect.moveLeftAndTop(diffx,diffy);
+        this._rect.moveLeftAndTop(diffx,diffy);
         // this.view.move(diffx,diffy);
     }
     // updateRectByWheel(scrollX:number,scrollY:number){
@@ -247,25 +252,30 @@ export class ViewModel implements IViewModel{
         }
         return this._rect
     }
-    getParentRect():{left:number,top:number}{
+    getParentRect():OperationPos{
         const {_parent,_options} = this;
-        let curRect:{left:number,top:number};
+        let curRect:OperationPos;
         if(_parent == null || _parent.isRoot){
-            curRect = {left:0,top:0};
+            curRect = OperationPos.createEmpty();
         }else{
             curRect = _parent.getRect();
         }
         return curRect;
     }
-    getRelativeRect(rect:OperationPos,parentRect?:{left:number,top:number}){
+    getRelativeRect(rect:OperationPos,parentRect?:OperationPos){
         if(!parentRect){
             parentRect = this.getParentRect();
         }
+        // const diffx = parentRect.getDiffX(),diffy = parentRect.getDiffY();
         return {
             left:rect.left  - parentRect.left ,
             top:rect.top  - parentRect.top,
             width:rect.width,
-            height:rect.height
+            height:rect.height,
+            // _left:rect._left - parentRect._left,
+            // _top:rect._top - parentRect._top,
+            // _width:
+            // _height:rect._height
         }
         // return new OperationPos(rect.left  - curRect.left,rect.top  - curRect.top,rect.width,rect.height)
     }

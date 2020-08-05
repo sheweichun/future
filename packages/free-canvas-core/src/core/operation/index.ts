@@ -8,7 +8,7 @@ import { completeOptions } from '../../utils';
 import { CanvasEvent } from '../../events/event';
 import {OPERATION_CLASSNAME} from '../../utils/constant'
 import {Size} from './size';
-import { OperationPos } from './pos';
+import { OperationPos,calculateIncludeRect } from './pos';
 import {calculateLatestVm,transformCalculateItem2MarkerData, transformAliItem2MarkerData} from './service'
 import { KeyBoard } from '../keyboard';
 const {encode} = Utils
@@ -22,6 +22,10 @@ const HANDLER_ITEM_DIRECTION_HANDLER_MAP:any = {
     [HANDLER_ITEM_DIRECTION.TOP]:'moveTop',
     [HANDLER_ITEM_DIRECTION.RIGHT]:'moveRight',
     [HANDLER_ITEM_DIRECTION.BOTTOM]:'moveBottom',
+    [HANDLER_ITEM_DIRECTION.LEFT_TOP]:'moveLeftTop',
+    [HANDLER_ITEM_DIRECTION.LEFT_BOTTOM]:'moveLeftBottom',
+    [HANDLER_ITEM_DIRECTION.RIGHT_TOP]:'moveRightTop',
+    [HANDLER_ITEM_DIRECTION.RIGHT_BOTTOM]:'moveRightBottom'
 }
 
 function eachViewModel(vm:IViewModel,fn:(ret:any,vm:IViewModel)=>any,defaultVal?:any){
@@ -94,6 +98,7 @@ export class Operation implements IDisposable,IOperation{
         this.onMouseDown = this.onMouseDown.bind(this)
         this.onMouseMove = this.onMouseMove.bind(this)
         this._onUnSelect = this._onUnSelect.bind(this)
+        this._onSelectEnd = this._onSelectEnd.bind(this)
         this._onSelectMove = this._onSelectMove.bind(this) 
         this.onMouseUp = this.onMouseUp.bind(this)
         this.onSizeMove = this.onSizeMove.bind(this)
@@ -107,7 +112,7 @@ export class Operation implements IDisposable,IOperation{
             // this.onPositionStart,
             this._onPositionStart,
             this._onSelectMove,
-            this._onUnSelect) //todo 需要感知点击的坐标，保证蒙层可以在点击之后能够移动，实现不够优雅，待优化
+            this._onSelectEnd) //todo 需要感知点击的坐标，保证蒙层可以在点击之后能够移动，实现不够优雅，待优化
 
         // this.onSizeStart = this.onSizeStart.bind(this)
     }
@@ -143,6 +148,10 @@ export class Operation implements IDisposable,IOperation{
                 this.showMakers();
             },50)
         }
+    }
+    _onSelectEnd(data:{x:number,y:number}){
+        this._onUnSelect(data);
+        this._keyboard.focus();
     }
     _onUnSelect(data:{x:number,y:number}){
         if(this._changed){
@@ -274,36 +283,39 @@ export class Operation implements IDisposable,IOperation{
             }
             return;
         }
-        const item = viewModels[0].getRect();
-        const left = item.left;
-        const top = item.top;
-        let pos = {
-            left,
-            top,
-            width:item.width,
-            height:item.height,
-            rightLeft:left + item.width,
-            bottomTop:top + item.height
-        }
-        for(let i = 1; i < viewModels.length; i++){
-            const curItem = viewModels[i].getRect();
-            const left = curItem.left;
-            const top = curItem.top;
-            const rightLeft = left + curItem.width;
-            const bottomTop = top + curItem.height;
-            const posLeft = pos.left < left ? pos.left : left
-            const posTop = pos.top < top ? pos.top : top
-            const posWidth = (pos.rightLeft > rightLeft ? pos.rightLeft : rightLeft) - posLeft
-            const posHeight = (pos.bottomTop > bottomTop ? pos.bottomTop : bottomTop) - posTop
-            pos = {
-                left: posLeft,
-                top:  posTop,
-                width : posWidth,
-                height : posHeight,
-                rightLeft: posLeft + posWidth,
-                bottomTop: posTop + posHeight,
-            }
-        }
+        const pos = calculateIncludeRect(viewModels.map((vm)=>{
+            return vm.getRect();
+        }))
+        // const item = viewModels[0].getRect();
+        // const left = item.left;
+        // const top = item.top;
+        // let pos = {
+        //     left,
+        //     top,
+        //     width:item.width,
+        //     height:item.height,
+        //     rightLeft:left + item.width,
+        //     bottomTop:top + item.height
+        // }
+        // for(let i = 1; i < viewModels.length; i++){
+        //     const curItem = viewModels[i].getRect();
+        //     const left = curItem.left;
+        //     const top = curItem.top;
+        //     const rightLeft = left + curItem.width;
+        //     const bottomTop = top + curItem.height;
+        //     const posLeft = pos.left < left ? pos.left : left
+        //     const posTop = pos.top < top ? pos.top : top
+        //     const posWidth = (pos.rightLeft > rightLeft ? pos.rightLeft : rightLeft) - posLeft
+        //     const posHeight = (pos.bottomTop > bottomTop ? pos.bottomTop : bottomTop) - posTop
+        //     pos = {
+        //         left: posLeft,
+        //         top:  posTop,
+        //         width : posWidth,
+        //         height : posHeight,
+        //         rightLeft: posLeft + posWidth,
+        //         bottomTop: posTop + posHeight,
+        //     }
+        // }
         this._pos = new OperationPos(pos.left,pos.top,pos.width,pos.height,this.onOperationUpdate);
         this.setStyle();
         if(this._size == null){

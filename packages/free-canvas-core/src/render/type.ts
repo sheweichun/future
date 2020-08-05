@@ -53,7 +53,7 @@ export interface IViewModel{
     update(model:BaseModel):void
     isChildren(vm:IViewModel):boolean
     getRect():OperationPos
-    setRect(pos:OperationPos):void
+    // setRect(pos:OperationPos):void
     getAbsRect():OperationPos
     getView():IMovable
     getParentRect():{left:number,top:number}
