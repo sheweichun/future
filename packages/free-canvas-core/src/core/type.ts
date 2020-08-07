@@ -88,8 +88,8 @@ export interface ContentOptions{
     // getRect:()=>OperationPos
     updateMakers:(data?:MakerData[])=>void
     updateRectSelect:(data?:OperationPos)=>void
-    wheelSpeedX:number,
-    wheelSpeedY:number,
+    // wheelSpeedX:number,
+    // wheelSpeedY:number,
     margin:number,
     createView?:CreateView
     x?:number,

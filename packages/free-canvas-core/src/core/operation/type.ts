@@ -39,7 +39,8 @@ export interface AlignItem {
 
 export enum MarkEntityType { 
     Line,
-    LineMarker
+    LineMarker,
+    Guides
 }
 
 export interface AlignItemMap {

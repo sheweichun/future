@@ -2,7 +2,7 @@
 
 
 import {IEvent} from '../entities/index'
-import {completeOptions,controlDelta} from '../utils/index';
+import {completeOptions} from '../utils/index';
 import {CanvasEvent} from '../events/event';
 import {ContentOptions,KeyBoardKeys} from './type';
 import {Model,createViewModel,ViewModel} from '../render/index'
@@ -216,21 +216,21 @@ export class Content implements IEvent{
     // }
     setStyle(){
         const {_el,_x,_y} = this;
-        _el.setAttribute('style',`outline:none !important;width:100%;height:100%;transform:translate3d(${_x}px,${_y}px,0)`);
+        _el.setAttribute('style',`outline:none !important;width:100%;height:100%;transform:matrix(1,0,0,1,${_x},${_y})`);
     }
     onMousewheel(deltaX:number,deltaY:number){
         // console.log('on mouse!! :',deltaX,deltaY,this._x,this._y);
         this._x += -deltaX;
-        this._y += deltaY; 
-        this._rect.moveLeftAndTop(-deltaX,deltaY);
+        this._y += -deltaY; 
+        this._rect.moveLeftAndTop(-deltaX,-deltaY);
         this.setStyle();
     }
-    fireEvent(name:string,e:MouseEvent,repaint:()=>void):void{
+    fireEvent(name:string,e:MouseWheelEvent,repaint:()=>void):void{
         switch(name){
             case CanvasEvent.MOUSEWHEEL:
-                const {wheelSpeedX,wheelSpeedY} = this._options
+                // const {wheelSpeedX,wheelSpeedY} = this._options
                 const {deltaX,deltaY} = e as MouseWheelEvent;
-                this.onMousewheel(controlDelta(deltaX,wheelSpeedX),controlDelta(deltaY,wheelSpeedY))
+                this.onMousewheel(deltaX,deltaY)
         }
     }
 }

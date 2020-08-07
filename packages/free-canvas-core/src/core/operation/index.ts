@@ -3,7 +3,7 @@ import {Mutation} from '../mutation'
 import { IViewModel } from '../../render/type';
 import {IOperation} from './type';
 import {OperationOptions,IDisposable, HANDLER_ITEM_DIRECTION,KeyBoardKeys} from '../type';
-import {Utils} from 'free-canvas-shared'
+import {Utils, modelIsRoot, modelIsGroup, modelIsArtboard} from 'free-canvas-shared'
 import { completeOptions } from '../../utils';
 import { CanvasEvent } from '../../events/event';
 import {OPERATION_CLASSNAME} from '../../utils/constant'
@@ -30,7 +30,7 @@ const HANDLER_ITEM_DIRECTION_HANDLER_MAP:any = {
 
 function eachViewModel(vm:IViewModel,fn:(ret:any,vm:IViewModel)=>any,defaultVal?:any){
     let fnRet = defaultVal
-    if(!vm.isRoot){
+    if(!modelIsRoot(vm.modelType)){
         fnRet = fn(fnRet,vm);
     }
     if(vm.children){
@@ -56,7 +56,9 @@ function eachViewModelExcludeSelected(selectModels:IViewModel[],vm:IViewModel,fn
     if(selectModels.indexOf(vm) >= 0){
         return defaultVal
     };
-    if(!vm.isRoot && !vm.isGroup){
+    //isRoot isGroup isArtboard
+    // if(vm.modelType == null){
+    if(!modelIsRoot(vm.modelType)){
         fnRet = fn(fnRet,vm);
     }
     if(vm.children){
@@ -133,10 +135,12 @@ export class Operation implements IDisposable,IOperation{
         const diffy = y - this._startY;
         // pos.left += diffx;
         // pos.top += diffy;
-        this._pos.moveLeftAndTop(diffx,diffy);
         this._startX = x;
         this._startY = y;
-        this.setStyle();
+        if(this._pos){
+            this._pos.moveLeftAndTop(diffx,diffy);
+            this.setStyle();
+        }
         this._selectViewModels.forEach((vm)=>{
             vm.changePosition(diffx,diffy)
         })
@@ -270,22 +274,37 @@ export class Operation implements IDisposable,IOperation{
         //         arr.push(item)
         //     }
         // })
-        const arr:IViewModel[] = this._mutation.getSelectedViewModels()
+        const arr:IViewModel[] = this._mutation.getAllSelectedViewModels()
         this._selectViewModels = arr;
         this.calculate(arr);
     }
     calculate(viewModels:IViewModel[]){
         if(viewModels == null || viewModels.length === 0){
             this._root.style.display = 'none'
+            this._pos = null
             if(this._size){
                 this._size.destroy();
                 this._size = null;
             }
             return;
         }
-        const pos = calculateIncludeRect(viewModels.map((vm)=>{
-            return vm.getRect();
-        }))
+        const allRects:OperationPos[] = []
+        for(let i = 0 ; i < viewModels.length; i++){
+            const vm = viewModels[i];
+            if(!modelIsArtboard(vm.modelType)){
+                allRects.push(vm.getRect())
+            }
+        }
+        if(allRects.length === 0){
+            this._root.style.display = 'none'
+            this._pos = null
+            if(this._size){
+                this._size.destroy();
+                this._size = null;
+            }
+            return;
+        }
+        const pos = calculateIncludeRect(allRects)
         // const item = viewModels[0].getRect();
         // const left = item.left;
         // const top = item.top;
@@ -407,7 +426,8 @@ export class Operation implements IDisposable,IOperation{
         //     }
         //     return;
         // };
-        if(!this._canMove || this._pos == null) return;
+        if(!this._canMove ) return;
+        // if(!this._canMove || this._pos == null) return;
         
         const {x,y} = e;
         this._onSelectMove({

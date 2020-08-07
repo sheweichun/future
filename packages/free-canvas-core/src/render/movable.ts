@@ -1,4 +1,4 @@
-import {COMMANDERS,Utils,IView,View} from 'free-canvas-shared';
+import {COMMANDERS,Utils,IView,modelIsRoot, ModelType, modelIsArtboard} from 'free-canvas-shared';
 import {CanvasEvent} from '../events/event';
 import {ObjectStyleDeclaration} from '../utils/type';
 import {setStyle} from '../utils/style';
@@ -7,7 +7,7 @@ import {MovableOptions,OnPositionChange,IMovable} from './type';
 import {FragmentView,createView} from './view';
 import {Model} from './model';
 import {OperationPos} from '../core/operation/pos'
-import {MOVABLE_CLASSNAME,styleSizeHoverColor,styleSizeColor} from '../utils/constant'
+import {MOVABLE_CLASSNAME,MOVABLE_HANDLER_CLASSNAME,styleSizeHoverColor,styleSizeColor} from '../utils/constant'
 
 type OnMouseMoveCallback = (e:MouseEvent)=>void
 const DEFAULT_OPTIONS = {
@@ -31,8 +31,8 @@ export class Movable implements IMovable{
     // static onMouseMoveQueue:OnMouseMoveCallback[] = []
     // static onMouseUpQueue:OnMouseMoveCallback[] = []
     // static onBlurQueue:OnMouseMoveCallback[] = []
-    private _options:MovableOptions;
-    private view:IView<Model>
+    protected _options:MovableOptions;
+    protected view:IView<Model>
     el:HTMLElement
     elRect:OperationPos
     canMove:boolean = false
@@ -45,11 +45,11 @@ export class Movable implements IMovable{
     startY:number
     outline:string
     style:ObjectStyleDeclaration
-    private _onPostionChange:OnPositionChange
-    constructor(private _data:Model,options:MovableOptions){
+    protected _onPostionChange:OnPositionChange
+    constructor(protected _data:Model,options:MovableOptions){
         this._options = completeOptions(options,DEFAULT_OPTIONS);
-        const {mountNode,isRoot} = this._options;
-        if(isRoot){
+        const {mountNode,modelType} = this._options;
+        if(modelIsRoot(modelType)){
             this.view = new FragmentView(this.fixData(_data),mountNode)
         }else{
             const createViewFn = this._options.createView || createView
@@ -73,9 +73,12 @@ export class Movable implements IMovable{
         // }
         
     }
-    setIsGroup(isGroup:boolean){
-        this._options.isGroup = isGroup
+    setModelType(type:ModelType){
+        this._options.modelType = type;
     }
+    // setIsGroup(isGroup:boolean){
+    //     this._options.isGroup = isGroup
+    // }
     fixData(data:Model){
         const {position} = data.extra
         const {style} = data;
@@ -87,9 +90,9 @@ export class Movable implements IMovable{
         this.setStyle(this.el);
     }
     mount(){
-        const {isRoot,mountNode} = this._options;
+        const {modelType,mountNode} = this._options;
         this.render();
-        if(isRoot){
+        if(modelIsRoot(modelType)){
             mountNode.appendChild((this.view as FragmentView).getFragmentAndChange());
             // const {didMount} = this._options;
             // didMount && didMount();
@@ -182,22 +185,22 @@ export class Movable implements IMovable{
     //     excute(COMMANDERS.VIEWBLUR);
     // }
     destroy(){
-        const {isChild} = this._options
-        // if(!isChild){
+        // const {modelType} = this._options
+        // if(!modelIsArtboard(modelType)){
             this.removeEvent(CanvasEvent.MOUSEDOWN,this.onMouseDown);
             this.removeEvent(CanvasEvent.MOUSEENTER,this.onMouseEnter);
             this.removeEvent(CanvasEvent.MOUSELEAVE,this.onMouseLeave);
         // }
     }
     listen(){
-        const {isChild} = this._options
+        // const {modelType} = this._options
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onMouseEnter = this.onMouseEnter.bind(this);
         this.onMouseLeave = this.onMouseLeave.bind(this);
         // this.onDbClick = this.onDbClick.bind(this);
         
         // this.addEvent(CanvasEvent.DBCLICK,this.onDbClick);
-        // if(!isChild){
+        // if(!modelIsArtboard(modelType)){
             this.addEvent(CanvasEvent.MOUSEDOWN,this.onMouseDown);
             this.addEvent(CanvasEvent.MOUSEENTER,this.onMouseEnter);
             this.addEvent(CanvasEvent.MOUSELEAVE,this.onMouseLeave);
@@ -335,6 +338,78 @@ export class Movable implements IMovable{
     // }
 }
 
+
+export class ArtBoardMovable extends Movable{
+    private _eventEl:HTMLElement
+    constructor(_data:Model,options:MovableOptions){
+        super(_data,options);
+        this.initEventEl();
+    }
+    initEventEl(){
+        const {_data} = this;
+        const el = document.createElement('div');
+        el.className = MOVABLE_HANDLER_CLASSNAME
+        el.innerHTML = `${_data && _data.extra ? _data.extra.label : ''}`
+        this.el.appendChild(el);
+        this._eventEl = el;
+    }
+    destroy(){
+        const {_eventEl} = this
+        this.removeEvent(CanvasEvent.MOUSEDOWN,this.onMouseDown,_eventEl);
+        // this.removeEvent(CanvasEvent.MOUSEMOVE,this.onMouseMove,_eventEl);
+        this.removeEvent(CanvasEvent.MOUSEUP,this.onMouseUp,_eventEl);
+        this.removeEvent(CanvasEvent.MOUSELEAVE,this.onMouseUp,_eventEl);
+        this.removeEvent(CanvasEvent.MOUSEENTER,this.onMouseEnter,_eventEl);
+    }
+    listen(){
+        const {_eventEl} = this
+        this.onMouseEnter = this.onMouseEnter.bind(this);
+        this.onMouseDown = this.onMouseDown.bind(this);
+        // this.onMouseMove = this.onMouseMove.bind(this);
+        this.onMouseUp = this.onMouseUp.bind(this);
+        this.onMouseLeave = this.onMouseLeave.bind(this);
+        this.addEvent(CanvasEvent.MOUSEENTER,this.onMouseEnter,_eventEl);
+        this.addEvent(CanvasEvent.MOUSEDOWN,this.onMouseDown,_eventEl);
+        // this.addEvent(CanvasEvent.MOUSEMOVE,this.onMouseMove,_eventEl);
+        this.addEvent(CanvasEvent.MOUSEUP,this.onMouseUp,_eventEl);
+        this.addEvent(CanvasEvent.MOUSELEAVE,this.onMouseUp,_eventEl);
+    }
+    onMouseEnter(e:MouseEvent){
+        this.el.style.outline = `${styleSizeHoverColor} solid 1px`;
+    }
+    // onMouseMove(e:MouseEvent){
+        // if(!this.canMove) return;
+        // this.changed = true;
+        // const {x,y} = e;
+        // this.left += x - this.startX
+        // this.top += y - this.startY
+        // this.startX = x;
+        // this.startY = y;
+        // this.setStyle();
+    // }
+    onMouseLeave(e:MouseEvent){
+        this.el.style.outline = 'none';
+        if(!this.canMove || !this.changed) return;
+        this.canMove = false;
+        this.changed = false;
+    }
+    onMouseUp(e:MouseEvent){
+        this.onMouseLeave(e);
+        // const {excute} = this._options
+        // // const {x,y} = e;
+        // excute(COMMANDERS.UNSELECTED,{
+        // });
+    }
+    onMouseDown(e:MouseEvent){
+        this.canMove = true
+        this.changed = false
+        // const {x,y} = e;
+        // this.startX = x;
+        // this.startY = y;
+        this.onFocus(e);
+        e.stopPropagation()
+    }
+}
 // Movable.addGloablEvent(CanvasEvent.MOUSEMOVE,Movable.onDocMouseMove,document.body);
 // Movable.addGloablEvent(CanvasEvent.MOUSEUP,Movable.onDocUpMove,document.body);
 // Movable.addGloablEvent(CanvasEvent.CLICK,Movable.onDocClick,document.body)

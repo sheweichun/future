@@ -1,5 +1,5 @@
 import {DrawEntity,Point} from '../entities/index'
-import {completeOptions,controlDelta} from '../utils/index';
+import {completeOptions} from '../utils/index';
 import {Ruler} from './ruler';
 import {RulerGroupOptions} from './type';
 import {ICanvas} from '../core/type';
@@ -29,11 +29,13 @@ export class RulerGroup extends DrawEntity{
             size:length - halfLineWidth * 2,
             backgroundColor:rulerBackgroundColor,
             lineOffset,
+            base: - this._options.baseX,
             lineStyle:lineStyle,
             end:new Point(_drawer.width,halfLineWidth)
         })
         this._leftRuler = new Ruler({
             isVertical:true,
+            base: - this._options.baseY,
             start:new Point(halfLineWidth,length-halfLineWidth),
             size:length - halfLineWidth * 2,
             lineStyle:lineStyle,
@@ -47,6 +49,7 @@ export class RulerGroup extends DrawEntity{
         this._leftRuler.changeSize(width,height)
     }
     onMousewheel(deltaX:number,deltaY:number,repaint:()=>void){
+        // console.log('onMousewheel :',deltaX,deltaY);
         let shouldUpdate = false;
         if(deltaX != 0){
             this._topRuler.changeValue(deltaX);
@@ -61,9 +64,9 @@ export class RulerGroup extends DrawEntity{
     fireEvent(name:string,e:WheelEvent,repaint:()=>void){
         switch(name){
             case CanvasEvent.MOUSEWHEEL:
-                const {wheelSpeedX,wheelSpeedY} = this._options;
+                // const {wheelSpeedX,wheelSpeedY} = this._options;
                 const {deltaX,deltaY} = e;
-                this.onMousewheel(controlDelta(deltaX,wheelSpeedX),controlDelta(deltaY,wheelSpeedY),repaint)
+                this.onMousewheel(deltaX,deltaY,repaint)
         }
     }
     draw(drawer:ICanvas):void{

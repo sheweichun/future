@@ -222,10 +222,10 @@ export function calculateLatestVm(ret:{
     // horizontalAlignMap?:AlignItem
 } = {},vm:IViewModel){
     const {data=[],curPos} = ret;
+    if(curPos == null) return ret;
     if(ret.alignMap == null){
         ret.alignMap = initAlignMap(curPos)
     }
-    if(curPos == null) return ret;
     udpdateAlignMap(ret.alignMap,vm);
     const result = calclulateItem(vm,curPos);
     result.forEach((ele)=>{

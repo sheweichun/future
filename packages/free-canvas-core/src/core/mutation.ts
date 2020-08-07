@@ -2,7 +2,7 @@
 import {Store,WrapData, BaseModel,isEqual,createList,createMap} from '../render/index'
 import {Commander} from './commander'
 import { IViewModel } from "../render/type";
-import {COMMANDERS,Utils} from 'free-canvas-shared';
+import {COMMANDERS,Utils, modelIsGroup, modelIsRoot, modelIsArtboard} from 'free-canvas-shared';
 import {createGroupModel} from '../render/index'
 import {CanvasEvent,EventHandler} from '../events/event'
 import {Model} from '../render/model';
@@ -58,7 +58,7 @@ function extractEachModelAndRemoveChild(model:BaseModel,parentVm:IViewModel,vm:I
         // console.log('curRect :',curRect);
         const newChild = child.withMutations((mutChild:BaseModel)=>{
             //@ts-ignore
-            const ppPos = parentVm && !parentVm.isRoot ? parentVm.getRect() : {left:0,top:0};
+            const ppPos = parentVm && !modelIsRoot(parentVm.modelType) ? parentVm.getRect() : {left:0,top:0};
             return mutChild.setIn(['extra','position'],createMap({
                 left:curRect.left - ppPos.left,
                 top:curRect.top - ppPos.top,
@@ -123,7 +123,18 @@ export class Mutation extends EventHandler{
         })
         return arr;
     }
-    getSelectedViewModels(){
+    getSelectedValidViewModels(){  
+        const arr:IViewModel[] = [];
+        this.reduceSelectedKeyPath((keyPath:string)=>{
+            const item = this._viewModelMap.get(keyPath);
+            //移除画板
+            if(item && !modelIsArtboard(item.modelType)){
+                arr.push(item)
+            }
+        })
+        return arr;
+    }
+    getAllSelectedViewModels(){
         const arr:IViewModel[] = [];
         this.reduceSelectedKeyPath((keyPath:string)=>{
             const item = this._viewModelMap.get(keyPath);
@@ -156,7 +167,7 @@ export class Mutation extends EventHandler{
         // document.body.classList.add(DRAG_OVER)
     }
     copy(){
-        this._copyTarget = this.getSelectedViewModels();
+        this._copyTarget = this.getAllSelectedViewModels();
     }
     paste(){
         if(this._copyTarget == null) return;
@@ -227,7 +238,7 @@ export class Mutation extends EventHandler{
         this._isDragOver = false;
     }
     removeSelectModels(){
-        this.removeModels(this.getSelectedViewModels())
+        this.removeModels(this.getSelectedValidViewModels())
     }
     // removeSelectedKeyPath(keyPath:any[]){
 
@@ -358,7 +369,7 @@ export class Mutation extends EventHandler{
                 const curModel = vm.getModel();
                 const models = extractEachModelAndRemoveChild(curModel,parentVm,vm); //提取子节点，并重新计算定位
                 let newChilds:BaseModel[] = null;
-                const isGroup = curModel.get('isGroup',false);
+                const isGroup = modelIsGroup(curModel.get('type',false));
                 if(isGroup){
                     const parentChild = parentModel.get('children',null);
                     newChilds = []
@@ -396,6 +407,10 @@ export class Mutation extends EventHandler{
     group(vms:IViewModel[],pos:OperationPos){ //编组
         if(vms == null || vms.length <= 1) return 
         let depth = 0,deepKeyPath:string[],deepVm:IViewModel;
+        const hasArtboard = vms.filter((vm)=>{
+            return modelIsArtboard(vm.modelType)
+        })
+        if(hasArtboard) return;
        this.transition(()=>{
         const childs:BaseModelAndPos[] = []
         vms.forEach((vm,index)=>{
@@ -432,7 +447,7 @@ export class Mutation extends EventHandler{
         if(targetParent == null) return;
         const childDsl = targetParent.get('children');
         // const parentPos = targetParent.getIn(['extra','position']);
-        const parentRect = deepVm.isRoot ? {left:0,top:0} : deepVm.getRect();
+        const parentRect = modelIsRoot(deepVm.modelType) ? {left:0,top:0} : deepVm.getRect();
         const groupModel = createGroupModel(pos.left - parentRect.left,pos.top - parentRect.top,pos.width,pos.height);
         targetParent.updateIn(['children'],(old:any)=>{
             targetIndex = old.size;
@@ -466,7 +481,7 @@ export class Mutation extends EventHandler{
         })
     }
     // removeSelectedModels(){
-    //     this.removeModels(this.getSelectedViewModels());
+    //     this.removeModels(this.getSelectedValidViewModels());
     // }
     addModel(data:Model){
         if(data == null) return;
@@ -546,8 +561,8 @@ export class Mutation extends EventHandler{
     updateSelectVmsByPos(data:BaseModel,target:IViewModel,pos:OperationPos){  //选择框框选选中组件
         this.notRecord(()=>{
             this.eachModelAndVm(data,target,(curModel:BaseModel,vm:IViewModel)=>{
-                const isRoot = vm.isRoot;
-                if(isRoot) return true;
+                // const isRoot = modelIsRoot(vm.modelType);
+                if(modelIsRoot(vm.modelType) || modelIsArtboard(vm.modelType)) return true;
                 const vmPos = vm.getAbsRect();
                 const shouldSelect = vmPos.isOverlap(pos);
                 const curSelect = curModel.getIn(['extra','isSelect'],null);
@@ -569,7 +584,7 @@ export class Mutation extends EventHandler{
             const isSelected = curModel.getIn(['extra','isSelect'],false)
             // console.log('isSelected :',isSelected);
             //todo 如果数据都一致的话会存在重复的问题
-            if(isEqual(curModel,target)){
+            if(isEqual(curModel,target) && (encode(curModel._keyPath) === encode(target._keyPath))){
                 if(isSelected && needKeep && this.keyPathsIsNotEmpty()){
                     this.removeKeyPath(encode(curModel._keyPath));
                     curModel.updateIn(['extra','isSelect'],null,()=>false)

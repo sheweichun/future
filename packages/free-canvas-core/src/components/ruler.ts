@@ -61,7 +61,7 @@ class VerticalRulerModel extends RulerModel{
             lineStyle:_options.lineStyle,
         }
         this.entities = [
-            // new Line(start,end,lineOpt),
+            // new Line(start.addX(lineOffset),end,lineOpt),
             // new Line(start.addX(size),end.addX(size),lineOpt)
         ]
         const startY = start.y;
@@ -75,7 +75,7 @@ class VerticalRulerModel extends RulerModel{
                     new Point(start.x + size,y),
                     new Point(start.x + interval,y),
                     {
-                        isVertical:false,
+                        isVertical:true,
                         value:curVal + '',
                         lineStyle:lineOpt.lineStyle
                     }
@@ -89,9 +89,9 @@ class VerticalRulerModel extends RulerModel{
             }
             this.entities.push(entity);
         }
-        // this.entities.push(new Rect(start.x + lineOffset,start.y,size - lineOffset,end.y - start.y,{
-        //     color:backgroundColor
-        // }))
+        this.entities.push(new Rect(start.x + lineOffset,start.y,size - lineOffset,end.y - start.y,{
+            color:backgroundColor
+        }))
     }
 }
 
@@ -120,8 +120,8 @@ class HorizontalRulerModel extends RulerModel{
             lineStyle:_options.lineStyle
         }
         this.entities = [
-            new Line(start,end,lineOpt),
-            new Line(start.addY(size),end.addY(size),lineOpt),
+            // new Line(start,end,lineOpt),
+            // new Line(start.addY(size),end.addY(size),lineOpt),
         ]
         const startX = start.x;
         const baseX = startX + (this._base - base);
@@ -148,9 +148,9 @@ class HorizontalRulerModel extends RulerModel{
             }
             this.entities.push(entity)
         }
-        // this.entities.push(new Rect(start.x,start.y + lineOffset,end.x - start.x,size - lineOffset,{
-        //     color:backgroundColor
-        // }))
+        this.entities.push(new Rect(start.x,start.y + lineOffset,end.x - start.x,size - lineOffset,{
+            color:backgroundColor
+        }))
     }
 }
 

@@ -25,7 +25,8 @@ export class MoveEvent extends EventHandler{
         this.addEvent(this._el,CanvasEvent.MOUSEUP,this.onMouseUp.bind(this))
     }
     onMouseDown(e:MouseEvent){
-        const {x,y} = e;
+        const {x,y,button} = e;
+        if(button !== 0) return;
         this._canMove = true
         this._changed = false
         this._data = {

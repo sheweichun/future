@@ -80,7 +80,8 @@ export enum CanvasEvent {
     DRAGSTART="dragstart",
     DRAGOVER="dragover",
     DRAGENTER="dragenter",
-    DRAGLEAVE="dragleave"
+    DRAGLEAVE="dragleave",
+    CONTEXTMENU="contextmenu"
 }
 
 export enum COMMANDERS { 
@@ -132,11 +133,29 @@ export enum ModelFromType {
     ITEM
 }
 
+
+export enum ModelType{
+    isRoot,
+    isGroup,
+    isArtBoard,
+}
+
+export function modelIsGroup(type:ModelType){
+    return type === ModelType.isGroup
+}
+
+export function modelIsRoot(type:ModelType){
+    return type === ModelType.isRoot
+}
+
+export function modelIsArtboard(type:ModelType){
+    return type === ModelType.isArtBoard
+}
+
 export interface Model {
     id?:string
     name?:string
-    isRoot?:boolean
-    isGroup?:boolean
+    type?:ModelType
     style?:ObjectStyleDeclaration
     propSchemas?:ModelPropSchemas
     children?:Model[]
@@ -146,6 +165,7 @@ export interface Model {
             version:string,
             type:ModelFromType
         },
+        label?:string,
         position?:{
             left?:number,
             top?:number,
@@ -171,8 +191,9 @@ export function baseModel2Model(data:ImutBase){
     const ret = {
         id:getValFromBaseModel('id',data),
         name:getValFromBaseModel('name',data),
-        isRoot:getValFromBaseModel('isRoot',data),
-        isGroup:getValFromBaseModel('isGroup',data),
+        // isRoot:getValFromBaseModel('isRoot',data),
+        // isGroup:getValFromBaseModel('isGroup',data),
+        type:getValFromBaseModel('type',data),
         style:getJSValFromBaseModel('style',data),
         propSchemas:getJSValFromBaseModel('propSchemas',data),
         extra:getJSValFromBaseModel('extra',data)

@@ -4,8 +4,10 @@ export interface RulerGroupOptions{
     lineStyle?:string
     rulerBackgroundColor?:string
     length:number,
-    wheelSpeedX:number,
-    wheelSpeedY:number
+    baseX:number,
+    baseY:number,
+    // wheelSpeedX:number,
+    // wheelSpeedY:number
 }
 
 export interface LabelOptions extends LineOption{
@@ -19,4 +21,19 @@ export interface LabelOptions extends LineOption{
     fontFamily?:string
 }
 
+export interface GuideOptions extends LabelOptions{
+    
+}
+
+
+export interface ContextMenuData {
+    icon?:string,
+    label:string,
+    callback?:(data?:ContextMenuData)=>void
+}
+
+export interface ContextMenuOptions{
+    getMenuData:(e:MouseEvent)=>ContextMenuData[]
+    onHide:(e?:MouseEvent)=>void
+}
 

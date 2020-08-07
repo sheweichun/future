@@ -1,9 +1,9 @@
 
 // import {ViewAttribute} from './type';
-import {baseModel2Model} from 'free-canvas-shared'
+import {baseModel2Model,ModelType,modelIsRoot, modelIsArtboard} from 'free-canvas-shared'
 import {BaseModel,WrapData,isEqual} from './index'
 import {Model} from './model';
-import {Movable} from './movable';
+import {Movable,ArtBoardMovable} from './movable';
 import {IViewModel,IViewModelCollection,ViewModelOptions} from './type'
 import { OperationPos } from '../core/operation/pos';
 
@@ -79,17 +79,19 @@ export class ViewModel implements IViewModel{
     children:IViewModelCollection
     view:Movable
     _rect:OperationPos
-    isRoot:boolean
-    isGroup:boolean
+    modelType:ModelType
+    // isRoot:boolean
+    // isGroup:boolean
     constructor(public model:BaseModel,private _parent:ViewModel,private _options:ViewModelOptions){
-        this.isRoot = model.get('isRoot',false)
-        this.isGroup = model.get('isGroup',false);
-        this.view = new Movable(baseModel2Model(model),Object.assign({},_options || {},{
-            isRoot:this.isRoot,
-            isGroup:this.isGroup,
+        // this.isRoot = model.get('isRoot',false)
+        // this.isGroup = model.get('isGroup',false);
+        this.modelType = model.get('type',null);
+        const MovableClass = modelIsArtboard(this.modelType) ? ArtBoardMovable : Movable
+        this.view = new MovableClass(baseModel2Model(model),Object.assign({},_options || {},{
+            modelType:this.modelType,
             id:model._keyPath,
             vm:this,
-            isChild:_parent != null && !_parent.isRoot,
+            isChild:_parent != null && !modelIsRoot(_parent.modelType) && !modelIsArtboard(_parent.modelType),
             excute:this.excute.bind(this)
         }))
         //@ts-ignore
@@ -150,7 +152,7 @@ export class ViewModel implements IViewModel{
         return this._parent;
     }
     isChildren(vm:IViewModel):boolean{
-        if(this.isRoot) return false;
+        if(modelIsRoot(this.modelType)) return false;
         const {_parent} = this;
         if(_parent == vm) return true;
         return _parent.isChildren(vm);
@@ -255,7 +257,7 @@ export class ViewModel implements IViewModel{
     getParentRect():OperationPos{
         const {_parent,_options} = this;
         let curRect:OperationPos;
-        if(_parent == null || _parent.isRoot){
+        if(_parent == null || modelIsRoot(_parent.modelType)){
             curRect = OperationPos.createEmpty();
         }else{
             curRect = _parent.getRect();
@@ -323,8 +325,8 @@ export class ViewModel implements IViewModel{
             this.view.update(model.searialize());
         }
         this.model = model;
-        this.isGroup = model.get('isGroup',false)
-        this.view.setIsGroup(this.isGroup);
+        this.modelType = model.get('type',false)
+        this.view.setModelType(this.modelType);
         const modelChildren = model.get('children',WrapData([]));
         if(this.children){
             this.children.update(modelChildren);

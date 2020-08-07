@@ -18,10 +18,18 @@ class VLabel extends Line{
         super(start,end, completeOptions(options,DEFAULT_OPTION));
     }
     draw(drawer:ICanvas):void{
-        const {start,_options} = this;
+        const {start,end,_options} = this;
         const {fontSize,fontStyle,color,fontFamily,fontWeight,value,padding} = _options as LabelOptions;
         const {context} = drawer;
+        const textX = start.x - padding * 2,textY = end.y - padding
         super.draw(drawer);
+        context.save();
+        context.translate(textX,textY);
+        context.rotate(-Math.PI / 180 * 90);
+        context.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`
+        context.fillStyle = color;
+        context.fillText(value,0,0);
+        context.restore();
     }
 }
 
@@ -30,7 +38,6 @@ class HLabel extends Line{
         super(start,end,completeOptions(options,DEFAULT_OPTION));
     }
     draw(drawer:ICanvas):void{
-        super.draw(drawer);
         const {start,end,_options} = this;
         const {fontSize,fontStyle,color,fontFamily,fontWeight,value,padding} = _options as LabelOptions;
         const {context} = drawer;

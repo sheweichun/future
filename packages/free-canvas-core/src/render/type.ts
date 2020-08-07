@@ -1,7 +1,7 @@
 import {ObjectStyleDeclaration} from '../utils/type'
 import { BaseModel } from './dsl/store';
 import { OperationPos } from '../core/operation/pos';
-import {ICommander,ViewOptions,CreateView} from 'free-canvas-shared'
+import {ICommander,ViewOptions,CreateView,ModelType} from 'free-canvas-shared'
 
 export interface ViewAttribute{
     style?:ObjectStyleDeclaration
@@ -43,8 +43,7 @@ export interface IViewModelCollection{
 }
 
 export interface IViewModel{
-    isRoot:boolean
-    isGroup:boolean
+    modelType:ModelType
     children:IViewModelCollection
     getModel():BaseModel
     getParent():IViewModel
@@ -117,8 +116,9 @@ export interface MovableOptions extends ViewOptions{
     id:string[],
     mountNode?:HTMLElement
     excute(name:number,data?:any):void
-    isRoot?:boolean
-    isGroup?:boolean
+    // isRoot?:boolean
+    // isGroup?:boolean
+    modelType:ModelType
     isChild?:boolean
     createView?:CreateView
     vm:IViewModel

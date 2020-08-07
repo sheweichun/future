@@ -1,3 +1,5 @@
+import { ModelType } from 'free-canvas-shared'
+
 export {ModelPropSchema,ModelPropSchemas,Model} from 'free-canvas-shared'
 
 // export class Model{
@@ -43,7 +45,7 @@ export interface UniversalObject{
 export function createGroupModel(left:number,top:number,width:number,height:number){
     return {
         name:'div',
-        isGroup:true,
+        type:ModelType.isGroup,
         style:{
         },
         extra:{
