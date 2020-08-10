@@ -68,6 +68,7 @@ export interface IDisposable{
 export interface OperationSizeOptions{
     onMove:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
     onChange:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
+    noNeedOperation?:boolean
     // onStart:()=>void
 }
 

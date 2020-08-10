@@ -409,7 +409,7 @@ export class Mutation extends EventHandler{
         let depth = 0,deepKeyPath:string[],deepVm:IViewModel;
         const hasArtboard = vms.filter((vm)=>{
             return modelIsArtboard(vm.modelType)
-        })
+        }).length > 0
         if(hasArtboard) return;
        this.transition(()=>{
         const childs:BaseModelAndPos[] = []

@@ -275,10 +275,20 @@ export class Operation implements IDisposable,IOperation{
         //     }
         // })
         const arr:IViewModel[] = this._mutation.getAllSelectedViewModels()
-        this._selectViewModels = arr;
-        this.calculate(arr);
+        const artboards = arr.filter((vm)=>{
+            return modelIsArtboard(vm.modelType);
+        })
+        let isArtboard:boolean = false;
+        // console.log('artboards :',artboards);
+        if(artboards.length > 0){
+            this._selectViewModels = artboards;
+            isArtboard = true;
+        }else{
+            this._selectViewModels = arr;
+        }
+        this.calculate(this._selectViewModels,isArtboard);
     }
-    calculate(viewModels:IViewModel[]){
+    calculate(viewModels:IViewModel[],isArtboard:boolean){
         if(viewModels == null || viewModels.length === 0){
             this._root.style.display = 'none'
             this._pos = null
@@ -291,19 +301,21 @@ export class Operation implements IDisposable,IOperation{
         const allRects:OperationPos[] = []
         for(let i = 0 ; i < viewModels.length; i++){
             const vm = viewModels[i];
-            if(!modelIsArtboard(vm.modelType)){
+            // if(!modelIsArtboard(vm.modelType)){
                 allRects.push(vm.getRect())
-            }
+            // }
         }
-        if(allRects.length === 0){
-            this._root.style.display = 'none'
-            this._pos = null
-            if(this._size){
-                this._size.destroy();
-                this._size = null;
-            }
-            return;
-        }
+        // if(allRects.length === 0){
+        //     this._root.style.display = 'none'
+        //     this._pos = null
+        //     // console.log('before destroy');
+        //     if(this._size){
+        //         // console.log('destroy');
+        //         this._size.destroy();
+        //         this._size = null;
+        //     }
+        //     return;
+        // }
         const pos = calculateIncludeRect(allRects)
         // const item = viewModels[0].getRect();
         // const left = item.left;
@@ -341,10 +353,11 @@ export class Operation implements IDisposable,IOperation{
             this._size = new Size(this._root,this._pos,{
                 onMove:this.onSizeMove,
                 onChange:this.onSizeChange,
+                noNeedOperation:isArtboard
                 // onStart:this.onSizeStart
             });
         }else{
-            this._size.update(this._pos)
+            this._size.update(this._pos,isArtboard)
         }
     }
     eachSelect(fn:(vm:IViewModel)=>void){

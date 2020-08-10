@@ -58,6 +58,9 @@ abstract class HanlerItem{
         this.setStyle();
         this.listen();
     }
+    getRoot(){
+        return this._el
+    }
     show(){
         if(this._isShow) return
         this._isShow = true;
@@ -248,20 +251,36 @@ class LeftBottomHandlerItem extends HanlerItem{
 
 export class Size{
     private _handlerList:HanlerItem[];
-   
+    private _noNeedOperation:boolean
     constructor(private _parentEl:HTMLElement, _pos:OperationPos,private _options:OperationSizeOptions){
-        const fragment = document.createDocumentFragment();
-        this._handlerList = [
-            new LeftHandlerItem(_pos,_options).appendTo(fragment),
-            new TopHandlerItem(_pos,_options).appendTo(fragment),
-            new RightHandlerItem(_pos,_options).appendTo(fragment),
-            new BottomHandlerItem(_pos,_options).appendTo(fragment),
-            new LeftTopHandlerItem(_pos,_options).appendTo(fragment),
-            new LeftBottomHandlerItem(_pos,_options).appendTo(fragment),
-            new RightBottomHandlerItem(_pos,_options).appendTo(fragment),
-            new RightTopHandlerItem(_pos,_options).appendTo(fragment),
-        ]
-        _parentEl.appendChild(fragment)
+        this._noNeedOperation = _options.noNeedOperation
+        this.initHanlder(_pos);
+    }
+    initHanlder(_pos:OperationPos){
+        const {_options,_parentEl,_noNeedOperation} = this;
+        if(_noNeedOperation){
+            this._handlerList = []
+        }else{
+            const fragment = document.createDocumentFragment();
+            this._handlerList = this._noNeedOperation ? [] :[
+                new LeftHandlerItem(_pos,_options).appendTo(fragment),
+                new TopHandlerItem(_pos,_options).appendTo(fragment),
+                new RightHandlerItem(_pos,_options).appendTo(fragment),
+                new BottomHandlerItem(_pos,_options).appendTo(fragment),
+                new LeftTopHandlerItem(_pos,_options).appendTo(fragment),
+                new LeftBottomHandlerItem(_pos,_options).appendTo(fragment),
+                new RightBottomHandlerItem(_pos,_options).appendTo(fragment),
+                new RightTopHandlerItem(_pos,_options).appendTo(fragment),
+            ]
+            _parentEl.appendChild(fragment)
+        }
+    }
+    clearHandler(){
+        const {_parentEl} = this;
+        this._handlerList.forEach((item)=>{
+            item.destroy()
+            _parentEl.removeChild(item.getRoot());
+        })
     }
     hide(){
         // console.log('hide');
@@ -274,7 +293,14 @@ export class Size{
             item.show();
         })
     }
-    update(pos:OperationPos){
+    update(pos:OperationPos,noNeedOperation:boolean){
+        const curNoNeedOperation = this._noNeedOperation;  //是否显示handler的状态切换
+        this._noNeedOperation = noNeedOperation;
+        if(curNoNeedOperation && !noNeedOperation){
+            this.initHanlder(pos);
+        }else if(!curNoNeedOperation && noNeedOperation){
+            this.clearHandler();
+        }
         this._handlerList.forEach((item)=>{
             item.update(pos)
         })
