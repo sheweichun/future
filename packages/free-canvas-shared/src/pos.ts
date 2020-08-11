@@ -112,6 +112,11 @@ export class OperationPos{
     moveLeftAndTop_immutation(x:number,y:number){
         return new OperationPos(this.left + x,this.top + y,this.width,this.height,this._updater);
     }
+    updateLeftAndTop(x:number,y:number,noUpdate:boolean=false){
+        this.left = x;
+        this.top = y;
+        (this._updater && !noUpdate) && this._updater(this)
+    }
     moveLeftAndTop(x:number,y:number,noUpdate:boolean=false){
         this.left += x;
         this.top += y;

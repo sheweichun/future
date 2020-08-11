@@ -120,6 +120,9 @@ export class Content implements IEvent{
         this.registerCommands();
         // this.test();
     }
+    getCurrentData(){
+        return this._store.currentState.get('data').toJS();
+    }
     installPlugin(plugin:IPlugin){
         this._pluginManager.install(plugin);
     }
@@ -143,9 +146,14 @@ export class Content implements IEvent{
     triggerSelectList(pos:OperationPos){
         this._mutation.updateSelectVmsByPos(this._store.currentState.get('data'),this._viewModel,pos);
     }
-    listen(){
+    initRect(){
         const rect = this._el.getBoundingClientRect()
-        this._rect = new OperationPos(rect.left,rect.top,rect.width,rect.height); //必须紧接着下面代码
+        this._rect = new OperationPos(rect.left,rect.top,rect.width,rect.height);
+    }
+    listen(){
+        // const rect = this._el.getBoundingClientRect()
+        // this._rect = new OperationPos(rect.left,rect.top,rect.width,rect.height); //必须紧接着下面代码
+        this.initRect(); //必须紧接着下面代码
         this._viewModel.didMount();
         document.body.addEventListener(CanvasEvent.MOUSEDOWN,()=>{
             this._commander.excute(COMMANDERS.UNSELECTED,null);
@@ -217,6 +225,13 @@ export class Content implements IEvent{
     setStyle(){
         const {_el,_x,_y} = this;
         _el.setAttribute('style',`outline:none !important;width:100%;height:100%;transform:matrix(1,0,0,1,${_x},${_y})`);
+    }
+    changeTranslation(x:number,y:number){
+        this._x = x;
+        this._y = y;
+        // this._rect.updateLeftAndTop(x,y);
+        this.setStyle();
+        this.initRect();
     }
     onMousewheel(deltaX:number,deltaY:number){
         // console.log('on mouse!! :',deltaX,deltaY,this._x,this._y);

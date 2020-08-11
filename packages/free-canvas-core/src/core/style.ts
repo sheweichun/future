@@ -28,21 +28,18 @@ export default `
     }
     @font-face {
         font-family: 'iconfont';  /* project id 1991465 */
-        src: url('//at.alicdn.com/t/font_1991465_apeud2i6o4j.eot');
-        src: url('//at.alicdn.com/t/font_1991465_apeud2i6o4j.eot?#iefix') format('embedded-opentype'),
-        url('//at.alicdn.com/t/font_1991465_apeud2i6o4j.woff2') format('woff2'),
-        url('//at.alicdn.com/t/font_1991465_apeud2i6o4j.woff') format('woff'),
-        url('//at.alicdn.com/t/font_1991465_apeud2i6o4j.ttf') format('truetype'),
-        url('//at.alicdn.com/t/font_1991465_apeud2i6o4j.svg#iconfont') format('svg');
+        src: url('//at.alicdn.com/t/font_1991465_almejotxmju.eot');
+        src: url('//at.alicdn.com/t/font_1991465_almejotxmju.eot?#iefix') format('embedded-opentype'),
+        url('//at.alicdn.com/t/font_1991465_almejotxmju.woff2') format('woff2'),
+        url('//at.alicdn.com/t/font_1991465_almejotxmju.woff') format('woff'),
+        url('//at.alicdn.com/t/font_1991465_almejotxmju.ttf') format('truetype'),
+        url('//at.alicdn.com/t/font_1991465_almejotxmju.svg#iconfont') format('svg');
     }
     .icon{
         font-family:'iconfont'
     }
     .icon-restore{
         font-family:'iconfont'
-    }
-    .icon-restore:before{
-        content:\E676;
     }
     .${REFRESH_BUTTON_CLASSNAME}{
         position:absolute;
