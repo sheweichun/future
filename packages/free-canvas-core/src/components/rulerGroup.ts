@@ -61,6 +61,10 @@ export class RulerGroup extends DrawEntity{
         }
         shouldUpdate && repaint();
     }
+    setNewBaseValue(x:number,y:number){
+        this._topRuler.setValue(-x);
+        this._leftRuler.setValue(-y);
+    }
     fireEvent(name:string,e:WheelEvent,repaint:()=>void){
         switch(name){
             case CanvasEvent.MOUSEWHEEL:

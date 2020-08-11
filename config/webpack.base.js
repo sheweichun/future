@@ -1,7 +1,7 @@
 
 const path = require('path');
 const entry = require('./entry');
-const {getCssLoader} = require('./util')
+const {getCssLoader,getPostcssLoader,getLessLoader} = require('./util')
 
 module.exports = function(mergeConfig){
     const isProd = mergeConfig.mode === 'production'
@@ -29,12 +29,12 @@ module.exports = function(mergeConfig){
               test: /\.css$/,
               use: [getCssLoader(isProd)],
               exclude: /node_module/
+            },
+            {
+              test: /\.less$/,
+              use: [getCssLoader(isProd), getPostcssLoader(isProd), getLessLoader(isProd)],
+              exclude: /node_modules/
             }
-            // {
-            //   test: /\.less$/,
-            //   use: [getCssLoader(isProd), getPostcssLoader(isProd), getLessLoader(isProd)],
-            //   exclude: /node_modules/
-            // }
           ],
         },
         plugins:[

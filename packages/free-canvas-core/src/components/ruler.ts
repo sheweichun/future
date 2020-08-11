@@ -34,7 +34,10 @@ abstract class RulerModel{
         this._options.base += val;
         this.initEntities();
     }
-
+    setValue(val:number){
+        this._options.base = val;
+        this.initEntities();
+    }
 }
 
 class VerticalRulerModel extends RulerModel{
@@ -174,6 +177,9 @@ export class Ruler extends Entity{
     }
     changeValue(val:number){
         this._rulerModel.changeValue(val);
+    }
+    setValue(val:number){
+        this._rulerModel.setValue(val);
     }
     draw(drawer:ICanvas):void{
         this._rulerModel.entities.forEach((entity)=>{

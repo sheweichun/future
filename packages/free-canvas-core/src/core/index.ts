@@ -215,9 +215,9 @@ export default class Core extends EventHandler{
     //     // debugger;
     //     return this._rect;
     // }
-    getInitTranslate(){
+    getInitTranslate(data:Model){
         const {margin} = this;
-        const {data} = this._options
+        // const {data} = this._options
         const pos = calcualteTransition(data);
         const rect = this._parentEl.getBoundingClientRect();
         // this._translateX = Math.floor((rect.width - margin - pos.width) / 2 - pos.left);
@@ -236,14 +236,14 @@ export default class Core extends EventHandler{
 
         // this._translateX = Math.floor((rect.width - margin - pos.width) / 2 - pos.left);
         // this._translateY = Math.floor((rect.height - margin - pos.height) / 2 - pos.top);
-        const {x,y} = this.getInitTranslate();
+        const {x,y} = this.getInitTranslate(this._options.data);
         this._translateX = x
         this._translateY = y
         const fragment = document.createDocumentFragment();
         const refreshEl = document.createElement('div');
         refreshEl.className = REFRESH_BUTTON_CLASSNAME;
         refreshEl.setAttribute('style',`width:${margin}px;height:${margin}px`)
-        refreshEl.innerHTML = '&#xe676;'
+        refreshEl.innerHTML = '&#xe63c;'
         this._refreshEl = refreshEl;
         
         this.createEventElement(fragment,this._parentEl.children)
@@ -294,13 +294,16 @@ export default class Core extends EventHandler{
             this.draw()
         },100))
         this.addEvent(this._refreshEl,CanvasEvent.CLICK,()=>{
-            const {x,y} = this.getInitTranslate();
-            this._mouseWheelList.forEach((ett)=>{ 
-                ett.fireEvent(CanvasEvent.MOUSEWHEEL,{
-                    deltaX:x - this._translateX,
-                    deltaY:y - this._translateY
-                } as MouseWheelEvent,this.draw);
-            });
+            const {x,y} = this.getInitTranslate(this._content.getCurrentData());
+            // this._mouseWheelList.forEach((ett)=>{ 
+            //     ett.fireEvent(CanvasEvent.MOUSEWHEEL,{
+            //         deltaX:x - this._translateX,
+            //         deltaY:y - this._translateY
+            //     } as MouseWheelEvent,this.draw);
+            // });
+            this._content.changeTranslation(x,y);
+            this._rulerGroup.setNewBaseValue(x,y);
+            this.draw();
             this._translateX = x;
             this._translateY = y;
         })
