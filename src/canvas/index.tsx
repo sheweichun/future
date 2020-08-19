@@ -1,7 +1,16 @@
 import FreeCanvas from '@pkg/free-canvas-core';
 import {createView} from '@pkg/free-canvas-fusion-render';
- 
+import {initTheme} from '@pkg/free-canvas-theme'
 
+
+
+// //@ts-ignore
+// window.$$onCanvasReady = function(cb:(canvas:FreeCanvas)=>void){
+    
+//     cb(canvas)
+// }
+console.log('in freeCanvas');
+initTheme();
 const canvas = FreeCanvas('canvas',{
     createView,
     data:{
@@ -119,7 +128,7 @@ const canvas = FreeCanvas('canvas',{
         ]
     }
 });
-//@ts-ignore
+// @ts-ignore
 const {$$onCanvasLoaded} = window.top;
 if($$onCanvasLoaded){
     $$onCanvasLoaded(canvas);

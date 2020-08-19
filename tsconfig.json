@@ -4,12 +4,14 @@
       { "path": "packages/free-canvas-editor" },
       { "path": "packages/free-canvas-core" },
       { "path": "packages/free-canvas-shared" },
-      { "path": "packages/free-canvas-fusion-render" }
+      { "path": "packages/free-canvas-fusion-render" },
+      { "path": "packages/free-canvas-theme" }
     ],
     "compilerOptions": {
       "outDir": "lib",
       "rootDir": "src",
       "baseUrl": "./",
+      "jsx": "react",
       "paths":{
         "@pkg/*":["./packages/*"]
       }

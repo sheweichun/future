@@ -1,7 +1,8 @@
+import {themeConst} from 'free-canvas-theme'
 import {Point,Line} from '../entities/index'
 import {ICanvas} from '../core/type';
 import {LabelOptions} from './type';
-import { completeOptions } from '../utils/index';
+import { completeOptions ,getPropertyValue} from '../utils/index';
 
 const DEFAULT_OPTION = {
     fontSize:10,
@@ -9,13 +10,15 @@ const DEFAULT_OPTION = {
     fontWeight:'normal',
     fontFamily:'sans-serif',
     padding:5,
-    color:'#333'
+    color:`var(--${themeConst.TEXT_COLOR_VAR})`
 }
 
 
 class VLabel extends Line{
     constructor(public start:Point,public end:Point,options:LabelOptions){
         super(start,end, completeOptions(options,DEFAULT_OPTION));
+        const opt = this._options as LabelOptions;
+        opt.color = getPropertyValue(opt.color)
     }
     draw(drawer:ICanvas):void{
         const {start,end,_options} = this;
@@ -36,6 +39,8 @@ class VLabel extends Line{
 class HLabel extends Line{
     constructor(public start:Point,public end:Point,options:LabelOptions){
         super(start,end,completeOptions(options,DEFAULT_OPTION));
+        const opt = this._options as LabelOptions;
+        opt.color = getPropertyValue(opt.color)
     }
     draw(drawer:ICanvas):void{
         const {start,end,_options} = this;

@@ -1,20 +1,25 @@
 
+import {themeConst} from 'free-canvas-theme'
 import {Entity,Point} from './entity';
 import {ICanvas} from '../core/type';
-import {completeOptions} from '../utils/index';
+import {completeOptions,getPropertyValue} from '../utils/index';
 import {LineOption} from './type';
 
 
 
+
+
 const DEFAULT_LINESTYLE = {
-    lineStyle:'#cccccc'
+    // lineStyle:'#cccccc'
+    lineStyle:`var(--${themeConst.TEXT_COLOR_VAR})`
 }
 
 export class Line extends Entity{
     protected _options:LineOption
     constructor(public start:Point,public end:Point,options?:LineOption){
         super()
-        this._options = completeOptions(options || {},DEFAULT_LINESTYLE);        
+        this._options = completeOptions(options || {},DEFAULT_LINESTYLE);  
+        this._options.lineStyle = getPropertyValue(this._options.lineStyle);    
     }
     drawPath(context:CanvasRenderingContext2D){
         const {start,end} = this;

@@ -1,0 +1,22 @@
+{
+    "name":"free-canvas-theme",
+    "version":"0.0.1",
+    "scripts": {
+      "build": "tsc",
+      "watch": "tsc -w",
+      "test": "jest",
+      "test-c": "jest --coverage",
+      "clean": "rm -rf lib tsconfig.tsbuildinfo"
+    },
+    "typings":"lib/index.d.ts",
+    "main":"lib/index.js",
+    "jest": {
+      "testEnvironment": "node"
+    },
+    "devDependencies": {
+    },
+    "dependencies": {
+
+    }
+  }
+  

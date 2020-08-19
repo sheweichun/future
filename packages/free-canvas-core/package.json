@@ -19,6 +19,7 @@
     "dependencies": {
       "atom-store": "^0.0.4",
       "free-canvas-shared":"0.0.1",
+      "free-canvas-theme":"0.0.1",
       "immutable": "^4.0.0-rc.12",
       "shortid": "^2.2.15"
     }

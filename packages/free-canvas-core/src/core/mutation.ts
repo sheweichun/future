@@ -2,10 +2,10 @@
 import {Store,WrapData, BaseModel,isEqual,createList,createMap} from '../render/index'
 import {Commander} from './commander'
 import { IViewModel } from "../render/type";
-import {COMMANDERS,Utils, modelIsGroup, modelIsRoot, modelIsArtboard} from 'free-canvas-shared';
+import {COMMANDERS,Utils, modelIsGroup, modelIsRoot, modelIsArtboard,IMutation} from 'free-canvas-shared';
 import {createGroupModel} from '../render/index'
 import {CanvasEvent,EventHandler} from '../events/event'
-import {Model} from '../render/model';
+import {Model, updateAllId} from '../render/model';
 import {IOperation} from './operation/type';
 // import {isEqual} from '../render/dsl/store'
 import { OperationPos,calculateIncludeRect } from './operation/pos';
@@ -76,7 +76,7 @@ function extractEachModelAndRemoveChild(model:BaseModel,parentVm:IViewModel,vm:I
 }
 
 
-export class Mutation extends EventHandler{
+export class Mutation extends EventHandler implements IMutation{
     private _onSelectedFn:OnSelected
     private _onSelectStartFn:OnSelected
     private _onSelectMoveFn:OnSelected
@@ -113,12 +113,13 @@ export class Mutation extends EventHandler{
     setOperation(operation:IOperation){
         this._operation = operation;
     }
-    _getSelectedBaseModels(){
-        const arr:BaseModel[] = [];
+    getSelectedBaseModels(pure:boolean = false){
+        const arr:BaseModel|Model[] = [];
         this.reduceSelectedKeyPath((keyPath:string)=>{
             const item = this._viewModelMap.get(keyPath);
             if(item){
-                arr.push(item.getModel())
+                const itemModel = item.getModel();
+                arr.push(pure ? itemModel.searialize() : itemModel)
             }
         })
         return arr;
@@ -260,6 +261,9 @@ export class Mutation extends EventHandler{
             fn(keyPath)
         })
     }
+    // getStoreCurrentState(){
+    //     return this._store.currentState
+    // }
     getDSLData(){
         return this._store.currentState.get('data')
     }
@@ -487,6 +491,7 @@ export class Mutation extends EventHandler{
         if(data == null) return;
         let target:BaseModel;
         data.extra.isSelect = true;
+        updateAllId(data);
         this.transition(()=>{
             this._onUnSelected();
             const dslData = this.getDSLData();

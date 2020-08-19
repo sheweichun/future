@@ -1,0 +1,84 @@
+.fc-editor-button {
+  display: inline-block;
+  cursor: pointer;
+  background-color: var(--BACKGROUND_4);
+  color: var(--TEXT_COLOR);
+}
+.fc-editor-button:hover {
+  background-color: var(--BACKGROUND_1);
+  color: var(--ACTIVE_TEXT_COLOR);
+}
+
+.fc-editor-header {
+  display: flex;
+}
+.fc-editor-header-middle {
+  display: flex;
+  flex: 1;
+  align-items: center;
+}
+.fc-editor-header-middlem {
+  flex: 1;
+}
+.fc-editor-header-middler {
+  flex: 1;
+}
+
+.fc-editor {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.fc-editor-content {
+  flex: 1;
+  display: flex;
+}
+/* .footer{
+
+} */
+.fc-editor-canvas {
+  flex: 1;
+  flex-direction: column;
+  position: relative;
+}
+.fc-editor-canvas iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+
+.fc-editor-tree-item li {
+  overflow: hidden;
+}
+.fc-editor-tree-item-content {
+  cursor: pointer;
+  height: var(--PADDING_9);
+  line-height: var(--PADDING_9);
+}
+.fc-editor-tree-item-active > .fc-editor-tree-item-wrap {
+  color: var(--HIGHTLIGHT_COLOR);
+  background-color: var(--BACKGROUND_4);
+}
+.fc-editor-tree-item-selected > .fc-editor-tree-item-wrap {
+  color: var(--ACTIVE_TEXT_COLOR);
+  background-color: var(--HIGHLIGHT_BACKGROUND);
+}
+
+@font-face {
+  font-family: 'iconfont';
+  /* project id 1991465 */
+  src: url('//at.alicdn.com/t/font_1991465_5i1sbd1p4va.eot');
+  src: url('//at.alicdn.com/t/font_1991465_5i1sbd1p4va.eot?#iefix') format('embedded-opentype'), url('//at.alicdn.com/t/font_1991465_5i1sbd1p4va.woff2') format('woff2'), url('//at.alicdn.com/t/font_1991465_5i1sbd1p4va.woff') format('woff'), url('//at.alicdn.com/t/font_1991465_5i1sbd1p4va.ttf') format('truetype'), url('//at.alicdn.com/t/font_1991465_5i1sbd1p4va.svg#iconfont') format('svg');
+}
+.fc-editor-icon {
+  font-family: 'iconfont';
+}
+.fc-editor-icon-upoad {
+  font-family: 'iconfont';
+}
+.fc-editor-icon-upoad:after {
+  content: \E612;
+}
+

@@ -155,7 +155,9 @@ export class Operation implements IDisposable,IOperation{
     }
     _onSelectEnd(data:{x:number,y:number}){
         this._onUnSelect(data);
-        this._keyboard.focus();
+        this._keyboard.focus({
+            preventScroll:true //阻止因为获取焦点导致画板上移
+        });  
     }
     _onUnSelect(data:{x:number,y:number}){
         if(this._changed){
