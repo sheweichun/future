@@ -39,8 +39,9 @@ export class KeyBoard  extends EventHandler implements IKeyBoard{
         this._el.tabIndex = -1000
         this.addEvent(this._el,CanvasEvent.KEYDOWN,this.onKeyDown.bind(this))
     }
-    focus(){
-        this._el.focus();
+    focus(opt?:FocusOptions){
+        // console.log('el :',this._el);
+        this._el.focus(opt);
     }
     getKeyHandlerCenter(){
         return this._keyHandleCenter;

@@ -1,6 +1,7 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const baseConfigGen = require('./webpack.base');
+const ExtractTextPlugin = require('mini-css-extract-plugin');
 const path = require('path');
 const webpack = require('webpack');
 const entry = require('./entry');
@@ -16,7 +17,10 @@ module.exports = function(){
     });
     config.plugins = config.plugins.concat([
         new CleanWebpackPlugin(),
-        new webpack.HotModuleReplacementPlugin()
+        new webpack.HotModuleReplacementPlugin(),
+        new ExtractTextPlugin({
+            filename:'[name].bundle.css'
+        })
     ],Object.keys(entry).map((name)=>{
         return new HtmlWebpackPlugin({
             title: name,

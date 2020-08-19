@@ -1,4 +1,5 @@
 import {IPlugin, IView,Model, modelIsArtboard} from 'free-canvas-shared'
+import {ThemeVar,themeConst} from 'free-canvas-theme'
 import Canvas from './canvas'
 import {CanvasOption,CoreOptions} from './type';
 import {Line,Point, Entity,IEvent,LineMark,Rect} from '../entities/index';
@@ -14,7 +15,7 @@ import allStyle from './style'
 import { MakerData,MarkEntityType } from './operation/type';
 import {OperationPos,calculateIncludeRect} from './operation/pos'
 
-
+const {CONTENT} = ThemeVar 
 // export interface CoreOptions  {
 //     canvas?:CanvasOption
 //     data:Model
@@ -82,34 +83,17 @@ export default class Core extends EventHandler{
     constructor(el: string,options?:CoreOptions){
         super();
         this._options = completeOptions(options,DEFAULT_OPTIONS);
+        const {rulerBackgroundColor} = this._options;
         this.updateMakers = this.updateMakers.bind(this)
         this.updateRectSelect = this.updateRectSelect.bind(this);
         this.initEl(el)
         this.createStyle();
-        const {rulerBackgroundColor} = this._options;
-
-        // const x = 219
-        // var line = new Line(new Point(x,0),new Point(x,this._canvas.height),{lineStyle:null});
-        // line.draw(this._canvas);
-
-       
         this._rulerGroup = new RulerGroup(this._canvas,{
             length:this.margin,
             baseX:this._translateX,
             baseY:this._translateY,
             rulerBackgroundColor
         });
-        // this._makers = [
-        //     createGuide(
-        //         new Point(0,100),
-        //         new Point(400,100),
-        //         {
-        //             isVertical:false,
-        //             value:'30'
-        //         }
-        //     )
-        // ]
-        // this.getRect = this.getRect.bind(this)
         this._mouseWheelList.push(this._rulerGroup);
         this.draw = this.draw.bind(this);
         this.listen()
@@ -137,7 +121,7 @@ export default class Core extends EventHandler{
         const {data} = this._options
         const div = document.createElement('div');
         div.className = CONTAINER
-        div.setAttribute('style',`padding:${this.margin}px 0 0 ${this.margin}px`);
+        div.setAttribute('style',`padding:${this.margin}px 0 0 ${this.margin}px;background-color:${CONTENT.backgroundColor}`);
         const contentDiv = document.createElement('div');
         this._content = new Content(contentDiv,data,{
             createView:this._options.createView,
@@ -222,10 +206,13 @@ export default class Core extends EventHandler{
         const rect = this._parentEl.getBoundingClientRect();
         // this._translateX = Math.floor((rect.width - margin - pos.width) / 2 - pos.left);
         // this._translateY = Math.floor((rect.height - margin - pos.height) / 2 - pos.top);
-        return {
+        const ret = {
             x:Math.floor((rect.width - margin - pos.width) / 2 - pos.left),
             y:Math.floor((rect.height - margin - pos.height) / 2 - pos.top)
         }
+        if(ret.y < 0){ ret.y = 0}
+        if(ret.x < 0){ ret.x = 0}
+        return ret;
     }
     initEl(el:string){
         const {margin} = this
@@ -242,7 +229,7 @@ export default class Core extends EventHandler{
         const fragment = document.createDocumentFragment();
         const refreshEl = document.createElement('div');
         refreshEl.className = REFRESH_BUTTON_CLASSNAME;
-        refreshEl.setAttribute('style',`width:${margin}px;height:${margin}px`)
+        refreshEl.setAttribute('style',`width:${margin}px;height:${margin}px;color:var(--${themeConst.TEXT_COLOR_VAR});background-color:var(--${themeConst.BACKGROUND_1_VAR})`)
         refreshEl.innerHTML = '&#xe63c;'
         this._refreshEl = refreshEl;
         

@@ -5,8 +5,8 @@ import {IEvent} from '../entities/index'
 import {completeOptions} from '../utils/index';
 import {CanvasEvent} from '../events/event';
 import {ContentOptions,KeyBoardKeys} from './type';
-import {Model,createViewModel,ViewModel} from '../render/index'
-import {Store,WrapData} from '../render/index'
+import {Model,createViewModel,Store,completeData} from '../render/index'
+// import {Store,WrapData} from '../render/index'
 import {KeyBoard} from './keyboard';
 import {Commander} from './commander'
 import {COMMANDERS, IPlugin} from 'free-canvas-shared'
@@ -19,18 +19,18 @@ import {PluginManager} from './pluginManager';
 import { IViewModel } from '../render/type';
 
 
-function completeData(data:Model){
-    if(data == null) return;
-    data.extra = data.extra || {isSelect:false}
-    if(!data.extra.position){
-        data.extra.position = {}
-    }
-    data.style = data.style || {}
-    data.children && data.children.forEach((child)=>{
-        completeData(child)
-    })
-    return data;
-}
+// function completeData(data:Model){
+//     if(data == null) return;
+//     data.extra = data.extra || {isSelect:false}
+//     if(!data.extra.position){
+//         data.extra.position = {}
+//     }
+//     data.style = data.style || {}
+//     data.children && data.children.forEach((child)=>{
+//         completeData(child)
+//     })
+//     return data;
+// }
 
 function calculateRectData(data:MoveEventData){
     if(data == null) return;
@@ -67,7 +67,7 @@ export class Content implements IEvent{
     private _rect:OperationPos
     private _rectSelect:RectSelect
     private _pluginManager:PluginManager
-    constructor(private _el:HTMLElement,private _data:Model,options:ContentOptions){
+    constructor(private _el:HTMLElement,_data:Model,options:ContentOptions){
         this._options = completeOptions(options,{x:0,y:0});
         
         this._x = this._options.x;
@@ -84,14 +84,15 @@ export class Content implements IEvent{
         this._store.subscribe((nextState:any)=>{
             this._viewModel.update(nextState.get('data'));
             this._operation.update();
+            this._pluginManager.update();
             console.log('In 【content.update】');
         })
         this._commander = new Commander(this._store);
-        this._pluginManager = new PluginManager(this._commander,{
-            getContentRect:this.getRect
-        });
         this._mutation = new Mutation(this._el,this._store,this._commander,{
             getRect:this.getRect
+        });
+        this._pluginManager = new PluginManager(this._commander,this._mutation,{
+            getContentRect:this.getRect
         });
         this.createWrapEl();
         this._keyboard = new KeyBoard(_el);
@@ -101,8 +102,9 @@ export class Content implements IEvent{
             updateMakers:this._options.updateMakers
         });
         this._mutation.setOperation(this._operation);
+        const storeData = this._store.currentState
         //@ts-ignore
-        this._viewModel = createViewModel(null,this._store.currentState.get('data'),{
+        this._viewModel = createViewModel(null,storeData.get('data'),{
             mountNode:this._wrapEl,
             commander:this._commander,
             createView:this._options.createView,
@@ -225,6 +227,7 @@ export class Content implements IEvent{
     setStyle(){
         const {_el,_x,_y} = this;
         _el.setAttribute('style',`outline:none !important;width:100%;height:100%;transform:matrix(1,0,0,1,${_x},${_y})`);
+        // _el.setAttribute('style',`outline:none !important;width:100%;height:100%;transform:translate(${_x}px,${_y}px)`);
     }
     changeTranslation(x:number,y:number){
         this._x = x;

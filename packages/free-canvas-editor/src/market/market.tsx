@@ -1,9 +1,10 @@
-import {IPlugin,ICommander,ImutBase, COMMANDERS,Model, CanvasEvent, IPluginOptions, OperationPos,ModelFromType} from 'free-canvas-shared'  
+import {IPlugin,ICommander,IMutation, COMMANDERS,Model, CanvasEvent, IPluginOptions, OperationPos,ModelFromType} from 'free-canvas-shared'  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {Drag} from '../dnd';
-import {MarketOption} from './type';
-import {Button} from '@alife/next';
+// import {MarketOption} from './type';
+import MockData from './data'
+// import {Button} from '@alife/next';
 
 
 function postionAddData(data:Model,x:number,y:number){
@@ -16,27 +17,36 @@ function postionAddData(data:Model,x:number,y:number){
     return data;
 }
 
+export interface MarketProps{
+    maskEl:HTMLElement
+    previewEl:HTMLElement
+    children?: React.ReactNode;
+}
+
+export interface MarketState{
+
+}
 
 
-export class Market implements IPlugin{
+export class Market extends React.Component<MarketProps> implements IPlugin{
     private _commander:ICommander
-    private _previewEle:HTMLElement
-    private _canvasMask:HTMLElement
+    private _canvasEl:HTMLElement
     private _canvasRect:DOMRect
     private _getContentRect:()=>OperationPos
-    constructor(private _el:HTMLElement,private _options:MarketOption){
-        this.createPreviewEle();
-        this.createMask();
-        this.mount();
-        this._canvasRect = this._options.canvasEl.getBoundingClientRect();
-        this.listen();
-    }
-    listen(){
-        const {canvasEl} = this._options
+    constructor(props:MarketProps){
+        super(props);
         this.onCanvasDragEnter = this.onCanvasDragEnter.bind(this);
         this.onCanvasDragLeave = this.onCanvasDragLeave.bind(this);
-        canvasEl.addEventListener(CanvasEvent.DRAGENTER,this.onCanvasDragEnter);
-        canvasEl.addEventListener(CanvasEvent.DRAGLEAVE,this.onCanvasDragLeave);
+    }
+    // listen(){
+    //     const {canvasEl} = this._options
+
+    //     canvasEl.addEventListener(CanvasEvent.DRAGENTER,this.onCanvasDragEnter);
+    //     canvasEl.addEventListener(CanvasEvent.DRAGLEAVE,this.onCanvasDragLeave);
+    // }
+    initCanvas(el:HTMLElement){
+        this._canvasEl = el;
+        this._canvasRect = el.getBoundingClientRect();
     }
     onCanvasDragEnter(){
         this._commander.excute(COMMANDERS.SELECTENTER)
@@ -44,33 +54,17 @@ export class Market implements IPlugin{
     onCanvasDragLeave(){
         this._commander.excute(COMMANDERS.SELECTLEAVE)
     }
-    createMask(){
-        const div = document.createElement('div');
-        div.setAttribute("style","position:absolute;width:100%;height:100%;left:0;top:0;z-index:999");
-        this._canvasMask = div;
-    }
-    createPreviewEle(){
-        const div = document.createElement('div')
-        div.innerHTML = 'hello'
-        div.style.opacity = '0'
-        div.style.position = 'absolute'
-        div.style.left = '-999999px'
-        div.style.top = '-999999px'
-        document.body.appendChild(div)
-        this._previewEle = div;
-    }
-    install(commander:ICommander,options:IPluginOptions){
+    install(commander:ICommander,mutation:IMutation,options:IPluginOptions){
         this._commander = commander;
         this._getContentRect = options.getContentRect
     }
-    update(data:ImutBase,selectNodes:ImutBase[]):void{
+    update(data:Model,selectNodes:Model[]):void{
 
     }
     destroy(){
-        document.body.removeChild(this._previewEle);
-        const {canvasEl} = this._options
-        canvasEl.removeEventListener(CanvasEvent.DRAGENTER,this.onCanvasDragEnter);
-        canvasEl.removeEventListener(CanvasEvent.DRAGLEAVE,this.onCanvasDragLeave);
+        // const {_canvasEl} = this
+        // _canvasEl.removeEventListener(CanvasEvent.DRAGENTER,this.onCanvasDragEnter);
+        // _canvasEl.removeEventListener(CanvasEvent.DRAGLEAVE,this.onCanvasDragLeave);
     }
     fixPosData(x:number,y:number){
         const {left,top} = this._canvasRect
@@ -83,8 +77,9 @@ export class Market implements IPlugin{
     onDragStart=(data:Model,startX:number,startY:number):void=>{
         const newData = this.fixPosData(startX,startY);
         this._commander.excute(COMMANDERS.ADD,postionAddData(data,newData.x,newData.y));
-        const {canvasEl} = this._options
-        canvasEl.appendChild(this._canvasMask);
+        const {_canvasEl} = this
+        const {maskEl} = this.props;
+        _canvasEl.appendChild(maskEl);
         this._commander.excute(COMMANDERS.SELECTSTART,newData)
         // return getCanvasElement(elId)
     }
@@ -93,104 +88,36 @@ export class Market implements IPlugin{
         this._commander.excute(COMMANDERS.SELECTMOVE,newData);
     }
     onDragEnd=()=>{
-        const {canvasEl} = this._options
+        const {_canvasEl} = this
+        const {maskEl} = this.props;
         this._commander.excute(COMMANDERS.SELECTSTOP);
-        canvasEl.removeChild(this._canvasMask);
+        _canvasEl.removeChild(maskEl);
     }
-    mount(){
-        ReactDOM.render(<div>
+    render(){
+        const {previewEl} = this.props;
+        return (<div>
             in react aside
             <Drag onDragStart={this.onDragStart} 
             onDragMove={this.onDragMove}
-            previewEle={this._previewEle}
+            previewEle={previewEl}
             onDragEnd={this.onDragEnd}
-            data={{
-                id:'114',
-                name:'Button',
-                style:{
-                },
-                propSchemas:{
-                    type:{
-                        value:'primary'
-                    },
-                    children:{
-                        value:'Click Me!'
-                    }
-                },
-                extra:{
-                    import:{
-                        from :'@alife/next',
-                        version:'1.0.0',
-                        type:ModelFromType.INDEFAULT
-                    },
-                    position:{
-                        // width:200,
-                        // height:70
-                    }
-                }
-            }}>
+            data={MockData[0]}>
                 add Button
             </Drag>
             <Drag onDragStart={this.onDragStart} 
             onDragMove={this.onDragMove}
-            previewEle={this._previewEle}
+            previewEle={previewEl}
             onDragEnd={this.onDragEnd}
-            data={{
-                id:'114',
-                name:'Progress',
-                style:{
-                },
-                propSchemas:{
-                    percent:{
-                        value:50
-                    }
-                },
-                extra:{
-                    import:{
-                        from :'@alife/next',
-                        version:'1.0.0',
-                        type:ModelFromType.INDEFAULT
-                    },
-                    position:{
-                        width:150
-                    }
-                }
-            }}>
+            data={MockData[1]}>
                 add Progess
             </Drag>
             <Drag onDragStart={this.onDragStart} 
             onDragMove={this.onDragMove}
-            previewEle={this._previewEle}
+            previewEle={previewEl}
             onDragEnd={this.onDragEnd}
-            data={{
-                id:'114',
-                name:'Card',
-                style:{
-                },
-                propSchemas:{
-                    subTitle:{
-                        value:'Subtitle'
-                    },
-                    title:{
-                        value:'Title'
-                    },
-                    extra:{
-                        value:'Link'
-                    }
-                },
-                extra:{
-                    import:{
-                        from :'@alife/next',
-                        version:'1.0.0',
-                        type:ModelFromType.INDEFAULT
-                    },
-                    position:{
-                        width:300
-                    }
-                }
-            }}>
+            data={MockData[2]}>
                 add Card
             </Drag>
-        </div>,this._el);
+        </div>);
     }
 }

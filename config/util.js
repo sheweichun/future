@@ -1,13 +1,23 @@
 
 const path = require('path');
-exports.getCssLoader = function(isProd){
-    return {
+const ExtractTextPlugin = require('mini-css-extract-plugin');
+exports.getCssLoader = function(isProd,noModel){
+  console.log('noModel :',!noModel);
+    const ret = [{
         loader: 'css-loader',
         options: {
-          modules: false,
-          minimize: isProd,
+          modules: !noModel
         }
+    }];
+    if(!isProd){
+      ret.unshift({
+        loader:ExtractTextPlugin.loader,
+        options:{
+
+        }
+      })
     }
+    return ret
 }
 
 exports.getLessLoader = function(isProd){

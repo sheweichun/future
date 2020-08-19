@@ -7,6 +7,7 @@ import {CanvasEvent} from '../events/event';
 
 const DEFAULT_OPTIONS = {
     length:5,
+    // lineStyle:'red',
     // rulerBackgroundColor:'red'
 }
 

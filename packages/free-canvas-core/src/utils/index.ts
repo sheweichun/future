@@ -17,6 +17,14 @@ export function completeOptions(options:any,defaultOptions:any){
     },Object.assign({},options))
 }
 
+export function getPropertyValue(key:string){
+    if(key && key.indexOf('var') === 0){
+        const match = key.match(/var\((.*)\)/)
+        const ret = document.body.style.getPropertyValue(match[1])
+        return ret;
+    }
+    return key
+}
 
 // let debounceId:any;
 // let curDebounceFn:()=>void;

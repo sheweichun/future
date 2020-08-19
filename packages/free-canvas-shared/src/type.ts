@@ -105,8 +105,9 @@ export interface IPluginManagerOptions extends IPluginOptions{
 }
 
 export interface IPlugin{
-    install(commander:ICommander,options:IPluginOptions):void
-    update(data:ImutBase,selectNodes:ImutBase[]):void
+    install(commander:ICommander,mutation:IMutation,options:IPluginOptions):void
+    // update(data:ImutBase,selectNodes:ImutBase[]):void
+    update(data:Model,selectNodes:Model[]):void
     destroy():void
 }
 
@@ -203,4 +204,10 @@ export function baseModel2Model(data:ImutBase){
 
 export interface IRender{
     renderByDsl:(data:Model)=>void
+}
+
+export interface IMutation{
+    getSelectedBaseModels(pure:boolean):ImutBase | Model[]
+    getDSLData():ImutBase
+    onModelSelected(target:ImutBase,data:{needKeep:boolean,x:number,y:number,noTrigger?:boolean}):void
 }
