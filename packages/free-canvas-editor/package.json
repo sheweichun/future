@@ -1,0 +1,25 @@
+{
+  "name": "free-canvas-editor",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "test-c": "jest --coverage",
+    "clean": "rm -rf lib tsconfig.tsbuildinfo"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "devDependencies": {
+    "@alife/next": "^1.19.31",
+    "@types/react": "16.9.43",
+    "@types/react-dom": "16.9.8"
+  },
+  "dependencies": {
+    "free-canvas-shared": "0.0.1",
+    "free-canvas-theme": "0.0.1"
+  }
+}

@@ -1,0 +1,14 @@
+{
+    "extends":"../tsconfig.base.json",
+    "compilerOptions": {
+      "jsx": "react",
+      "outDir": "lib",
+      "rootDir": "src",
+    },
+    "references": [
+      { "path": "../free-canvas-shared" }
+    ],
+    "include":[
+      "src"
+    ]
+  }

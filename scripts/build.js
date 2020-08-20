@@ -11,15 +11,16 @@ if(argv.dev){
     const options = {
         contentBase: './dist',
         hot: true,
-        host: 'localhost',
+        host: '0.0.0.0',
         stats: 'errors-only',
+        index: 'editor.html',
         open:true
     };
     const devConfig = require('../config/webpack.dev')();
     const compiler = webpack(devConfig);
     webpackDevServer.addDevServerEntrypoints(devConfig, options);
     const server = new webpackDevServer(compiler, options);
-    server.listen(5000, 'localhost', () => {
+    server.listen(5000, '0.0.0.0', () => {
         console.log('dev server listening on port 5000');
     });
 }else{

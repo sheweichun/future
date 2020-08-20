@@ -1,0 +1,1 @@
+export {ObjectStyleDeclaration} from 'free-canvas-shared'

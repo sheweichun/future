@@ -1,0 +1,34 @@
+@import '../styles/common/_variable.less';
+
+
+.@{prefix}tree{  
+
+}
+
+.@{prefix}tree-item{  
+    li{
+        overflow: hidden;
+    }
+}
+
+
+
+.@{prefix}tree-item-content{
+    cursor: pointer;
+    height:var(--PADDING_9);
+    line-height: var(--PADDING_9);
+}
+
+.@{prefix}tree-item-active{
+    & > .@{prefix}tree-item-wrap{
+        color:var(--HIGHTLIGHT_COLOR);
+        background-color:var(--BACKGROUND_4);
+    }
+}
+
+.@{prefix}tree-item-selected{
+    & > .@{prefix}tree-item-wrap{
+        color:var(--ACTIVE_TEXT_COLOR);
+        background-color:var(--HIGHLIGHT_BACKGROUND);
+    }
+}

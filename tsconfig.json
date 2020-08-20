@@ -1,17 +1,20 @@
 {
-    "compilerOptions": {
-      "outDir": "./lib",
-      "rootDir": "./src",
-      "noImplicitAny": true,
-      "module": "es6",
-      "target": "es5",
-      "jsx": "react",
-      "allowJs": true, 
-    },
-    "include":[
-        "./src/**/*"
+    "extends":"./packages/tsconfig.base.json",
+    "references": [
+      { "path": "packages/free-canvas-editor" },
+      { "path": "packages/free-canvas-core" },
+      { "path": "packages/free-canvas-shared" },
+      { "path": "packages/free-canvas-fusion-render" },
+      { "path": "packages/free-canvas-theme" }
     ],
-    "exclude":[
-        "node_modules"
-    ]
+    "compilerOptions": {
+      "outDir": "lib",
+      "rootDir": "src",
+      "baseUrl": "./",
+      "jsx": "react",
+      "paths":{
+        "@pkg/*":["./packages/*"]
+      }
+    },
+    "include":["src"]
 }
