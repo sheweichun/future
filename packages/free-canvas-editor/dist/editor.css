@@ -1,3 +1,9 @@
+.fc-editor-aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .fc-editor-button {
   display: inline-block;
   cursor: pointer;
@@ -9,26 +15,25 @@
   color: var(--ACTIVE_TEXT_COLOR);
 }
 
-.fc-editor-header {
-  display: flex;
+::-webkit-scrollbar {
+  background: transparent;
+  width: 4px;
+  height: 4px;
 }
-.fc-editor-header-middle {
-  display: flex;
-  flex: 1;
-  align-items: center;
+::-webkit-scrollbar-thumb {
+  -webkit-box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.07);
+  background-clip: padding-box;
+  background-color: var(--BACKGROUND_5);
+  min-height: 28px;
 }
-.fc-editor-header-middlem {
-  flex: 1;
-}
-.fc-editor-header-middler {
-  flex: 1;
-}
-
 .fc-editor {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+.fc-editor * {
+  user-select: none;
 }
 .fc-editor-content {
   flex: 1;
@@ -48,23 +53,21 @@
   border: 0;
 }
 
+.fc-editor-header {
+  display: flex;
+}
+.fc-editor-header-middle {
+  display: flex;
+  flex: 1;
+  align-items: center;
+}
+.fc-editor-header-middlem {
+  flex: 1;
+}
+.fc-editor-header-middler {
+  flex: 1;
+}
 
-.fc-editor-tree-item li {
-  overflow: hidden;
-}
-.fc-editor-tree-item-content {
-  cursor: pointer;
-  height: var(--PADDING_9);
-  line-height: var(--PADDING_9);
-}
-.fc-editor-tree-item-active > .fc-editor-tree-item-wrap {
-  color: var(--HIGHTLIGHT_COLOR);
-  background-color: var(--BACKGROUND_4);
-}
-.fc-editor-tree-item-selected > .fc-editor-tree-item-wrap {
-  color: var(--ACTIVE_TEXT_COLOR);
-  background-color: var(--HIGHLIGHT_BACKGROUND);
-}
 
 @font-face {
   font-family: 'iconfont';
@@ -80,5 +83,30 @@
 }
 .fc-editor-icon-upoad:after {
   content: \E612;
+}
+
+.fc-editor-tree {
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+.fc-editor-tree-item li {
+  overflow: hidden;
+}
+.fc-editor-tree-item-content {
+  cursor: pointer;
+  height: var(--PADDING_9);
+  line-height: var(--PADDING_9);
+}
+.fc-editor-tree-item-active > .fc-editor-tree-item-wrap {
+  color: var(--HIGHTLIGHT_COLOR);
+  background-color: var(--BACKGROUND_4);
+}
+.fc-editor-tree-item-artboard {
+  background-color: var(--BACKGROUND_0);
+}
+.fc-editor-tree-item-selected > .fc-editor-tree-item-wrap {
+  color: var(--ACTIVE_TEXT_COLOR);
+  background-color: var(--HIGHLIGHT_BACKGROUND);
 }
 

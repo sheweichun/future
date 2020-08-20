@@ -23,6 +23,7 @@ export * from './market/index';
 export * from './header/index'
 export * from './panel/index'
 export * from './tree/index'
+export * from './aside/index'
 export function setup(mountNode:HTMLElement,components:EditorComponents,opt:SetupOptions){
     document.body.addEventListener(CanvasEvent.DRAGOVER,preventDragOver)
     ReactDOM.render(

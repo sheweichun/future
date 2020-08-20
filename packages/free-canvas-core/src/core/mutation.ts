@@ -2,7 +2,7 @@
 import {Store,WrapData, BaseModel,isEqual,createList,createMap} from '../render/index'
 import {Commander} from './commander'
 import { IViewModel } from "../render/type";
-import {COMMANDERS,Utils, modelIsGroup, modelIsRoot, modelIsArtboard,IMutation} from 'free-canvas-shared';
+import {COMMANDERS,Utils, modelIsGroup, modelIsRoot, modelIsArtboard,IMutation, ModelType} from 'free-canvas-shared';
 import {createGroupModel} from '../render/index'
 import {CanvasEvent,EventHandler} from '../events/event'
 import {Model, updateAllId} from '../render/model';
@@ -12,7 +12,7 @@ import { OperationPos,calculateIncludeRect } from './operation/pos';
 import {MutationOptions} from './type';
 // import {DRAG_OVER} from '../utils/constant';
 
-const {encode,encode2ShortId} = Utils
+// const {encode,encode2ShortId} = Utils
 type OnSelected = (data:{x:number,y:number})=>void
 
 type BaseModelAndPos = {
@@ -105,10 +105,37 @@ export class Mutation extends EventHandler implements IMutation{
         this._commander.clear();
     }
     addViewModel(viewModel:IViewModel){
-        this._viewModelMap.set(encode(viewModel.getModel()._keyPath),viewModel);
+        // this._viewModelMap.set(encode(viewModel.getModel()._keyPath),viewModel);
+        this._viewModelMap.set(viewModel.getModel().get('id',null),viewModel);
     }
     removeViewModel(viewModel:IViewModel){
-        this._viewModelMap.delete(encode(viewModel.getModel()._keyPath))
+        const vmId = viewModel.getModel().get('id',null)
+        const oldVm = this._viewModelMap.get(vmId);
+        if(oldVm == viewModel){
+            this._viewModelMap.delete(vmId);
+        }
+    }
+    getViewModel(id:string){
+        return this._viewModelMap.get(id);
+    }
+    getAllArtboardVms(){
+        const data = this.getDSLData();
+        const childs = data.get('children',[]);
+        const artboards:IViewModel[] = []
+        childs.forEach((child:BaseModel)=>{
+            const vm = this._viewModelMap.get(child.get('id',null));
+            if(vm == null) return;
+            if(modelIsArtboard(vm.modelType)){
+                artboards.push(vm);
+            }
+        })
+        return artboards;
+    }
+    getViewModelBaseModel(id:string){
+        return this._viewModelMap.get(id).getModel();
+    }
+    removeViewModelById(id:string){
+        this._viewModelMap.delete(id)
     }
     setOperation(operation:IOperation){
         this._operation = operation;
@@ -172,29 +199,32 @@ export class Mutation extends EventHandler implements IMutation{
     }
     paste(){
         if(this._copyTarget == null) return;
-        const addKeyPaths:string[][] = []
+        // const addKeyPaths:string[][] = []
         this.transition(()=>{
             this._onUnSelected();
             const dslData = this.getDSLData();
             const originPath = dslData._keyPath;
+            let newId:string;
             dslData.update('children',(old:BaseModel)=>{
-                const oldSize = old.size;
+                // const oldSize = old.size;
                 //@ts-ignore
                 return old.push(...this._copyTarget.map((vm:IViewModel,index:number)=>{
                     const item = vm.getModel();
                     const itemRect = vm.getRect();
                     const cloneData = item.searialize();
+                    updateAllId(cloneData)
                     const {position} = cloneData.extra;
                     cloneData.extra.position = Object.assign({},position,{
                         left : itemRect.left + 20,
                         top: itemRect.top + 20
                     })
                     cloneData.extra.isSelect = true;
-                    addKeyPaths.push([].concat(originPath,['children',oldSize + index]));
+                    newId = cloneData.id;
+                    // addKeyPaths.push([].concat(originPath,['children',oldSize + index]));
                     return WrapData(cloneData);
                 }));
             })
-            this.addKeyPath(...addKeyPaths);
+            this.addKeyPath(newId);
         })
         // console.log('addKeyPaths :',addKeyPaths);
         
@@ -292,7 +322,7 @@ export class Mutation extends EventHandler implements IMutation{
         }
         // console.log('in each :',Date.now() - now);
     }
-    eachModelAndVm(curModel:BaseModel,vm:IViewModel,fn:(item:BaseModel,vm:IViewModel)=>boolean){
+    eachModelAndVm(curModel:BaseModel,vm:IViewModel,fn:(item:BaseModel,vm:IViewModel)=>boolean){ //深度优先遍历
         const ret = fn(curModel,vm);
         // console.log('in each before child :',Date.now() - now);
         if(!ret) return;
@@ -308,10 +338,11 @@ export class Mutation extends EventHandler implements IMutation{
     // addKeyPath(keyPath:any[]){
     //     this.getSelectedKeyPaths().push(encode(keyPath));
     // }
-    addKeyPath(...keyPaths:any[][]){
-        this.getSelectedKeyPaths().push(...(keyPaths.map((item)=>{
-            return encode(item)
-        })));
+    addKeyPath(...keyPaths:string[]){
+        // this.getSelectedKeyPaths().push(...(keyPaths.map((item)=>{
+        //     return encode(item)
+        // })));
+        this.getSelectedKeyPaths().push(...keyPaths);
     }
     keyPathsIsNotEmpty(){
         return this.getSelectedKeyPaths().size > 0
@@ -330,8 +361,13 @@ export class Mutation extends EventHandler implements IMutation{
         return selectedKeyPaths;
     }
     _removeModelsFromEachModel(vms:IViewModel[],target:BaseModel):BaseModel{
+        if(vms.length === 0 || target == null) return target;
         let curModel = target
-        if(vms.length === 0) return curModel;
+        const {_store} = this;
+        // const realModel = this._store.getRealFromPath(curModel._keyPath,null)
+        // if(realModel == null) return curModel;
+        // const children = realModel.get('children',null);
+
         const children = curModel.get('children',null);
         if(children == null || children.size === 0) return curModel; 
         let newChilds:any[] = [];
@@ -341,7 +377,8 @@ export class Mutation extends EventHandler implements IMutation{
             let isShoted = false,i;
             for(i = 0; i < vms.length; i++){
                 const vm = vms[i];
-                if(isEqual(child,vm.getModel())){
+                if(child.get('id',null) === vm.getModel().get('id',null)){
+                // if(isEqual(child,vm.getModel())){
                     isShoted = true;
                     break;
                 }
@@ -353,13 +390,16 @@ export class Mutation extends EventHandler implements IMutation{
             }
         }
         newChilds = newChilds.reduce((ret,ch)=>{
-            return ret.push(this._removeModelsFromEachModel(vms,ch).deref(null));
+            // return ret.push(this._removeModelsFromEachModel(vms,ch).deref(null));
+            this._removeModelsFromEachModel(vms,ch);
+            return ret.push(_store.getRealRerefFromPath(ch._keyPath));
         },createList([]))
         const ret = curModel.updateIn(['children'],null,()=>{
             return newChilds
         })
         return ret as BaseModel;
     }
+
     unGroup(vms:IViewModel[]){ //解除编组
         if(vms == null || vms.length === 0) return 
         // console.log('dslData :',this.getDSLData().toJS());
@@ -391,7 +431,8 @@ export class Mutation extends EventHandler implements IMutation{
                 const newParentModelChildren = newParentModel.get('children',null);
                 newParentModelChildren.forEach((item:BaseModel)=>{
                     if(item.getIn(['extra','isSelect'],false)){
-                        selectedKeys.push(encode(item._keyPath))
+                        // selectedKeys.push(encode(item._keyPath))
+                        selectedKeys.push(item.get('id',null))
                     }
                 })
             })
@@ -449,7 +490,7 @@ export class Mutation extends EventHandler implements IMutation{
         let targetIndex:number;
         const targetParent = this._store.getRealFromPath(deepKeyPath,null);
         if(targetParent == null) return;
-        const childDsl = targetParent.get('children');
+        // const childDsl = targetParent.get('children');
         // const parentPos = targetParent.getIn(['extra','position']);
         const parentRect = modelIsRoot(deepVm.modelType) ? {left:0,top:0} : deepVm.getRect();
         const groupModel = createGroupModel(pos.left - parentRect.left,pos.top - parentRect.top,pos.width,pos.height);
@@ -473,7 +514,7 @@ export class Mutation extends EventHandler implements IMutation{
         // console.log('childKeyPath :',childKeyPath,targetIndex);
         const state = this._store.currentState
         state.updateIn(['selectedKeyPaths'],null,()=>{ //更新选中项
-            return createList([encode([...childDsl._keyPath,targetIndex])])
+            return createList([groupModel.id])
         })
        })
     }
@@ -503,44 +544,163 @@ export class Mutation extends EventHandler implements IMutation{
         const newDslData = this.getDSLData();
         const newChilds = newDslData.get('children')
         target = newChilds.get(newChilds.size - 1);
-        this.addKeyPath(target._keyPath);
-        return encode2ShortId(target._keyPath)
+        this.addKeyPath(target.get('id',null));
+        // return encode2ShortId(target._keyPath)
     }
     onPostionChanges(val:{vms:IViewModel[],data:{left:number,top:number}}){
-        const {vms,data} = val
+        const {vms,data:posData} = val
+        const artboards = this.getAllArtboardVms();
+        const dslData = this.getDSLData();
+        const _this = this;
+        const needRemoveVms:IViewModel[] = [];
+        const needAddItems:{parentModel:BaseModel,target:BaseModel}[] = []
+        function getOverlapArtboard(vm:IViewModel){
+            const vmRect = vm.getRect();
+            for(let i = 0 ; i < artboards.length ; i++){
+                const artboard = artboards[i];
+                if(artboard.getRect().isOverlap(vmRect)){
+                    return artboard
+                }
+            }
+        }
+
+        function changeVmPos(vm:IViewModel,data:{left:number,top:number}){
+            vm.getModel().updateIn(['extra','position'],null,(pos:any)=>{
+                return WrapData({
+                    left:pos.get('left') + data.left,
+                    top:pos.get('top') + data.top,
+                    width:pos.get('width'),
+                    height:pos.get('height')
+                })
+            })
+        }
+
+
+        function changePosByArtboard(diffx:number,diffy:number,vm:IViewModel,data:{left:number,top:number},newParentModel:BaseModel,){
+            const vmModel = vm.getModel();
+            const newVmModel = vmModel.updateIn(['extra','position'],null,(pos:any)=>{
+                return WrapData({
+                    left:pos.get('left') + data.left + diffx,
+                    top:pos.get('top') + data.top + diffy,
+                    width:pos.get('width'),
+                    height:pos.get('height')
+                })
+            }).deref(null)
+            needRemoveVms.push(vm);
+            needAddItems.push({
+                parentModel:newParentModel,
+                target:newVmModel
+            })
+            // _this._removeModelsFromEachModel([vm],dslData);
+            // newParentModel.updateIn(['children'],null,(childs:BaseModel)=>{
+            //     //@ts-ignore
+            //     return childs.push(newVmModel);
+            // })
+        }
+
+        function vmOutArtboard(overlapArtboard:IViewModel,vm:IViewModel,data:{left:number,top:number}){
+            const artboardRect = overlapArtboard.getRect();
+            changePosByArtboard(artboardRect.left,artboardRect.top,vm,data,dslData)
+        }
+
+        function vmFromToArtboard(fromArtboard:IViewModel,toArtboard:IViewModel,vm:IViewModel,data:{left:number,top:number}){
+            const fromArtboardRect = fromArtboard.getRect();
+            const toArtboardRect = toArtboard.getRect();
+            changePosByArtboard(
+                fromArtboardRect.left - toArtboardRect.left,
+                fromArtboardRect.top - toArtboardRect.top,
+                vm,data,toArtboard.getModel())
+        }
+
+
+        function vmIntoArtboard(overlapArtboard:IViewModel,vm:IViewModel,data:{left:number,top:number}){
+            const artboardRect = overlapArtboard.getRect();
+            const overlapArtboardModel = overlapArtboard.getModel();
+            changePosByArtboard(- artboardRect.left,- artboardRect.top,vm,data,overlapArtboardModel)
+        }
+
         this.transition(()=>{
+            // const vmLength = vms.length;
             vms.forEach((vm)=>{
-                vm.getModel().updateIn(['extra','position'],null,(pos:any)=>{
-                    return WrapData({
-                        left:pos.get('left') + data.left,
-                        top:pos.get('top') + data.top,
-                        width:pos.get('width'),
-                        height:pos.get('height')
-                    })
+                // if(vmLength > 1){
+                //     return changeVmPos(vm,posData);
+                // }
+                // const vmId = vm.getModel().get('id',null);
+                const vmIsArtboard = modelIsArtboard(vm.modelType);
+                if(vmIsArtboard) return changeVmPos(vm,posData);
+                const parentVm = vm.getParent();
+                const parentVmIsArtboard = modelIsArtboard(parentVm.modelType);
+                const parentVmIsRoot = modelIsRoot(parentVm.modelType);
+                const overlapArtboard = getOverlapArtboard(vm); //todo 待完善 因为重叠的画板可能有多个 通过什么策略选择最合适的画板
+                if(parentVmIsRoot){ //根下节点
+                    if(overlapArtboard){ //根下节点跟画板重合
+                        // console.log('vmIntoArtboard!!!',vmId);
+                        vmIntoArtboard(overlapArtboard,vm,posData);
+                        
+                    }else{
+                        // console.log('changeVmPos!!!',vmId);
+                        changeVmPos(vm,posData);
+                    }
+                }else{ //非根下节点
+                    if(parentVmIsArtboard){ //非根下节点父节点是画板
+                        if(overlapArtboard){ //非根下节点跟一个画板重合
+                            if(overlapArtboard !== parentVm){ //非根节点从原来的画板移动到新的画板
+                                // console.log('vmFromToArtboard!!!',vmId);
+                                vmFromToArtboard(parentVm,overlapArtboard,vm,posData);
+                            }else{ //非根节点还在原来画板中
+                                // console.log('changeVmPos!!!',vmId);
+                                changeVmPos(vm,posData);
+                            }
+                        }else{ //todo 这里应该从画板中移除掉
+                            // console.log('vmOutArtboard!!!',vmId);
+                            vmOutArtboard(parentVm,vm,posData);
+                        }
+                    }else{ //非根节点父节点不是画板
+                        // console.log('changeVmPos!!!',vmId);
+                        changeVmPos(vm,posData);
+                    }
+                }
+            })
+
+            //todo 如何做到先删除后新增
+            this._removeModelsFromEachModel(needRemoveVms,dslData); //先删除待删除的节点
+            // const {_store} = this
+            needAddItems.forEach((item)=>{ //然后添加待添加的节点
+                const {parentModel,target} = item;
+                // const realModel = _store.getRealFromPath(parentModel._keyPath,null);
+                // if(realModel == null) return;
+                parentModel.updateIn(['children'],null,(childs:BaseModel)=>{
+                    //@ts-ignore
+                    return childs.push(target);
                 })
             })
         })
     }
-    _changeVmPosAndSize(vm:IViewModel){
+    _changeVmPosAndSize(vm:IViewModel,pos:{left:number,top:number,width:number,height:number}){
         const oldVm = vm.getModel();
-        const {left,top,width,height} = vm.getRelativeRect(vm.getRect());
-        // let newPos:{left:number,top:number,width:number,height:number};
-        const newPos = {left,top,width,height}
+        // const {left,top,width,height} = vm.getRelativeRect(vm.getRect());
+        // const newPos = {left,top,width,height}
         oldVm.withMutations((md:any)=>{
-            return md.setIn(['extra','position'],WrapData(newPos))
+            return md.setIn(['extra','position'],WrapData(pos))
         })
         if(vm.children){
             vm.children.viewModelList.forEach((child)=>{
-                this._changeVmPosAndSize(child)
+
+                this._changeVmPosAndSize(child,child.getRelativeRect(child.getRect()))
             })
         }
     }
     // changePosAndSize(vms:IViewModel[],data:{left:number,top:number,width:number,height:number}){
     changePosAndSize(vms:IViewModel[]){
+        // const artboards = this.getAllArtboardVms();
         this.transition(()=>{
             vms.forEach((vm)=>{
-                //@ts-ignore
-                this._changeVmPosAndSize(vm);
+                // const vmRect = vm.getRect();
+                // artboards.forEach((artboard)=>{
+                //     console.log('artboard :',artboard.getRect().isOverlap(vmRect));
+                // })
+                const pos = vm.getRelativeRect(vm.getRect());
+                this._changeVmPosAndSize(vm,pos);
             })
         })
     }
@@ -565,7 +725,7 @@ export class Mutation extends EventHandler implements IMutation{
     // }
     updateSelectVmsByPos(data:BaseModel,target:IViewModel,pos:OperationPos){  //选择框框选选中组件
         this.notRecord(()=>{
-            this.eachModelAndVm(data,target,(curModel:BaseModel,vm:IViewModel)=>{
+            this.eachModelAndVm(data,target,(curModel:BaseModel,vm:IViewModel)=>{ //深度优先遍历，当前节点跟选择框重叠时，不用再想子节点去检索
                 // const isRoot = modelIsRoot(vm.modelType);
                 if(modelIsRoot(vm.modelType) || modelIsArtboard(vm.modelType)) return true;
                 const vmPos = vm.getAbsRect();
@@ -573,13 +733,13 @@ export class Mutation extends EventHandler implements IMutation{
                 const curSelect = curModel.getIn(['extra','isSelect'],null);
                 if(curSelect !== shouldSelect){
                     if(shouldSelect){
-                        this.addKeyPath(curModel._keyPath);
+                        this.addKeyPath(curModel.get('id',null));
                     }else{
-                        this.removeKeyPath(encode(curModel._keyPath));
+                        this.removeKeyPath(curModel.get('id',null));
                     }
                     curModel.updateIn(['extra','isSelect'],null,()=> shouldSelect);
                 }
-                return true;
+                return !shouldSelect;
             })
         })
     }
@@ -587,18 +747,20 @@ export class Mutation extends EventHandler implements IMutation{
         const {needKeep} = data;
         this.each(this.getDSLData(),(curModel:BaseModel)=>{
             const isSelected = curModel.getIn(['extra','isSelect'],false)
+            const curId = curModel.get('id',null),targetId = target.get('id',null)
             // console.log('isSelected :',isSelected);
             //todo 如果数据都一致的话会存在重复的问题
-            if(isEqual(curModel,target) && (encode(curModel._keyPath) === encode(target._keyPath))){
+            // if(isEqual(curModel,target) && (encode(curModel._keyPath) === encode(target._keyPath))){
+            if(curId === targetId){
                 if(isSelected && needKeep && this.keyPathsIsNotEmpty()){
-                    this.removeKeyPath(encode(curModel._keyPath));
+                    this.removeKeyPath(curId);
                     curModel.updateIn(['extra','isSelect'],null,()=>false)
                 }else if(!isSelected){
-                    this.addKeyPath(curModel._keyPath);
+                    this.addKeyPath(curId);
                     curModel.updateIn(['extra','isSelect'],null,()=>true)
                 }
             }else if(!needKeep && isSelected){
-                this.removeKeyPath(encode(curModel._keyPath));
+                this.removeKeyPath(curId);
                 curModel.updateIn(['extra','isSelect'],null,()=>false)
             }
             return true;

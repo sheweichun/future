@@ -75,6 +75,7 @@ export function completeData(data:Model){
 
 export function createGroupModel(left:number,top:number,width:number,height:number){
     return {
+        id:nextId(),
         name:'div',
         type:ModelType.isGroup,
         style:{

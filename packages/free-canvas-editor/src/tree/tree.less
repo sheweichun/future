@@ -2,7 +2,9 @@
 
 
 .@{prefix}tree{  
-
+    height:100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
 
 .@{prefix}tree-item{  
@@ -25,6 +27,11 @@
         background-color:var(--BACKGROUND_4);
     }
 }
+
+.@{prefix}tree-item-artboard{
+    background-color:var(--BACKGROUND_0);
+}
+
 
 .@{prefix}tree-item-selected{
     & > .@{prefix}tree-item-wrap{

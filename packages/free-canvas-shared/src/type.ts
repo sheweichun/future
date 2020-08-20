@@ -209,5 +209,6 @@ export interface IRender{
 export interface IMutation{
     getSelectedBaseModels(pure:boolean):ImutBase | Model[]
     getDSLData():ImutBase
+    getViewModelBaseModel(id:string):ImutBase
     onModelSelected(target:ImutBase,data:{needKeep:boolean,x:number,y:number,noTrigger?:boolean}):void
 }

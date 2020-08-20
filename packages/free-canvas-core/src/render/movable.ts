@@ -45,6 +45,7 @@ export class Movable implements IMovable{
     startY:number
     outline:string
     style:ObjectStyleDeclaration
+    idSpan:HTMLElement
     protected _onPostionChange:OnPositionChange
     constructor(protected _data:Model,options:MovableOptions){
         this._options = completeOptions(options,DEFAULT_OPTIONS);
@@ -61,10 +62,12 @@ export class Movable implements IMovable{
         const div = document.createElement('div');
         div.id = Utils.encode2ShortId(options.id);
         div.className = MOVABLE_CLASSNAME
+        
         this.style = {
             position:'absolute'
         }
         this.el = div;
+        this.createIdSpan();
         // div.appendChild(this.view.getRoot());
         // if(isRoot){
         //     mountNode.appendChild((this.view as FragmentView).getFragmentAndChange());
@@ -72,6 +75,16 @@ export class Movable implements IMovable{
         //     didMount && didMount();
         // }
         
+    }
+    createIdSpan(){
+        const span = document.createElement('div')
+        span.setAttribute('style','position:absolute;top:0;left:0;color:white')
+        span.innerHTML = `id:${this._data.id}`
+        this.el.appendChild(span);
+        this.idSpan = span;
+    }
+    updateIdSpan(){
+        this.idSpan.innerHTML = `id:${this._data.id}`
     }
     setModelType(type:ModelType){
         this._options.modelType = type;
@@ -238,6 +251,7 @@ export class Movable implements IMovable{
         this._data = newModel;
         this.parsePosition();
         this.setStyle();
+        this.updateIdSpan();
         this.view.update(newModel);
     }
     setStyle(el?:HTMLElement){

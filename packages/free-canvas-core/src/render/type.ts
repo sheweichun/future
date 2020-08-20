@@ -47,6 +47,7 @@ export interface IViewModel{
     children:IViewModelCollection
     getModel():BaseModel
     getParent():IViewModel
+    getTypeParent(type:ModelType):IViewModel
     changeRect(target:string,diffx:number,diffy:number):void
     didMount():void
     update(model:BaseModel):void
@@ -106,6 +107,7 @@ export interface ViewModelOptions extends MovableOptions{
     createView?:CreateView
     addViewModel:(viewModel:IViewModel)=>void
     removeViewModel:(ViewModel:IViewModel)=>void
+    updateViewModel:(prevId:string,curVm:IViewModel)=>void
     getRect:()=>OperationPos
 }
 

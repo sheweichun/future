@@ -97,6 +97,7 @@ export class Operation implements IDisposable,IOperation{
         _parent.appendChild(div);
         this.addViewModel = this.addViewModel.bind(this)
         this.removeViewModel = this.removeViewModel.bind(this)
+        this.updateViewModel = this.updateViewModel.bind(this)
         this.onMouseDown = this.onMouseDown.bind(this)
         this.onMouseMove = this.onMouseMove.bind(this)
         this._onUnSelect = this._onUnSelect.bind(this)
@@ -252,6 +253,14 @@ export class Operation implements IDisposable,IOperation{
         this._mutation.removeViewModel(viewModel);
         // this._viewModelMap.delete(encode(viewModel.getModel()._keyPath))
     }
+    updateViewModel(preId:string,curVm:IViewModel){
+        const {_mutation} = this;
+        const preVm = _mutation.getViewModel(preId);
+        if(preVm === curVm){
+            this._mutation.removeViewModelById(preId); //移除掉ID跟当前VM的关联记录
+        }
+        this._mutation.addViewModel(curVm);
+    }
     destroy(){
         this._root.removeEventListener(CanvasEvent.MOUSEDOWN,this.onMouseDown)
         document.body.removeEventListener(CanvasEvent.MOUSEMOVE,this.onMouseMove)
@@ -396,6 +405,7 @@ export class Operation implements IDisposable,IOperation{
     onPositionStart(data:{x:number,y:number}){
         this._canMove = true
         this._changed = false
+        // console.log('mouse downed!!!');
         this._onPositionStart(data);
     }
     onDbClick(e:MouseEvent){
@@ -429,37 +439,19 @@ export class Operation implements IDisposable,IOperation{
     }
     
     onMouseMove(e:MouseEvent){
-        // if(!this._canMove) {
-        //     if(e.currentTarget === this._root){
-        //         this._canMove = true
-        //         this._changed = false
-        //         const {x,y} = e;
-        //         this._startX = x;
-        //         this._startY = y;
-        //         this._originX = x;
-        //         this._originY = y;
-        //     }
-        //     return;
-        // };
         if(!this._canMove ) return;
+        // console.log('in moving!!!');
         // if(!this._canMove || this._pos == null) return;
         
         const {x,y} = e;
         this._onSelectMove({
             x,y
         })
-        
-        // const result = this.eachRootViewModelExcludeSelected(calculateLatestVm,{
-        //     curPos:this._pos,
-        //     selectModels:this._selectViewModels,
-        //     data:[]
-        // })
-        // const {alignMap,data} = result;
-        // const {updateMakers} = this._options 
-        // updateMakers([].concat(
-        //     transformCalculateItem2MarkerData(pos,data),
-        //     transformAliItem2MarkerData(alignMap)
-        // ));
+    }
+    onMouseUp(e:MouseEvent){
+        if(this._canMove === false) return;
+        this._canMove = false;
+        this._onUnSelect(null);
     }
     showMakers(){
         this._showMakerTmId = null;
@@ -490,10 +482,5 @@ export class Operation implements IDisposable,IOperation{
     }
     disableMove(){
         this._canMove = false;
-    }
-    onMouseUp(e:MouseEvent){
-        if(this._canMove === false) return;
-        this._canMove = false;
-        this._onUnSelect(null);
     }
 }

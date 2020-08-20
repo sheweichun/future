@@ -11,6 +11,7 @@ const TreeItemContentClz = `${CLASS_PREFIX}tree-item-content`
 const TreeItemActiveClz = `${CLASS_PREFIX}tree-item-active`
 const TreeItemSelectedClz = `${CLASS_PREFIX}tree-item-selected`
 const TreeItemWrapClz = `${CLASS_PREFIX}tree-item-wrap`
+const TreeItemArtboardClz = `${CLASS_PREFIX}tree-item-artboard`
 export {TreeProps,TreeState} from './type'
 
 export class Tree extends React.Component<TreeProps,TreeState> implements IPlugin{
@@ -48,26 +49,34 @@ export class Tree extends React.Component<TreeProps,TreeState> implements IPlugi
         hoverMap[data.id] = false
         this.setState({hoverMap})
     }
-    onSelected(data:Model){
-        this._commander
+    onSelected(data:Model,e:MouseEvent){
+        if(modelIsArtboard(data.type)) return;
+        const {x,y,shiftKey} = e;
+        const {_mutation} = this;
+        _mutation.onModelSelected(_mutation.getViewModelBaseModel(data.id),{
+            needKeep:shiftKey,
+            x,
+            y,
+            noTrigger:true
+        })
     }
     renderItem(models:Model[],depth=1){
         if(models == null) return
         const {hoverMap} = this.state;
         return models.map((item)=>{
             const itemId = item.id;
-            const selected = item.extra.isSelect
             const isArtboard = modelIsArtboard(item.type)
+            const selected = item.extra.isSelect
             const itemStyle = isArtboard ? {} : {height}
             return <ul className={TreeItemClz} key={item.id}> 
                 <li style={itemStyle} className={`${hoverMap[itemId] ? TreeItemActiveClz : ''} ${selected ? TreeItemSelectedClz : ''}`}>
-                    <div className={TreeItemWrapClz}>
+                    <div className={isArtboard ? TreeItemArtboardClz : TreeItemWrapClz}>
                         <div className={TreeItemContentClz} style={{paddingLeft : `${12 * depth}px`}}
                         onMouseEnter={this.onMouseEnter.bind(this,item)}
                         onMouseLeave={this.onMouseLeave.bind(this,item)}
                         onClick={this.onSelected.bind(this,item)}
                         >
-                            {item.name} 
+                            {item.extra.label ? item.extra.label : `${item.name}-${item.id}`} 
                         </div>
                     </div>
                     {this.renderItem(item.children,depth + 1)}
@@ -76,10 +85,9 @@ export class Tree extends React.Component<TreeProps,TreeState> implements IPlugi
         })
     }
     render(){
-        const {className} = this.props;
+        const {className,style} = this.props;
         const {data} = this.state;
-        return <div className={`${CLASS_PREFIX}tree ${className || ''}`} style={{
-        }}>
+        return <div className={`${CLASS_PREFIX}tree ${className || ''}`} style={style}>
             {this.renderItem(data)}
         </div>
     }

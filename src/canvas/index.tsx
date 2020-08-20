@@ -20,6 +20,7 @@ const canvas = FreeCanvas('canvas',{
         children:[
             {
                 type:2,
+                id:'110',
                 name:'div',
                 style:{
                     backgroundColor:'#ffffff'
@@ -121,6 +122,37 @@ const canvas = FreeCanvas('canvas',{
                             top:400,
                             width:150,
                             height:150,
+                        }
+                    }
+                }]
+            },{
+                type:2,
+                id:'120',
+                name:'div',
+                style:{
+                    backgroundColor:'#ffffff'
+                },
+                extra:{
+                    label:'我的第二块画布',
+                    position:{
+                        left:900,
+                        top:100,
+                        width:375,
+                        height:812
+                    }
+                },
+                children:[{
+                    id:'121',
+                    name:'div',
+                    style:{
+                        backgroundColor:'#ff000055'
+                    },
+                    extra:{
+                        position:{
+                            left:0,
+                            top:0,
+                            width:400,
+                            height:300,
                         }
                     }
                 }]

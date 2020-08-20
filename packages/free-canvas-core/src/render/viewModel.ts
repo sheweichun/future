@@ -151,6 +151,11 @@ export class ViewModel implements IViewModel{
     getParent(){
         return this._parent;
     }
+    getTypeParent(type:ModelType):IViewModel{
+        const {_parent} = this;
+        if(_parent == null) return;
+        return _parent.modelType === type ? _parent : _parent.getTypeParent(type)
+    }
     isChildren(vm:IViewModel):boolean{
         if(modelIsRoot(this.modelType)) return false;
         const {_parent} = this;
@@ -320,11 +325,17 @@ export class ViewModel implements IViewModel{
             return;
         };
         const prevModel = this.model;
-        const needUpdate = !isEqual(model,prevModel)
+        const prevId = prevModel.get('id',null)
+        const curId = model.get('id',null)
+        const idNotEqual = prevId !== curId
+        const needUpdate = idNotEqual || !isEqual(model,prevModel)
         if(needUpdate){
             this.view.update(model.searialize());
         }
         this.model = model;
+        if(idNotEqual){
+            this._options.updateViewModel(prevId,this);
+        }
         this.modelType = model.get('type',false)
         this.view.setModelType(this.modelType);
         const modelChildren = model.get('children',WrapData([]));

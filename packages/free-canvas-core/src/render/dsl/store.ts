@@ -33,9 +33,15 @@ export class Store extends History{
         this.onStateChange = this.onStateChange.bind(this);
         this.push(from(fromJS(data),null,_opt.prototype,this.onStateChange))
     }
+    getRealRerefFromPath(keyPath:string[],notSetValue?:any){
+        const curState = this.currentState;
+        const newRootData = curState._deref()
+        return newRootData.getIn(keyPath,notSetValue)
+    }
     getRealFromPath(keyPath:string[],notSetValue:any){
         const curState = this.currentState;
-        const val = curState._deref().getIn(keyPath,NOT_SET)
+        const newRootData = curState._deref()
+        const val = newRootData.getIn(keyPath,NOT_SET)
         return val === NOT_SET ? notSetValue : wrappedValue(curState, keyPath, val);
     }
     // addKeyPath(keyPath:any[]){

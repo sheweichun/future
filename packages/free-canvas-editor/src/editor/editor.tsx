@@ -2,6 +2,7 @@ import React,{useRef,useLayoutEffect, ComponentType}  from 'react';
 import {Market,MarketProps} from '../market/index'
 import {Header,HeadProps} from '../header/index'
 import {Panel,PanelProps} from '../panel/index'
+import {Aside} from '../aside/index'
 import {Tree,TreeProps} from '../tree/index'
 import {IPlugin} from 'free-canvas-shared'
 import {ThemeVar} from 'free-canvas-theme'
@@ -13,6 +14,7 @@ type a = Market extends ComponentType<MarketProps> ? string : number
 export interface EditorComponents{
     header?:typeof Header
     panel?:typeof Panel
+    aside?:typeof Aside
     // market?:typeof Market
     market?:typeof Market
     tree?:typeof Tree
@@ -31,7 +33,6 @@ interface EditorState{
 
 }
 
-const {ASIDE} = ThemeVar
 
 
 // function Hoc<T,V extends React.ComponentType<T> & IPlugin>(Component:V){
@@ -103,6 +104,7 @@ export function Editor(props:EditorProps){
     const PanelComponent = components.panel || Panel;
     const MarketComponent = Hoc<MarketProps,Market>(components.market || Market);
     const TreeComponent = Hoc<TreeProps,Tree>(components.tree || Tree);
+    const AsideComponent = components.aside || Aside;
     const maskEl = createMask();
     const iframeRef = useRef();
     const canvasContainerRef = useRef();
@@ -124,10 +126,10 @@ export function Editor(props:EditorProps){
     return <div className={`${ROOT_CLASS}`}>
         <HeaderComponent></HeaderComponent>
         <div className={`${CLASS_PREFIX}content`}>
-            <aside style={{width:ASIDE.width,backgroundColor:ASIDE.backgroundColor,color:ASIDE.color}}>
+            <AsideComponent>
                 <MarketComponent ref={marketRef}  previewEl={previewEl} maskEl={maskEl} runTask={runTask}/>
-                <TreeComponent runTask={runTask}></TreeComponent>
-            </aside>
+                <TreeComponent style={{height:'500px'}} runTask={runTask}></TreeComponent>
+            </AsideComponent>
             <div className={`${CLASS_PREFIX}canvas`} ref={canvasContainerRef} onDragEnter={onDragEnter} onDragLeave={onDragLeave}>
                 <iframe ref={iframeRef} src="./canvas.html"></iframe>
             </div>

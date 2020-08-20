@@ -110,6 +110,7 @@ export class Content implements IEvent{
             createView:this._options.createView,
             addViewModel:this._operation.addViewModel,
             removeViewModel:this._operation.removeViewModel,
+            updateViewModel:this._operation.updateViewModel,
             getRect:this.getRect
         });
         this._rectSelect = new RectSelect(document.body,{
