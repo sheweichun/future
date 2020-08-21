@@ -194,13 +194,20 @@ function updateHorizontalAlign(item:AlignItem,vm:IViewModel,alignLeft:number,ali
     }
 }
 
+function extractAlignItem(item:AlignItem,value:number){
+    if(item.value === value){
+        return item
+    }
+    return null
+}
+
 function udpdateAlignMap(alignMap:AlignItemMap,vm:IViewModel){
     const pos = vm.getRect();
     const {left,top,width,height} = pos;
     const right = left + width,bottom = top + height;
-    const leftAlign = alignMap[left],rightAlign = alignMap[right],
-    topAlign = alignMap[top],bottomAlign = alignMap[bottom],
-    vMiddleAlign = alignMap[pos.getHMiddle()],hMiddleAlign = alignMap[pos.getVMiddle()]
+    const leftAlign = extractAlignItem(alignMap.left,left),rightAlign = extractAlignItem(alignMap.right,right),
+    topAlign = extractAlignItem(alignMap.top,top),bottomAlign = extractAlignItem(alignMap.bottom,bottom),
+    vMiddleAlign = extractAlignItem(alignMap.hmiddle,pos.getHMiddle()),hMiddleAlign = extractAlignItem(alignMap.vmiddle,pos.getVMiddle())
     updateVericalAlign(leftAlign,vm,top,bottom)
     updateVericalAlign(rightAlign,vm,top,bottom)
     updateVericalAlign(vMiddleAlign,vm,top,bottom)
@@ -262,11 +269,15 @@ function createLineMakerMarkerData(startX:number,
         }
     }
 }
+
+
+
 export function transformAliItem2MarkerData(data:AlignItemMap){
     const ret:MakerData[] = []
-    Object.keys(data).forEach((valStr:string)=>{
-        const val = parseInt(valStr);
+    Object.keys(data).forEach((valStr:keyof AlignItemMap)=>{
+        // const val = parseInt(valStr);
         const item = data[valStr];
+        const val = item.value;
         const {type,vms} = item;
         if(vms == null || vms.length === 0) return;
         if(type === AlignType.VERTICAL_LEFT 
