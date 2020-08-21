@@ -118,44 +118,50 @@ function initAlignMap(pos:OperationPos){
     const {left,top,width,height} = pos;
     const right = left + width,bottom = top + height;
     const alignMap:AlignItemMap = {
-        [left]:{
+        left:{
             type:AlignType.VERTICAL_LEFT,
             vms:[],
+            value:left,
             isVertical:true,
             top,
             bottom
         },
-        [right]:{
+        right:{
             type:AlignType.VERTICAL_RIGHT,
             vms:[],
             isVertical:true,
             top,
+            value:right,
             bottom
         },
-        [pos.getHMiddle()]:{
+        hmiddle:{
             type:AlignType.VERTICAL_MIDDLE,
             vms:[],
             isVertical:true,
+            value:pos.getHMiddle(),
             top,
             bottom
         },
-        [top]:{
+        top:{
             type:AlignType.HORIZONTAL_TOP,
             vms:[],
             isVertical:false,
+            value:top,
             left,
             right
         },
-        [bottom]:{
+        bottom:{
             type:AlignType.HORIZONTAL_BOTTOM,
             vms:[],
             isVertical:false,
+            value:bottom,
             left,
             right
         },
-        [pos.getVMiddle()]:{
+        vmiddle:{
             type:AlignType.HORIZONTAL_MIDDLE,
             vms:[],
+            value:pos.getVMiddle(),
             isVertical:false,
             left,
             right

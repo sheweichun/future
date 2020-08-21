@@ -15,6 +15,22 @@
   color: var(--ACTIVE_TEXT_COLOR);
 }
 
+.fc-editor-header {
+  display: flex;
+}
+.fc-editor-header-middle {
+  display: flex;
+  flex: 1;
+  align-items: center;
+}
+.fc-editor-header-middlem {
+  flex: 1;
+}
+.fc-editor-header-middler {
+  flex: 1;
+}
+
+
 ::-webkit-scrollbar {
   background: transparent;
   width: 4px;
@@ -53,21 +69,6 @@
   border: 0;
 }
 
-.fc-editor-header {
-  display: flex;
-}
-.fc-editor-header-middle {
-  display: flex;
-  flex: 1;
-  align-items: center;
-}
-.fc-editor-header-middlem {
-  flex: 1;
-}
-.fc-editor-header-middler {
-  flex: 1;
-}
-
 @font-face {
   font-family: 'iconfont';
   /* project id 1991465 */
@@ -88,9 +89,8 @@
   content: '\E63d';
 }
 .fc-editor-icon-folder-open:before {
-  content: \E79C;
+  content: '\E79C';
 }
-
 
 .fc-editor-tree {
   height: 100%;

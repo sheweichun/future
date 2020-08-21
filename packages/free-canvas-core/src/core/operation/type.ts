@@ -35,6 +35,7 @@ export interface AlignItem {
     top?:number,
     right?:number,
     bottom?:number,
+    value:number
 }
 
 export enum MarkEntityType { 
@@ -44,7 +45,12 @@ export enum MarkEntityType {
 }
 
 export interface AlignItemMap {
-    [key:string]:AlignItem
+    left:AlignItem,
+    top:AlignItem,
+    right:AlignItem,
+    bottom:AlignItem,
+    hmiddle:AlignItem,
+    vmiddle:AlignItem
 }
 
 export interface CalculateMap{

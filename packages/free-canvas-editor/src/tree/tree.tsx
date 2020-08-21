@@ -82,6 +82,7 @@ export class Tree extends React.Component<TreeProps,TreeState> implements IPlugi
     onClickArrow(data:Model,e:MouseEvent){
         const {expandMap} = this.state
         expandMap[data.id] = !expandMap[data.id]
+        console.log('onClickArrow!!');
         this.setState({
             expandMap
         })
@@ -97,7 +98,7 @@ export class Tree extends React.Component<TreeProps,TreeState> implements IPlugi
             const selected = item.extra.isSelect
             const hasChildren = item.children && item.children.length > 0;
             const expand = expandMap[item.id];
-            const needRenderChild = (isArtboard || expand || selected)
+            const needRenderChild = (expand || isArtboard)
             const itemStyle = needRenderChild ? {} : {height}
             return <ul className={TreeItemClz} key={item.id}> 
                 <li style={itemStyle} className={`${hoverMap[itemId] ? TreeItemActiveClz : ''} ${selected ? TreeItemSelectedClz : ''}`}>
@@ -107,8 +108,8 @@ export class Tree extends React.Component<TreeProps,TreeState> implements IPlugi
                         onMouseLeave={this.onMouseLeave.bind(this,item)}
                         onClick={this.onSelected.bind(this,item)}
                         >   
-                            {hasChildren && <Icon className={`${TreeItemContentArrowClz} ${expand ? 'expand' : ''}`} type="arrow" onClick={this.onClickArrow.bind(this,item)}></Icon>} 
-                            {isGroup && <Icon type="folder" style={{paddingRight:'4px'}}></Icon>}
+                            {(hasChildren && !isArtboard)  && <Icon className={`${TreeItemContentArrowClz} ${needRenderChild ? 'expand' : ''}`} type="arrow" onClick={this.onClickArrow.bind(this,item)}></Icon>} 
+                            {isGroup && <Icon type={needRenderChild ? 'folder-open':'folder'} style={{paddingRight:'4px'}}></Icon>}
                             {item.extra.label ? item.extra.label : `${item.name}-${item.id}`} 
                         </div>
                     </div>
