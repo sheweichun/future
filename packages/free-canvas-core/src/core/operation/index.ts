@@ -16,6 +16,7 @@ const {encode} = Utils
 const DEFAULT_OPTIONS = {
     margin:10
 }
+const MIN_MOVE_DISTANCE = 2;
 
 const HANDLER_ITEM_DIRECTION_HANDLER_MAP:any = {
     [HANDLER_ITEM_DIRECTION.LEFT]:'moveLeft',
@@ -126,53 +127,6 @@ export class Operation implements IDisposable,IOperation{
         this._originX = x;
         this._originY = y;
     }
-    _onSelectMove(data:{x:number,y:number}){
-        if(data == null) return;
-        this._changed = true;
-        this._size && this._size.hide();
-        const {x,y} = data;
-        // const pos = this._pos;
-        const diffx = x - this._startX;
-        const diffy = y - this._startY;
-        // pos.left += diffx;
-        // pos.top += diffy;
-        this._startX = x;
-        this._startY = y;
-        if(this._pos){
-            this._pos.moveLeftAndTop(diffx,diffy);
-            this.setStyle();
-        }
-        this._selectViewModels.forEach((vm)=>{
-            vm.changePosition(diffx,diffy)
-        })
-        if(this._showMakerTmId){
-            clearTimeout(this._showMakerTmId);
-            this.showMakers();
-        }else{
-            this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
-                this.showMakers();
-            },50)
-        }
-    }
-    _onSelectEnd(data:{x:number,y:number}){
-        this._onUnSelect(data);
-        this._keyboard.focus({
-            preventScroll:true //阻止因为获取焦点导致画板上移
-        });  
-    }
-    _onUnSelect(data:{x:number,y:number}){
-        if(this._changed){
-            this._size && this._size.show();
-            this._mutation.onPostionChanges({
-                vms:this._selectViewModels,
-                data:{
-                    left:this._startX - this._originX,
-                    top: this._startY - this._originY
-                }
-            })
-        }
-        this.hideMakers()
-    }
     registerShortcut(key:string,fn:any,params?:any[]){
         this.registerShortcuts([key],fn,params);
     }
@@ -212,6 +166,54 @@ export class Operation implements IDisposable,IOperation{
     removeSelectedModels(){
         this._mutation.removeModels(this._selectViewModels);
     }
+    _onSelectEnd(data:{x:number,y:number}){
+        this._onUnSelect(data);
+        this._keyboard.focus({
+            preventScroll:true //阻止因为获取焦点导致画板上移
+        });  
+    }
+    _onSelectMove(data:{x:number,y:number}){
+        if(data == null) return;
+        const {x,y} = data;
+        // const pos = this._pos;
+        const diffx = x - this._startX;
+        const diffy = y - this._startY;
+        if(Math.abs(diffx) < MIN_MOVE_DISTANCE && Math.abs(diffy) < MIN_MOVE_DISTANCE) return;
+        this._changed = true;
+        this._size && this._size.hide();
+        // pos.left += diffx;
+        // pos.top += diffy;
+        this._startX = x;
+        this._startY = y;
+        if(this._pos){
+            this._pos.moveLeftAndTop(diffx,diffy);
+            this.setStyle();
+        }
+        this._selectViewModels.forEach((vm)=>{
+            vm.changePosition(diffx,diffy)
+        })
+        if(this._showMakerTmId){
+            clearTimeout(this._showMakerTmId);
+            this.showMakers();
+        }else{
+            this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
+                this.showMakers();
+            },50)
+        }
+    }
+    _onUnSelect(data:{x:number,y:number}){
+        if(this._changed){
+            this._size && this._size.show();
+            this._mutation.onPostionChanges({
+                vms:this._selectViewModels,
+                data:{
+                    left:this._startX - this._originX,
+                    top: this._startY - this._originY
+                }
+            })
+        }
+        this.hideMakers()
+    }
     changePosition(diffx:number,diffy:number){
         if(this._selectViewModels == null || this._selectViewModels.length === 0) return;
         const {_pos} = this;
@@ -229,6 +231,30 @@ export class Operation implements IDisposable,IOperation{
         this._hideMakerTmId = setTimeout(()=>{
             this.hideMakers();
         },500)
+    }
+    onSizeMove(diffX:number,diffY:number,direct:HANDLER_ITEM_DIRECTION){
+        const target = HANDLER_ITEM_DIRECTION_HANDLER_MAP[direct] as string;
+        this.eachSelect((vm:IViewModel)=>{
+            vm.changeRect(target,diffX,diffY);
+            //@ts-ignore
+            this._pos[target](diffX,diffY);
+        })
+        if(this._showMakerTmId){
+            clearTimeout(this._showMakerTmId);
+            this.showMakers();
+        }else{
+            this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
+                this.showMakers();
+            },50)
+        }
+    }
+    onSizeChange(){// todo 有BUG
+        this._mutation.changePosAndSize(this._selectViewModels)
+        if(this._showMakerTmId){
+            clearTimeout(this._showMakerTmId);
+            this._showMakerTmId = null
+        }
+        this.hideMakers()
     }
     setRootViewModel(vm:IViewModel){
         this._rootViewModel = vm;
@@ -316,48 +342,7 @@ export class Operation implements IDisposable,IOperation{
                 allRects.push(vm.getRect())
             // }
         }
-        // if(allRects.length === 0){
-        //     this._root.style.display = 'none'
-        //     this._pos = null
-        //     // console.log('before destroy');
-        //     if(this._size){
-        //         // console.log('destroy');
-        //         this._size.destroy();
-        //         this._size = null;
-        //     }
-        //     return;
-        // }
         const pos = calculateIncludeRect(allRects)
-        // const item = viewModels[0].getRect();
-        // const left = item.left;
-        // const top = item.top;
-        // let pos = {
-        //     left,
-        //     top,
-        //     width:item.width,
-        //     height:item.height,
-        //     rightLeft:left + item.width,
-        //     bottomTop:top + item.height
-        // }
-        // for(let i = 1; i < viewModels.length; i++){
-        //     const curItem = viewModels[i].getRect();
-        //     const left = curItem.left;
-        //     const top = curItem.top;
-        //     const rightLeft = left + curItem.width;
-        //     const bottomTop = top + curItem.height;
-        //     const posLeft = pos.left < left ? pos.left : left
-        //     const posTop = pos.top < top ? pos.top : top
-        //     const posWidth = (pos.rightLeft > rightLeft ? pos.rightLeft : rightLeft) - posLeft
-        //     const posHeight = (pos.bottomTop > bottomTop ? pos.bottomTop : bottomTop) - posTop
-        //     pos = {
-        //         left: posLeft,
-        //         top:  posTop,
-        //         width : posWidth,
-        //         height : posHeight,
-        //         rightLeft: posLeft + posWidth,
-        //         bottomTop: posTop + posHeight,
-        //     }
-        // }
         this._pos = new OperationPos(pos.left,pos.top,pos.width,pos.height,this.onOperationUpdate);
         this.setStyle();
         if(this._size == null){
@@ -374,30 +359,7 @@ export class Operation implements IDisposable,IOperation{
     eachSelect(fn:(vm:IViewModel)=>void){
         this._selectViewModels.forEach(fn);
     }
-    onSizeMove(diffX:number,diffY:number,direct:HANDLER_ITEM_DIRECTION){
-        const target = HANDLER_ITEM_DIRECTION_HANDLER_MAP[direct] as string;
-        this.eachSelect((vm:IViewModel)=>{
-            vm.changeRect(target,diffX,diffY);
-            //@ts-ignore
-            this._pos[target](diffX,diffY);
-        })
-        if(this._showMakerTmId){
-            clearTimeout(this._showMakerTmId);
-            this.showMakers();
-        }else{
-            this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
-                this.showMakers();
-            },50)
-        }
-    }
-    onSizeChange(){// todo 有BUG
-        this._mutation.changePosAndSize(this._selectViewModels)
-        if(this._showMakerTmId){
-            clearTimeout(this._showMakerTmId);
-            this._showMakerTmId = null
-        }
-        this.hideMakers()
-    }
+    
     setStyle(){
         const pos = this._pos;
         this._root.setAttribute('style',`display:block;left:${pos.left}px;top:${pos.top}px;width:${pos.width}px;height:${pos.height}px`)

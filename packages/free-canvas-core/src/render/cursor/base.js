@@ -96,21 +96,25 @@ class Base{
   }
 
   merge() {
-    return updateCursor(this, m => m.merge.apply(m, arguments));
+    const args = arguments
+    return updateCursor(this, m => m.merge.apply(m, args));
   }
 
   mergeWith() {
-    return updateCursor(this, m => m.mergeWith.apply(m, arguments));
+    const args = arguments
+    return updateCursor(this, m => m.mergeWith.apply(m, args));
   }
 
   mergeIn
 
   mergeDeep() {
-    return updateCursor(this, m => m.mergeDeep.apply(m, arguments));
+    const args = arguments
+    return updateCursor(this, m => m.mergeDeep.apply(m, args));
   }
 
   mergeDeepWith() {
-    return updateCursor(this, m => m.mergeDeepWith.apply(m, arguments));
+    const args = arguments
+    return updateCursor(this, m => m.mergeDeepWith.apply(m, args));
   }
 
   mergeDeepIn

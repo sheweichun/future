@@ -8,6 +8,7 @@ import {Content} from './content'
 import {completeOptions,debounce,controlDelta} from '../utils/index';
 import {createStyle} from '../utils/style'
 import {CanvasEvent,EventHandler} from '../events/event';
+import {transformDsl} from '../render/index'
 import {GuideManager} from './guide/index'
 // import {MoveEventData} from '../events/type';
 import {CONTAINER,REFRESH_BUTTON_CLASSNAME} from '../utils/constant';
@@ -76,6 +77,8 @@ export default class Core extends EventHandler{
 
     private _refreshEl:HTMLElement
 
+    private _data:Model
+
     private _guideManage:GuideManager
     // private _rect:OperationPos
     private _rect:DOMRect
@@ -83,6 +86,8 @@ export default class Core extends EventHandler{
     constructor(el: string,options?:CoreOptions){
         super();
         this._options = completeOptions(options,DEFAULT_OPTIONS);
+        const {data,type} = this._options.data;
+        this._data = transformDsl(data,type);
         const {rulerBackgroundColor} = this._options;
         this.updateMakers = this.updateMakers.bind(this)
         this.updateRectSelect = this.updateRectSelect.bind(this);
@@ -118,12 +123,12 @@ export default class Core extends EventHandler{
         this._content.uninstallPlugin(plugin);
     }
     createEventElement(parent:DocumentFragment,children?:HTMLCollection){
-        const {data} = this._options
+        const {_data} = this
         const div = document.createElement('div');
         div.className = CONTAINER
         div.setAttribute('style',`padding:${this.margin}px 0 0 ${this.margin}px;background-color:${CONTENT.backgroundColor}`);
-        const contentDiv = document.createElement('div');
-        this._content = new Content(contentDiv,data,{
+        // const contentDiv = document.createElement('div');
+        this._content = new Content(div,_data,{
             createView:this._options.createView,
             x:this._translateX,
             y:this._translateY,
@@ -138,7 +143,7 @@ export default class Core extends EventHandler{
                 fragment.appendChild(children[i])
             }
         }
-        fragment.appendChild(contentDiv);
+        fragment.appendChild(this._content.getRoot());
         div.appendChild(fragment);
         parent.appendChild(div);
         this._eventEl = div;
@@ -223,7 +228,7 @@ export default class Core extends EventHandler{
 
         // this._translateX = Math.floor((rect.width - margin - pos.width) / 2 - pos.left);
         // this._translateY = Math.floor((rect.height - margin - pos.height) / 2 - pos.top);
-        const {x,y} = this.getInitTranslate(this._options.data);
+        const {x,y} = this.getInitTranslate(this._data);
         this._translateX = x
         this._translateY = y
         const fragment = document.createDocumentFragment();

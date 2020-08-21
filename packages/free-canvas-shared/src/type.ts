@@ -1,5 +1,6 @@
 
 import {OperationPos} from './pos'
+import { ImgCookDsl } from './imgcook'
 // export interface Market{
     
 // }
@@ -134,6 +135,15 @@ export enum ModelFromType {
     ITEM
 }
 
+export interface DSL{
+    data:(Model | ImgCookDsl)[]
+    type:DSLType
+}
+
+export enum DSLType{
+    MODEL,
+    IMGCOOK
+}
 
 export enum ModelType{
     isRoot,

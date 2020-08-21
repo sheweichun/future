@@ -8,10 +8,11 @@
 }
 
 .@{prefix}tree-item{  
+    position: relative;
     li{
         overflow: hidden;
     }
-}
+} 
 
 
 
@@ -19,6 +20,16 @@
     cursor: pointer;
     height:var(--PADDING_9);
     line-height: var(--PADDING_9);
+}
+
+.@{prefix}tree-item-content-arrow{
+    &:before{
+        position: absolute;
+        left:8px;
+    }
+    &.expand:before{
+        transform: rotate(90deg);
+    }
 }
 
 .@{prefix}tree-item-active{

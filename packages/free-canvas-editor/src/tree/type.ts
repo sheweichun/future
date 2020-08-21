@@ -6,7 +6,12 @@ export interface TreeProps{
     style?:CSSProperties
 }
 
+export interface FlagMap{
+    [key:string]:boolean
+}
+
 export interface TreeState{
     data:Model[],
-    hoverMap:{[key:string]:boolean}
+    hoverMap:FlagMap,
+    expandMap:FlagMap
 }

@@ -59,6 +59,10 @@ export class View implements IView<Model>{
         propSchemas && Object.keys(propSchemas).forEach((key)=>{
             const item = propSchemas[key];
             if(key === 'style') return;
+            if(key === 'children'){
+                el.innerHTML = item.value;
+                return;
+            }
             if(item == null){
                 el.removeAttribute(key);
             }else{

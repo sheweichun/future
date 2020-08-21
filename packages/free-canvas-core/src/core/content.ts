@@ -67,9 +67,10 @@ export class Content implements IEvent{
     private _rect:OperationPos
     private _rectSelect:RectSelect
     private _pluginManager:PluginManager
-    constructor(private _el:HTMLElement,_data:Model,options:ContentOptions){
+    private _el:HTMLElement
+    constructor(private _parent:HTMLElement,_data:Model,options:ContentOptions){
         this._options = completeOptions(options,{x:0,y:0});
-        
+        this._el = document.createElement('div');
         this._x = this._options.x;
         this._y = this._options.y;
         this.setStyle();
@@ -95,7 +96,7 @@ export class Content implements IEvent{
             getContentRect:this.getRect
         });
         this.createWrapEl();
-        this._keyboard = new KeyBoard(_el);
+        this._keyboard = new KeyBoard(_parent);
         this._keyboard.listen();
         this._operation = new Operation(this._el,this._mutation,this._keyboard.createNameSpace('operation'),{
             margin:this._options.margin,
@@ -122,6 +123,9 @@ export class Content implements IEvent{
         this.registerShortCuts();
         this.registerCommands();
         // this.test();
+    }
+    getRoot(){
+        return this._el;
     }
     getCurrentData(){
         return this._store.currentState.get('data').toJS();
@@ -233,7 +237,6 @@ export class Content implements IEvent{
     changeTranslation(x:number,y:number){
         this._x = x;
         this._y = y;
-        // this._rect.updateLeftAndTop(x,y);
         this.setStyle();
         this.initRect();
     }

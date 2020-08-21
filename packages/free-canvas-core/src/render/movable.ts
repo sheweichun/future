@@ -60,11 +60,12 @@ export class Movable implements IMovable{
         this.view.render();
         this.parsePosition();
         const div = document.createElement('div');
-        div.id = Utils.encode2ShortId(options.id);
+        div.id = _data.id;
         div.className = MOVABLE_CLASSNAME
         
         this.style = {
-            position:'absolute'
+            position:'absolute',
+            lineHeight:'0px'
         }
         this.el = div;
         this.createIdSpan();
@@ -77,14 +78,14 @@ export class Movable implements IMovable{
         
     }
     createIdSpan(){
-        const span = document.createElement('div')
-        span.setAttribute('style','position:absolute;top:0;left:0;color:white')
-        span.innerHTML = `id:${this._data.id}`
-        this.el.appendChild(span);
-        this.idSpan = span;
+        // const span = document.createElement('div')
+        // span.setAttribute('style','position:absolute;top:0;left:0;color:white')
+        // span.innerHTML = `id:${this._data.id}`
+        // this.el.appendChild(span);
+        // this.idSpan = span;
     }
     updateIdSpan(){
-        this.idSpan.innerHTML = `id:${this._data.id}`
+        // this.idSpan.innerHTML = `id:${this._data.id}`
     }
     setModelType(type:ModelType){
         this._options.modelType = type;
@@ -249,6 +250,7 @@ export class Movable implements IMovable{
             this.canMove = false
         }
         this._data = newModel;
+        this.el.id = newModel.id;
         this.parsePosition();
         this.setStyle();
         this.updateIdSpan();

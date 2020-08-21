@@ -42,16 +42,19 @@ export class ViewModelCollection implements IViewModelCollection{
     }
     update(newModels:BaseModel){
         let index = 0;
+        let modelIndex = 0;
         const newModelList = []
         for(;index < this.viewModelList.length; index++){
             const item = this.viewModelList[index];
             //@ts-ignore
-            const newModel = newModels.get(index);
+            const newModel = newModels.get(modelIndex);
             if(newModel){
                 const prevModel = item.getModel();
-                if(prevModel.get('name',null) !== newModel.get('name',null)){
+                if(prevModel.get('id',null) !== newModel.get('id',null)){ //当次数据按照顺序复用原来ID一致的数据，确保顺序一致
+                    // console.log('id ==> ',prevModel.get('id',null),newModel.get('id',null));
                     item.remove();
-                    newModelList.push(new ViewModel(newModel,this._parent,this._options))
+                    continue;
+                    // newModelList.push(new ViewModel(newModel,this._parent,this._options))
                 }else{
                     item.update(newModel);
                     newModelList.push(item);
@@ -59,11 +62,12 @@ export class ViewModelCollection implements IViewModelCollection{
             }else{
                 item.remove();
             }
+            modelIndex++;
         }
         this.viewModelList = newModelList;
-        for(; index < newModels.size; index++){
+        for(; modelIndex < newModels.size; modelIndex++){
             //@ts-ignore
-            const newModel = newModels.get(index);
+            const newModel = newModels.get(modelIndex);
             const newViewModel = new ViewModel(newModel,this._parent,this._options);
             this.viewModelList.push(newViewModel);
             newViewModel.didMount();

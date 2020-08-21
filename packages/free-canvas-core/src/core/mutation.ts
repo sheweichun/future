@@ -443,6 +443,20 @@ export class Mutation extends EventHandler implements IMutation{
         })
         
     }
+    removeModel(parentModel:BaseModel ,model:BaseModel){
+        parentModel.updateIn(['children'],null,(parentModelChild:any)=>{
+            const newChilds:BaseModel[] = []
+            for(let i = 0; i < parentModelChild.size; i++){
+                const curParentChild = parentModelChild.get(i);
+                // if(!isEqual(curParentChild,model)){
+                if(curParentChild.get('id',null) !== model.get('id',null)){
+                    newChilds.push(curParentChild);
+                }
+            }
+            const ret = createList(newChilds);
+            return ret;
+        })
+    }
     /** 
      * 
      *  如果是同层级就在同层级创建一个group包裹起来
@@ -474,48 +488,48 @@ export class Mutation extends EventHandler implements IMutation{
                 pos:vm.getRect(),
                 model:model.deref(null)
             });
-            parentModel.updateIn(['children'],null,(parentModelChild:any)=>{
-                const newChilds:BaseModel[] = []
-                for(let i = 0; i < parentModelChild.size; i++){
-                    const curParentChild = parentModelChild.get(i);
-                    if(!isEqual(curParentChild,model)){
-                        newChilds.push(curParentChild);
-                    }
-                }
-                return createList(newChilds);
-            })
+            this.removeModel(parentModel,model);
         })
         
-        // const dslData = this.getDSLData();
-        let targetIndex:number;
         const targetParent = this._store.getRealFromPath(deepKeyPath,null);
         if(targetParent == null) return;
-        // const childDsl = targetParent.get('children');
-        // const parentPos = targetParent.getIn(['extra','position']);
+
         const parentRect = modelIsRoot(deepVm.modelType) ? {left:0,top:0} : deepVm.getRect();
         const groupModel = createGroupModel(pos.left - parentRect.left,pos.top - parentRect.top,pos.width,pos.height);
         targetParent.updateIn(['children'],(old:any)=>{
-            targetIndex = old.size;
+            // targetIndex = old.size;
             const ret = old.push(WrapData(groupModel).withMutations((mutModel:BaseModel)=>{
                 return mutModel.set('children',createList(childs.map((ch:BaseModelAndPos)=>{
                     const {model,pos:modelPos} = ch;
-                    return model.updateIn(['extra','position'],null,(oldPosition:any)=>{
-                        return createMap({
-                            left:modelPos.left - pos.left,
-                            top:modelPos.top - pos.top,
-                            width:modelPos.width,
-                            height:modelPos.height
-                        })
+                    // return model.updateIn(['extra','position'],null,(oldPosition:BaseModel)=>{
+                    //     return createMap({
+                    //         left:modelPos.left - pos.left,
+                    //         top:modelPos.top - pos.top,
+                    //         width:modelPos.width,
+                    //         height:modelPos.height
+                    //     })
+                    // })
+                    return model.updateIn(['extra'],null,(extra:BaseModel)=>{
+                        //@ts-ignore
+                        return extra.merge(createMap({
+                            position:{
+                                left:modelPos.left - pos.left,
+                                top:modelPos.top - pos.top,
+                                width:modelPos.width,
+                                height:modelPos.height
+                            },
+                            isSelect:false
+                        }))
                     })
                 })))
             }))
             return ret;
         });
-        // console.log('childKeyPath :',childKeyPath,targetIndex);
         const state = this._store.currentState
         state.updateIn(['selectedKeyPaths'],null,()=>{ //更新选中项
             return createList([groupModel.id])
         })
+        // console.log('data :',state._deref().toJS());
        })
     }
     removeModels(vms:IViewModel[]){

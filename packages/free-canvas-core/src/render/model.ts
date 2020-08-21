@@ -73,7 +73,7 @@ export function completeData(data:Model){
 }
 
 
-export function createGroupModel(left:number,top:number,width:number,height:number){
+export function createGroupModel(left:number,top:number,width:number,height:number,selected:boolean=true):Model{
     return {
         id:nextId(),
         name:'div',
@@ -86,7 +86,8 @@ export function createGroupModel(left:number,top:number,width:number,height:numb
                 top,
                 width,
                 height
-            }
+            },
+            isSelect:selected
         }
     }
 }
