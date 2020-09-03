@@ -248,8 +248,7 @@ export class ViewModel implements IViewModel{
         // vm.setRect(newRect);
     }
     changePosition(diffx:number,diffy:number){
-        this._rect.moveLeftAndTop(diffx,diffy);
-        // this.view.move(diffx,diffy);
+        this._rect.changeLeftAndTop(diffx,diffy);
     }
     // updateRectByWheel(scrollX:number,scrollY:number){
     //     this._rect.moveLeftAndTop(scrollX,scrollY,true);

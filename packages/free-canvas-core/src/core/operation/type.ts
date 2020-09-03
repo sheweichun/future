@@ -20,6 +20,15 @@ export enum AlignType{
     HORIZONTAL_MIDDLE,
 }
 
+
+export interface OperationOptions{
+    margin:number,
+    updateMakers:(data?:MakerData[])=>void
+}
+
+export interface MakerAssistOptions{
+    updateMakers:(data?:MakerData[])=>void
+}
 // export interface AlignItem{
 //     type:AlignType,
 //     left?:number,
@@ -27,7 +36,23 @@ export enum AlignType{
 //     right?:number,
 //     bottom?:number
 // }
+
 export interface AlignItem {
+    type:AlignType,
+    vm:IViewModel,
+    left?:number,
+    top?:number,
+    right?:number,
+    bottom?:number,
+}
+
+export interface AlignValue{
+    isVertical:boolean,
+    value:number,
+    data:AlignItem[]
+}
+
+export interface AlignItemVms {
     vms:IViewModel[],
     type:AlignType,
     isVertical:boolean,
@@ -41,16 +66,17 @@ export interface AlignItem {
 export enum MarkEntityType { 
     Line,
     LineMarker,
+    RectMark,
     Guides
 }
 
 export interface AlignItemMap {
-    left:AlignItem,
-    top:AlignItem,
-    right:AlignItem,
-    bottom:AlignItem,
-    hmiddle:AlignItem,
-    vmiddle:AlignItem
+    left:AlignItemVms,
+    top:AlignItemVms,
+    right:AlignItemVms,
+    bottom:AlignItemVms,
+    hmiddle:AlignItemVms,
+    vmiddle:AlignItemVms
 }
 
 export interface CalculateMap{

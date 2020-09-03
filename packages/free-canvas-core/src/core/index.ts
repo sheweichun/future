@@ -15,6 +15,7 @@ import {CONTAINER,REFRESH_BUTTON_CLASSNAME} from '../utils/constant';
 import allStyle from './style'
 import { MakerData,MarkEntityType } from './operation/type';
 import {OperationPos,calculateIncludeRect} from './operation/pos'
+import { RectMark } from '../entities/rectMark';
 
 const {CONTENT} = ThemeVar 
 // export interface CoreOptions  {
@@ -195,6 +196,12 @@ export default class Core extends EventHandler{
                             lineStyle
                         }
                     )
+                }else if(type === MarkEntityType.RectMark){
+                    const {left,top,right,bottom,val,background} = data;
+                    return new RectMark(left,top,right - left,bottom - top,val,{
+                        background,
+                        color:background
+                    })
                 }
             })
         }

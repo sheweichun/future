@@ -22,10 +22,6 @@ export interface RectSelectOption{
     updateRectSelect:(data?:MoveEventData)=>void
 }
 
-export interface OperationOptions{
-    margin:number,
-    updateMakers:(data?:MakerData[])=>void
-}
 
 export interface ICanvas{
     context:CanvasRenderingContext2D;
@@ -68,6 +64,7 @@ export interface IDisposable{
 export interface OperationSizeOptions{
     onMove:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
     onChange:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
+    onStartMove:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
     noNeedOperation?:boolean
     // onStart:()=>void
 }

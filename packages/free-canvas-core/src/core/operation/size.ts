@@ -74,11 +74,13 @@ abstract class HanlerItem{
     onMouseDown(e:MouseEvent){
         this._canMove = true;
         this._hasChanged = false;
+        const {onStartMove} = this._options
         const {x,y} = e;
         // this._startX = x
         // this._startY = y
         this._originX = x;
         this._originY = y;
+        onStartMove && onStartMove(0,0,this._direction);
         e.stopPropagation();
     }
     onMouseMove(e:MouseEvent){

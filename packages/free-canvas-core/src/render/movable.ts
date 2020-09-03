@@ -78,14 +78,14 @@ export class Movable implements IMovable{
         
     }
     createIdSpan(){
-        // const span = document.createElement('div')
-        // span.setAttribute('style','position:absolute;top:0;left:0;color:white')
-        // span.innerHTML = `id:${this._data.id}`
-        // this.el.appendChild(span);
-        // this.idSpan = span;
+        const span = document.createElement('div')
+        span.setAttribute('style','position:absolute;top:0;left:0;color:white')
+        span.innerHTML = `id:${this._data.id}`
+        this.el.appendChild(span);
+        this.idSpan = span;
     }
     updateIdSpan(){
-        // this.idSpan.innerHTML = `id:${this._data.id}`
+        this.idSpan.innerHTML = `id:${this._data.id}`
     }
     setModelType(type:ModelType){
         this._options.modelType = type;

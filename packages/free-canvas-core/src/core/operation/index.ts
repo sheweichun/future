@@ -1,14 +1,15 @@
 
 import {Mutation} from '../mutation'
 import { IViewModel } from '../../render/type';
-import {IOperation} from './type';
-import {OperationOptions,IDisposable, HANDLER_ITEM_DIRECTION,KeyBoardKeys} from '../type';
+import {IOperation,OperationOptions} from './type';
+import {IDisposable, HANDLER_ITEM_DIRECTION,KeyBoardKeys} from '../type';
 import {Utils, modelIsRoot, modelIsGroup, modelIsArtboard} from 'free-canvas-shared'
 import { completeOptions } from '../../utils';
 import { CanvasEvent } from '../../events/event';
 import {OPERATION_CLASSNAME} from '../../utils/constant'
 import {Size} from './size';
 import { OperationPos,calculateIncludeRect } from './pos';
+import MakerAssist from './makerAssist'
 import {calculateLatestVm,transformCalculateItem2MarkerData, transformAliItem2MarkerData} from './service'
 import { KeyBoard } from '../keyboard';
 const {encode} = Utils
@@ -89,6 +90,7 @@ export class Operation implements IDisposable,IOperation{
     private _hideMakerTmId:NodeJS.Timeout
     private _showMakerTmId:NodeJS.Timeout
     private _rootViewModel:IViewModel;
+    private _makerAssist:MakerAssist;
     constructor(private _parent:HTMLElement,private _mutation:Mutation,private _keyboard:KeyBoard,options:OperationOptions){
         this._options = completeOptions(options,DEFAULT_OPTIONS);
         const div  = document.createElement('div');
@@ -106,6 +108,7 @@ export class Operation implements IDisposable,IOperation{
         this._onSelectMove = this._onSelectMove.bind(this) 
         this.onMouseUp = this.onMouseUp.bind(this)
         this.onSizeMove = this.onSizeMove.bind(this)
+        this.onSizeStartMove = this.onSizeStartMove.bind(this);
         this.onSizeChange = this.onSizeChange.bind(this)
         this.onOperationUpdate = this.onOperationUpdate.bind(this);
         this.onDbClick = this.onDbClick.bind(this);
@@ -120,12 +123,27 @@ export class Operation implements IDisposable,IOperation{
 
         // this.onSizeStart = this.onSizeStart.bind(this)
     }
+    createMakerAssist(){
+        const makerViewModels:IViewModel[] = []
+        const {updateMakers} = this._options
+        this.eachRootViewModelExcludeSelected((ret,vm)=>{
+            makerViewModels.push(vm);
+            return ret;
+        })
+        this._makerAssist = new MakerAssist(makerViewModels,{
+            updateMakers
+        });
+    }
+    onSizeStartMove(){
+        this.createMakerAssist();
+    }
     _onPositionStart(data:{x:number,y:number}){
         const {x,y} = data;
         this._startX = x;
         this._startY = y;
         this._originX = x;
         this._originY = y;
+        this.createMakerAssist()
     }
     registerShortcut(key:string,fn:any,params?:any[]){
         this.registerShortcuts([key],fn,params);
@@ -173,33 +191,43 @@ export class Operation implements IDisposable,IOperation{
         });  
     }
     _onSelectMove(data:{x:number,y:number}){
-        if(data == null) return;
+        if(data == null || this._pos == null) return;
         const {x,y} = data;
         // const pos = this._pos;
         const diffx = x - this._startX;
         const diffy = y - this._startY;
-        if(Math.abs(diffx) < MIN_MOVE_DISTANCE && Math.abs(diffy) < MIN_MOVE_DISTANCE) return;
+        // if(Math.abs(diffx) < MIN_MOVE_DISTANCE && Math.abs(diffy) < MIN_MOVE_DISTANCE) return;
         this._changed = true;
         this._size && this._size.hide();
         // pos.left += diffx;
         // pos.top += diffy;
-        this._startX = x;
-        this._startY = y;
-        if(this._pos){
-            this._pos.moveLeftAndTop(diffx,diffy);
-            this.setStyle();
-        }
+        let oriDiffx = x - this._originX;
+        let oriDiffy = y - this._originY;
+        
+        const calPos = this._pos.clone();
+        calPos.changeLeftAndTop(oriDiffx,oriDiffy,false);
+        const {moveX,moveY} = this._makerAssist.calculateAbsorb(calPos);
+        oriDiffx += moveX
+        oriDiffy += moveY
+
+        this._startX = this._originX + oriDiffx;
+        this._startY = this._originY + oriDiffy;
+        this._pos.changeLeftAndTop(oriDiffx,oriDiffy);
+        // this.setStyle();
+
         this._selectViewModels.forEach((vm)=>{
-            vm.changePosition(diffx,diffy)
+            vm.changePosition(oriDiffx,oriDiffy);
         })
-        if(this._showMakerTmId){
-            clearTimeout(this._showMakerTmId);
-            this.showMakers();
-        }else{
-            this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
-                this.showMakers();
-            },50)
-        }
+
+        this.showMakers();
+        // if(this._showMakerTmId){
+        //     clearTimeout(this._showMakerTmId);
+        //     this.showMakers();
+        // }else{
+        //     this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
+        //         this.showMakers();
+        //     },50)
+        // }
     }
     _onUnSelect(data:{x:number,y:number}){
         if(this._changed){
@@ -212,6 +240,7 @@ export class Operation implements IDisposable,IOperation{
                 }
             })
         }
+        this._makerAssist = null;
         this.hideMakers()
     }
     changePosition(diffx:number,diffy:number){
@@ -234,19 +263,26 @@ export class Operation implements IDisposable,IOperation{
     }
     onSizeMove(diffX:number,diffY:number,direct:HANDLER_ITEM_DIRECTION){
         const target = HANDLER_ITEM_DIRECTION_HANDLER_MAP[direct] as string;
+        const calPos = this._pos.clone();
+        //@ts-ignore
+        calPos[target](diffX,diffY,false);
+        const {moveX,moveY} = this._makerAssist.calculateAbsorb(calPos);
+        diffX += moveX
+        diffY += moveY
         this.eachSelect((vm:IViewModel)=>{
             vm.changeRect(target,diffX,diffY);
-            //@ts-ignore
-            this._pos[target](diffX,diffY);
         })
-        if(this._showMakerTmId){
-            clearTimeout(this._showMakerTmId);
-            this.showMakers();
-        }else{
-            this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
-                this.showMakers();
-            },50)
-        }
+        //@ts-ignore
+        this._pos[target](diffX,diffY);
+        this.showMakers();
+        // if(this._showMakerTmId){
+        //     clearTimeout(this._showMakerTmId);
+        //     this.showMakers();
+        // }else{
+        //     this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
+        //         this.showMakers();
+        //     },50)
+        // }
     }
     onSizeChange(){// todo 有BUG
         this._mutation.changePosAndSize(this._selectViewModels)
@@ -349,6 +385,7 @@ export class Operation implements IDisposable,IOperation{
             this._size = new Size(this._root,this._pos,{
                 onMove:this.onSizeMove,
                 onChange:this.onSizeChange,
+                onStartMove:this.onSizeStartMove,
                 noNeedOperation:isArtboard
                 // onStart:this.onSizeStart
             });
@@ -416,23 +453,23 @@ export class Operation implements IDisposable,IOperation{
         this._onUnSelect(null);
     }
     showMakers(){
-        this._showMakerTmId = null;
         if(this._hideMakerTmId != null){
             clearTimeout(this._hideMakerTmId);
             this._hideMakerTmId = null
         }
-        const result = this.eachRootViewModelExcludeSelected(calculateLatestVm,{
-            curPos:this._pos,
-            selectModels:this._selectViewModels,
-            data:[]
-        })
-        const {alignMap,data} = result;
-        if(alignMap == null || data == null) return;
-        const {updateMakers} = this._options 
-        updateMakers([].concat(
-            transformCalculateItem2MarkerData(this._pos,data),
-            transformAliItem2MarkerData(alignMap)
-        ));
+        this._makerAssist.maker(this._pos)
+        // const result = this.eachRootViewModelExcludeSelected(calculateLatestVm,{
+        //     curPos:this._pos,
+        //     selectModels:this._selectViewModels,
+        //     data:[]
+        // })
+        // const {alignMap,data} = result;
+        // if(alignMap == null || data == null) return;
+        // const {updateMakers} = this._options 
+        // updateMakers([].concat(
+        //     transformCalculateItem2MarkerData(this._pos,data),
+        //     transformAliItem2MarkerData(alignMap)
+        // ));
     }
     hideMakers(){
         const {updateMakers} = this._options 

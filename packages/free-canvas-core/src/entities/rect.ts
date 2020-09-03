@@ -14,10 +14,10 @@ const DEFAULT_LINESTYLE = {
 
 export class Rect extends Entity{
     protected _options:RectOption
-    constructor(private _x:number,
-        private _y:number,
-        private _width:number,
-        private _height:number,
+    constructor(protected _x:number,
+        protected _y:number,
+        protected _width:number,
+        protected _height:number,
         options?:RectOption){
         super()
         this._options = completeOptions(options || {},DEFAULT_LINESTYLE);        
@@ -28,15 +28,18 @@ export class Rect extends Entity{
         this._width = width;
         this._height = height;
     }
-    draw(drawer:ICanvas):void{
-        const {context} = drawer;
+    drawContent(context:CanvasRenderingContext2D){
         const {_x,_y,_width,_height} = this;
         const {color,background} = this._options;
-        context.save();
         context.fillStyle = background;
         context.strokeStyle = color
         context.fillRect(_x,_y,_width,_height); 
         context.strokeRect(_x,_y,_width,_height);
+    }
+    draw(drawer:ICanvas):void{
+        const {context} = drawer;
+        context.save();
+        this.drawContent(context)
         context.restore();
     }
 }

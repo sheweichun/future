@@ -65,29 +65,63 @@ export function calculateIncludeRect(poses:OperationPos[]){
 export class OperationPos{
     public _left:number
     public _top:number
-    public _width:number
-    public _height:number
+    public _right:number
+    public _bottom:number;
+
+    public right:number
+    public bottom:number;
+    // public _width:number
+    // public _height:number
     constructor(
         public left:number,
         public top:number,
-        public width:number,
-        public height:number,
+        width:number,
+        height:number,
         private _updater?:(pos:OperationPos)=>void){
             this._left = left;
             this._top = top;
-            this._width = width;
-            this._height = height;
+            this._right = left + width;
+            this._bottom = top + height;
+            this.right = this._right;
+            this.bottom = this._bottom;
+    }
+    clone(){
+        const {left,top,width,height,_left,_top,_right,_bottom} = this;
+        const pos = new OperationPos(left,top,width,height,this._updater);
+        pos._left = _left;
+        pos._top = _top;
+        pos._right = _right;
+        pos._bottom = _bottom;
+        return pos;
+    }
+    get _width(){
+        return this._right - this._left
+    }
+    get _height(){
+        return this._bottom - this._top
+    }
+    get width(){
+        return this.right - this.left
+    }
+    get height(){
+        return this.bottom - this.top
+    }
+    set width(wid:number){
+        this.right = this.left + wid
+    }
+    set height(hei:number){
+        this.bottom = this.top + hei
     }
     // static EmptyPos = new OperationPos(0,0,0,0);
     static createEmpty(){
         return new OperationPos(0,0,0,0);
     }
-    getDiffX(){
-        return this.width - this._width
-    }
-    getDiffY(){
-        return this.height - this._height
-    }
+    // getDiffX(){
+    //     return this.width - this._width
+    // }
+    // getDiffY(){
+    //     return this.height - this._height
+    // }
     update(noUpdate:boolean){
         (this._updater && !noUpdate) && this._updater(this)
         return this;
@@ -125,47 +159,58 @@ export class OperationPos{
         // .update(noUpdate)
     }
 
+    changeLeftAndTop(x:number,y:number,noUpdate:boolean=false){
+        this.left = this._left + x;
+        this.right = this._right + x;
+        this.top = this._top + y;
+        this.bottom = this._bottom + y;
+        (this._updater && !noUpdate) && this._updater(this)
+        // return new OperationPos(this.left + x,this.top + y,this.width,this.height,this._updater)
+        // .update(noUpdate)
+    }
 
     moveLeft(diffx:number,diffy:number,noUpdate:boolean=false){
         this.left = this._left + diffx;
-        this.width = this._width - diffx;
+        // this.width = this._width - diffx;
         (this._updater && !noUpdate) && this._updater(this)
     }
     moveLeftTop(diffx:number,diffy:number,noUpdate:boolean=false){
         this.left = this._left + diffx;
-        this.width = this._width - diffx;
+        // this.width = this._width - diffx;
         this.top = this._top + diffy;
-        this.height = this._height - diffy;
+        // this.height = this._height - diffy;
         (this._updater && !noUpdate) && this._updater(this)
     }
     moveRightTop(diffx:number,diffy:number,noUpdate:boolean=false){
-        this.width = this._width + diffx;
+        this.right = this._right + diffx;
         this.top = this._top + diffy;
-        this.height = this._height - diffy;
+        // this.height = this._height - diffy;
         (this._updater && !noUpdate) && this._updater(this)
     }
     moveLeftBottom(diffx:number,diffy:number,noUpdate:boolean=false){
         this.left = this._left + diffx;
-        this.width = this._width - diffx;
-        this.height = this._height + diffy;
+        this.bottom = this._bottom + diffy;
+        // this.width = this._width - diffx;
+        // this.height = this._height + diffy;
         (this._updater && !noUpdate) && this._updater(this)
     }
     moveRightBottom(diffx:number,diffy:number,noUpdate:boolean=false){
-        this.width = this._width + diffx;
-        this.height = this._height + diffy;
+        // this.width = this._width + diffx;
+        // this.height = this._height + diffy;
+        this.right = this._right + diffx;
+        this.bottom = this._bottom + diffy;
         (this._updater && !noUpdate) && this._updater(this)
     }
     moveRight(diffx:number,diffy:number,noUpdate:boolean=false){
-        this.width = this._width + diffx;
+        this.right = this._right + diffx;
         (this._updater && !noUpdate) && this._updater(this)
     }
     moveTop(diffx:number,diffy:number,noUpdate:boolean=false){
         this.top = this._top + diffy;
-        this.height = this._height - diffy;
         (this._updater && !noUpdate) && this._updater(this)
     }
     moveBottom(diffx:number,diffy:number,noUpdate:boolean=false){
-        this.height = this._height + diffy;
+        this.bottom = this._bottom + diffy;
         (this._updater && !noUpdate) && this._updater(this)
     }
     moveLeftPercent(pPos:OperationPos,rootPos:OperationPos,noUpdate:boolean=false){
@@ -174,6 +219,14 @@ export class OperationPos{
         this.left = fixValue(pPos.left + pos.left * xPercent);
         this.width = fixValue(this._width * xPercent);
         (this._updater && !noUpdate) && this._updater(this)
+    }
+    moveRightPercent(pPos:OperationPos,rootPos:OperationPos,noUpdate:boolean=false){
+        // const xPercent = rootPos.width / rootPos._width;
+        // const pos = getRelativeRect(this,pPos);
+        // this.left = fixValue(pPos.left + pos.left * xPercent);
+        // this.width = fixValue(this._width * xPercent);
+        // (this._updater && !noUpdate) && this._updater(this)
+        this.moveLeftPercent(pPos,rootPos,noUpdate);
     }
     moveLeftTopPercent(pPos:OperationPos,rootPos:OperationPos,noUpdate:boolean=false){
         const xPercent = rootPos.width / rootPos._width,yPercent = rootPos.height / rootPos._height;
@@ -193,17 +246,7 @@ export class OperationPos{
     moveRightBottomPercent(pPos:OperationPos,rootPos:OperationPos,noUpdate:boolean=false){
         this.moveLeftTopPercent(pPos,rootPos,noUpdate);
     }
-    moveRightPercent(pPos:OperationPos,rootPos:OperationPos,noUpdate:boolean=false){
-        // const hPercent = (diffx + curRect._width) / curRect._width),vPercent = fixPercent((diffy + curRect._height) / curRect._height);
-        // const diffx = pPos.getDiffX()
-        const xPercent = rootPos.width / rootPos._width;
-        const pos = getRelativeRect(this,pPos);
-        this.left = fixValue(pPos.left + pos.left * xPercent);
-        this.width = fixValue(this._width * xPercent);
-        (this._updater && !noUpdate) && this._updater(this)
-    }
     moveTopPercent(pPos:OperationPos,rootPos:OperationPos,noUpdate:boolean=false){
-        // const diffy = pPos.getDiffY()
         const yPercent = rootPos.height / rootPos._height;
         const pos = getRelativeRect(this,pPos);
         this.top = fixValue(pPos.top + pos.top * yPercent);
@@ -211,12 +254,11 @@ export class OperationPos{
         (this._updater && !noUpdate) && this._updater(this)
     }
     moveBottomPercent(pPos:OperationPos,rootPos:OperationPos,noUpdate:boolean=false){
-        // this.moveTopPercent(diffx,diffy,noUpdate);
-        // const diffy = pPos.getDiffY()
-        const yPercent = rootPos.height / rootPos._height;
-        const pos = getRelativeRect(this,pPos);
-        this.top = fixValue(pPos.top + pos.top * yPercent);
-        this.height = fixValue(this._height * yPercent);
-        (this._updater && !noUpdate) && this._updater(this)
+        // const yPercent = rootPos.height / rootPos._height;
+        // const pos = getRelativeRect(this,pPos);
+        // this.top = fixValue(pPos.top + pos.top * yPercent);
+        // this.height = fixValue(this._height * yPercent);
+        // (this._updater && !noUpdate) && this._updater(this)
+        this.moveTopPercent(pPos,rootPos,noUpdate);
     }
 }

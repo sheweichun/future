@@ -1,6 +1,6 @@
 
 import { IViewModel } from '../../render/type';
-import {CalculateItem,MarkType,MakerData, AlignItemMap, AlignType,AlignItem,MarkEntityType} from './type'
+import {CalculateItem,MarkType,MakerData, AlignItemMap, AlignType,AlignItemVms,MarkEntityType} from './type'
 import {OperationPos} from './pos';
 
 // export function eachViewModel(vm:IViewModel,fn:(ret:any,vm:IViewModel)=>any,defaultVal?:any){
@@ -111,8 +111,8 @@ function calclulateItem(target:IViewModel,pos:OperationPos){
 
 // function calculateAlign(
 //     pos:
-//     verticalAlignMap:AlignItem,
-//     horizontalAlignMap:AlignItem)
+//     verticalAlignMap:AlignItemVms,
+//     horizontalAlignMap:AlignItemVms)
 
 function initAlignMap(pos:OperationPos){
     const {left,top,width,height} = pos;
@@ -170,7 +170,7 @@ function initAlignMap(pos:OperationPos){
     return alignMap
 }
 
-function updateVericalAlign(item:AlignItem,vm:IViewModel,alignTop:number,alignBottom:number){
+function updateVericalAlign(item:AlignItemVms,vm:IViewModel,alignTop:number,alignBottom:number){
     if(item == null || !item.isVertical) return 
     const {vms,top,bottom} = item;
     vms.push(vm);
@@ -182,7 +182,7 @@ function updateVericalAlign(item:AlignItem,vm:IViewModel,alignTop:number,alignBo
     }
 }
 
-function updateHorizontalAlign(item:AlignItem,vm:IViewModel,alignLeft:number,alignRight:number){
+function updateHorizontalAlign(item:AlignItemVms,vm:IViewModel,alignLeft:number,alignRight:number){
     if(item == null || item.isVertical) return 
     const {vms,left,right} = item;
     vms.push(vm);
@@ -194,7 +194,7 @@ function updateHorizontalAlign(item:AlignItem,vm:IViewModel,alignLeft:number,ali
     }
 }
 
-function extractAlignItem(item:AlignItem,value:number){
+function extractAlignItem(item:AlignItemVms,value:number){
     if(item.value === value){
         return item
     }
@@ -231,8 +231,8 @@ export function calculateLatestVm(ret:{
     data?:CalculateItem[],
     selectModels?:IViewModel[],
     alignMap?:AlignItemMap
-    // verticalAlignMap?:AlignItem,
-    // horizontalAlignMap?:AlignItem
+    // verticalAlignMap?:AlignItemVms,
+    // horizontalAlignMap?:AlignItemVms
 } = {},vm:IViewModel){
     const {data=[],curPos} = ret;
     if(curPos == null) return ret;
@@ -275,7 +275,6 @@ function createLineMakerMarkerData(startX:number,
 export function transformAliItem2MarkerData(data:AlignItemMap){
     const ret:MakerData[] = []
     Object.keys(data).forEach((valStr:keyof AlignItemMap)=>{
-        // const val = parseInt(valStr);
         const item = data[valStr];
         const val = item.value;
         const {type,vms} = item;
