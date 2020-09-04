@@ -1,4 +1,6 @@
+import {OperationPos} from 'free-canvas-shared'
 import { IViewModel } from "../../render/type";
+
 
 export interface IOperation{
     hideMakers():void
@@ -24,10 +26,12 @@ export enum AlignType{
 export interface OperationOptions{
     margin:number,
     updateMakers:(data?:MakerData[])=>void
+    getRect:()=>OperationPos
 }
 
 export interface MakerAssistOptions{
     updateMakers:(data?:MakerData[])=>void
+    getRect:()=>OperationPos
 }
 // export interface AlignItem{
 //     type:AlignType,

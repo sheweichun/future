@@ -125,13 +125,14 @@ export class Operation implements IDisposable,IOperation{
     }
     createMakerAssist(){
         const makerViewModels:IViewModel[] = []
-        const {updateMakers} = this._options
+        const {updateMakers,getRect} = this._options
         this.eachRootViewModelExcludeSelected((ret,vm)=>{
             makerViewModels.push(vm);
             return ret;
         })
         this._makerAssist = new MakerAssist(makerViewModels,{
-            updateMakers
+            updateMakers,
+            getRect
         });
     }
     onSizeStartMove(){

@@ -173,7 +173,7 @@ const ADSORB_DISTANCE = 4;
 
 //辅助标注
 export default class MakerAssist{
-    private _posList:OperationPos[] = [];
+    private _asbPosList:OperationPos[] = [];
 
     private _verticalBlockMap:BlockMap = {};
     private _verticalBlockKeys:number[];
@@ -198,7 +198,7 @@ export default class MakerAssist{
             this.addAlignItem(vm.getRect(),vm);
             return rect;
         })
-        this._posList = vmPoses;
+        this._asbPosList = vmPoses;
         const len = vmPoses.length;
         for(let i = 0; i < len; i++){
             const aPos = vmPoses[i];
@@ -351,7 +351,81 @@ export default class MakerAssist{
             }
         }
     }
-    
+    calculateBlockInfo(blk:Block,keys:number[],blockMap:BlockMap,needTransform:boolean = false){
+        const {size} = blk;
+        let minest:MinestBlockItem = {item:null,minAbsGap:Infinity,minVal:null}
+        for(let i = 0 ; i < keys.length; i++){
+            const val = keys[i];
+            const item = blockMap[val];
+            const curGap = size - val;
+            if(size === val){ //左边对齐
+                minest.item = item;
+                minest.minAbsGap = 0;
+                minest.minVal = 0;
+                break;
+            }else if(val > size){
+                const curMinestItem = {item,minAbsGap:Math.abs(curGap),minVal:-curGap}
+                if(i === 0){
+                    minest = curMinestItem;
+                }else{
+                    const lastVal = keys[i - 1];
+                    const lastItem = blockMap[lastVal];
+                    const lastCap = lastVal - size;
+                    minest = findMinestBlock(curMinestItem,{
+                        item:lastItem,
+                        minAbsGap:Math.abs(lastCap),
+                        minVal:lastCap
+                    },minest);
+                }
+                break;
+            }else if(i === keys.length - 1){
+                minest = {item,minAbsGap:Math.abs(curGap),minVal:curGap}
+            }
+        }
+        needTransform && (minest.minVal *= -1)
+        return minest
+    }
+    calculateEachDirectionBlockInfo(blockList:Block[],keys:number[],blockMap:BlockMap,type:BlockType){
+        let minestItem:MinestBlockItem;let minGap = Infinity;
+        let moveDistance:number = 0;
+        blockList.forEach((blk)=>{
+            const ret = this.calculateBlockInfo(blk,keys,blockMap,blk.type === type);
+            if(ret.minVal === 0){
+                minGap = -1;
+                minestItem = null;
+            }else if(ret.minAbsGap < minGap){
+                minGap = ret.minAbsGap;
+                minestItem = ret;
+            }
+            return ret;
+        })
+        if(minestItem && minestItem.minAbsGap <= ADSORB_DISTANCE){
+            moveDistance = minestItem.minVal
+        }
+        return moveDistance
+    }
+    calculateSelectedBlocks(selectedPos:OperationPos){
+        const {_asbPosList,_verticalBlockMap,_verticalBlockKeys,_horizontalBlockMap,_horizontalBlockKeys} = this;
+        const verticalBlockList:Block[] = [];
+        const horizontalBlockList:Block[] = [];
+        _asbPosList.forEach((pos,index)=>{
+            // const block = calculateBlock(pos,index,selectedPos,-1);
+            const block = calculateBlock(selectedPos,-1,pos,index);
+            if(block == null) return;
+            const {directionType} = block;
+            if(directionType === BlockDirectionType.HORIZONTAL){
+                horizontalBlockList.push(block);
+            }else{
+                verticalBlockList.push(block);
+            }
+        })
+        const moveX = this.calculateEachDirectionBlockInfo(horizontalBlockList,_horizontalBlockKeys,_horizontalBlockMap,BlockType.HORIZONTAL_LEFT);
+        const moveY = this.calculateEachDirectionBlockInfo(verticalBlockList,_verticalBlockKeys,_verticalBlockMap,BlockType.VERTICAL_BOTTOM);
+        return {
+            moveX,
+            moveY
+        }
+    }
     calculateAbsorb(pos:OperationPos){ 
         if(pos == null) return;
         const {left,right,top,bottom} = pos;
@@ -361,9 +435,10 @@ export default class MakerAssist{
         const verticalMiddleMovex= this.calculateEachDirection(_verticalMiddleKeys,_verticalMiddleAlignMap,[pos.getHMiddle()]);
         const horizontalMovey = this.calculateEachDirection(_horizontalKeys,_horizontalAlignMap,[top,bottom]);
         const horizontalMiddleMovey = this.calculateEachDirection(_horizontalMiddleKeys,_horizontalMiddleAlignMap,[pos.getVMiddle()]);
+        const blockRet = this.calculateSelectedBlocks(this.transformAbsRect(pos));
         return {
-            moveX:findMinDistance(verticalMovex,verticalMiddleMovex),
-            moveY:findMinDistance(horizontalMovey,horizontalMiddleMovey),
+            moveX:findMinDistance(verticalMovex,verticalMiddleMovex,blockRet.moveX),
+            moveY:findMinDistance(horizontalMovey,horizontalMiddleMovey,blockRet.moveY),
         }
         // return {x,y}
     }
@@ -377,6 +452,10 @@ export default class MakerAssist{
                 if(baseValueList.length === 0) return;
             }
         }
+    }
+    transformAbsRect(curPos:OperationPos){
+        const pos = this._options.getRect();
+        return curPos.moveLeftAndTop_immutation(pos.left,pos.top)
     }
     getAlignMakerDataList(pos:OperationPos){
         const data:AlignValue[] = []
@@ -394,61 +473,56 @@ export default class MakerAssist{
             return this.horizontalAlignItem2MarkerData(item,left,right);
         })
     }
-    // calculateBlockInfo(blk:Block,keys:number[],blockMap:BlockMap){
-    //     const {type,directionType,size} = blk;
-    //     let minest:MinestBlockItem = {item:null,minAbsGap:Infinity,minVal:null}
-    //     for(let i = 0 ; i < keys.length; i++){
-    //         const val = keys[i];
-    //         const item = blockMap[val];
-    //         const curGap = size - val;
-    //         if(size === val){ //左边对齐
-    //             minest.item = item;
-    //             minest.minAbsGap = 0;
-    //             minest.minVal = 0;
-    //             break;
-    //         }else if(val > size){
-    //             const curMinestItem = {item,minAbsGap:Math.abs(curGap),minVal:-curGap}
-    //             if(i === 0){
-    //                 minest = curMinestItem;
-    //             }else{
-    //                 const lastVal = keys[i - 1];
-    //                 const lastItem = blockMap[lastVal];
-    //                 const lastCap = lastVal - size;
-    //                 minest = findMinestBlock(curMinestItem,{
-    //                     item:lastItem,
-    //                     minAbsGap:Math.abs(lastCap),
-    //                     minVal:lastCap
-    //                 },minest);
-    //             }
-    //             break;
-    //         }else if(i === keys.length - 1){
-    //             minest = {item,minAbsGap:Math.abs(curGap),minVal:curGap}
-    //         }
-    //     }
-    //     return minest
-    // }
-    // calculateSelectedBlocks(selectedPos:OperationPos){
-    //     const {_posList,_verticalBlockMap,_horizontalBlockMap} = this;
-    //     const verticalBlockList = [];
-    //     const horizontalBlockList = [];
-    //     _posList.forEach((pos,index)=>{
-    //         // const block = calculateBlock(pos,index,selectedPos,-1);
-    //         const block = calculateBlock(selectedPos,-1,pos,index);
-    //         const {directionType,type} = block;
-    //         if(directionType === BlockDirectionType.HORIZONTAL){
-    //             horizontalBlockList.push(block)
-    //         }else{
-    //             verticalBlockList.push(block)
-    //         }
-    //     })
-    //     let moveX:number = 0,moveY:number = 0;
-    // }
+    static getBlockListByValue(keys:number[],blockMap:BlockMap,value:number){
+        for(let i = 0 ;i < keys.length; i++){
+            const curVal = keys[i];
+            if(curVal === value){
+                return blockMap[curVal]
+            }
+        }
+        return [];
+    }
+    getBlockMakerDataList(selectedPos:OperationPos){
+        const {_asbPosList,_verticalBlockMap,_verticalBlockKeys,_horizontalBlockMap,_horizontalBlockKeys} = this;
+        const hightBlocks:Block[] = []
+        _asbPosList.forEach((pos,index)=>{
+            const block = calculateBlock(selectedPos,-1,pos,index);
+            if(block == null) return;
+            let blockList:Block[];
+            const {directionType} = block;
+            if(directionType === BlockDirectionType.HORIZONTAL){
+                blockList = MakerAssist.getBlockListByValue(_horizontalBlockKeys,_horizontalBlockMap,block.size)
+            }else{
+                blockList = MakerAssist.getBlockListByValue(_verticalBlockKeys,_verticalBlockMap,block.size)
+            }
+            if(blockList.length > 0){
+                // hightBlocks.push();
+                hightBlocks.push(block,...blockList);
+            }
+        })
+        return hightBlocks.map((blk:Block)=>{
+            return {
+                type:MarkEntityType.RectMark,
+                data:{
+                    left:blk.left,
+                    right:blk.right,
+                    top:blk.top,
+                    bottom:blk.bottom,
+                    val:blk.size + '',
+                    background:'#ff3db156'
+                }
+            }
+        })
+    }
     maker(pos:OperationPos){ 
         if(pos == null) return;
         const {updateMakers} = this._options
         const makerDataList:MakerData[] = []
         const alignList = this.getAlignMakerDataList(pos);
         makerDataList.push(...alignList);
+
+        const blockList = this.getBlockMakerDataList(this.transformAbsRect(pos));
+        makerDataList.push(...blockList);
         // Object.keys(this._blockMap).forEach((val:string)=>{
         //     const blockList = this._blockMap[val];
         //     blockList.forEach((blk)=>{

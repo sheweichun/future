@@ -143,8 +143,18 @@ export class OperationPos{
     getVMiddle(){
         return Math.floor(this.top + this.height / 2)
     }
+
     moveLeftAndTop_immutation(x:number,y:number){
-        return new OperationPos(this.left + x,this.top + y,this.width,this.height,this._updater);
+        // const newPos = this.clone();
+        // newPos.moveLeftAndTop(x,y);
+        // return newPos;
+        const newPos =  new OperationPos(this.left + x,this.top + y,this.width,this.height,this._updater);
+        const {_left,_top,_right,_bottom} = this;
+        newPos._left = _left;
+        newPos._top = _top;
+        newPos._right = _right;
+        newPos._bottom = _bottom;
+        return newPos
     }
     // updateLeftAndTop(x:number,y:number,noUpdate:boolean=false){
     //     this.left = x;

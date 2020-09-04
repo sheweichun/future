@@ -100,6 +100,7 @@ export class Content implements IEvent{
         this._keyboard.listen();
         this._operation = new Operation(this._el,this._mutation,this._keyboard.createNameSpace('operation'),{
             margin:this._options.margin,
+            getRect:this.getRect,
             updateMakers:this._options.updateMakers
         });
         this._mutation.setOperation(this._operation);
