@@ -20,6 +20,8 @@ export enum AlignType{
     HORIZONTAL_TOP,
     HORIZONTAL_BOTTOM,
     HORIZONTAL_MIDDLE,
+    VERTICAL_GUIDE,
+    HORIZONTAL_GUIDE
 }
 
 
@@ -44,7 +46,7 @@ export interface MakerAssistOptions{
 
 export interface AlignItem {
     type:AlignType,
-    vm:IViewModel,
+    vm?:IViewModel,
     left?:number,
     top?:number,
     right?:number,

@@ -10,6 +10,7 @@ import {OPERATION_CLASSNAME} from '../../utils/constant'
 import {Size} from './size';
 import { OperationPos,calculateIncludeRect } from './pos';
 import MakerAssist from './makerAssist'
+import {GuideManager} from '../guide/index'
 import {calculateLatestVm,transformCalculateItem2MarkerData, transformAliItem2MarkerData} from './service'
 import { KeyBoard } from '../keyboard';
 const {encode} = Utils
@@ -109,7 +110,7 @@ export class Operation implements IDisposable,IOperation{
     private _rootViewModel:IViewModel;
     // private _makerAssist:MakerAssist;
     private _makerAssistList:MakerAssist[] = [];
-    constructor(private _parent:HTMLElement,private _mutation:Mutation,private _keyboard:KeyBoard,options:OperationOptions){
+    constructor(private _parent:HTMLElement,private _mutation:Mutation,private _guideManager:GuideManager,private _keyboard:KeyBoard,options:OperationOptions){
         this._options = completeOptions(options,DEFAULT_OPTIONS);
         const div  = document.createElement('div');
         div.style.display = 'none';
@@ -180,7 +181,7 @@ export class Operation implements IDisposable,IOperation{
                     vmList.push(curVm);
                 })
                 const artBoardId = vm.getModel().get('id',null)
-                result.push(new MakerAssist(vm,vmList,{
+                result.push(new MakerAssist(vm,vmList,this._guideManager,{
                     updateMakers,
                     getRect,
                     artboardId:artBoardId
@@ -251,9 +252,8 @@ export class Operation implements IDisposable,IOperation{
     _onSelectMove(data:{x:number,y:number}){
         if(data == null || this._pos == null) return;
         const {x,y} = data;
-        // const pos = this._pos;
-        const diffx = x - this._startX;
-        const diffy = y - this._startY;
+        // const diffx = x - this._startX;
+        // const diffy = y - this._startY;
         // if(Math.abs(diffx) < MIN_MOVE_DISTANCE && Math.abs(diffy) < MIN_MOVE_DISTANCE) return;
         this._changed = true;
         this._size && this._size.hide();

@@ -129,7 +129,7 @@ export default class Core extends EventHandler{
         div.className = CONTAINER
         div.setAttribute('style',`padding:${this.margin}px 0 0 ${this.margin}px;background-color:${CONTENT.backgroundColor}`);
         // const contentDiv = document.createElement('div');
-        this._content = new Content(div,_data,{
+        this._content = new Content(div,_data,this._guideManage,{
             createView:this._options.createView,
             x:this._translateX,
             y:this._translateY,
@@ -244,12 +244,6 @@ export default class Core extends EventHandler{
         refreshEl.setAttribute('style',`width:${margin}px;height:${margin}px;color:var(--${themeConst.TEXT_COLOR_VAR});background-color:var(--${themeConst.BACKGROUND_1_VAR})`)
         refreshEl.innerHTML = '&#xe63c;'
         this._refreshEl = refreshEl;
-        
-        this.createEventElement(fragment,this._parentEl.children)
-        this._rootEl = createCanvas(fragment); //顺序不能错
-        fragment.appendChild(refreshEl);
-        this._parentEl.appendChild(fragment);
-        this._canvas = new Canvas(this._rootEl,this._options.canvas);
         this._guideManage = new GuideManager(this._parentEl,{
             margin,
             getOffsetx:(val:number)=>{
@@ -259,6 +253,12 @@ export default class Core extends EventHandler{
                 return val - this._translateY - this.margin
             }
         })
+        this.createEventElement(fragment,this._parentEl.children)
+        this._rootEl = createCanvas(fragment); //顺序不能错
+        fragment.appendChild(refreshEl);
+        this._parentEl.appendChild(fragment);
+        this._canvas = new Canvas(this._rootEl,this._options.canvas);
+        this._guideManage.mount();
         this._content.listen();
     }
     listen(){

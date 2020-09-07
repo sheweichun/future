@@ -17,6 +17,7 @@ import {RectSelect} from './rectSelect'
 import { MoveEventData } from "../events/type";
 import {PluginManager} from './pluginManager';
 import { IViewModel } from '../render/type';
+import {GuideManager} from './guide/index'
 
 
 // function completeData(data:Model){
@@ -68,7 +69,7 @@ export class Content implements IEvent{
     private _rectSelect:RectSelect
     private _pluginManager:PluginManager
     private _el:HTMLElement
-    constructor(private _parent:HTMLElement,_data:Model,options:ContentOptions){
+    constructor(private _parent:HTMLElement,_data:Model,private _guideManager:GuideManager,options:ContentOptions){
         this._options = completeOptions(options,{x:0,y:0});
         this._el = document.createElement('div');
         this._x = this._options.x;
@@ -99,7 +100,7 @@ export class Content implements IEvent{
         this.createWrapEl();
         this._keyboard = new KeyBoard(_parent);
         this._keyboard.listen();
-        this._operation = new Operation(this._el,this._mutation,this._keyboard.createNameSpace('operation'),{
+        this._operation = new Operation(this._el,this._mutation,this._guideManager,this._keyboard.createNameSpace('operation'),{
             margin:this._options.margin,
             getRect:this.getRect,
             updateMakers:this._options.updateMakers

@@ -25,7 +25,7 @@ export abstract class Guide{
     protected curGuide:HTMLElement
     protected _options:GuideOptions
     protected _contextMenu:ContextMenu
-    protected _offset:number
+    // protected _offset:number
     protected _canvasLeave:boolean = true
     protected _className:string
     constructor(protected _rootEl:HTMLElement,options:GuideOptions){
@@ -40,10 +40,15 @@ export abstract class Guide{
     }
     abstract onMouseEnter(e:MouseEvent):void
     abstract onMouseMove(e:MouseEvent):void
+
+    getOffsetList(){
+        return this.guideList.map((el)=>{
+            return parseFloat(el.dataset.value);
+        })
+    }
     // abstract onMouseLeave(e:MouseEvent):void
     addGuide(el:HTMLElement){
         el.style.pointerEvents = 'all';
-        // el.add
         this.guideList.push(el);
     }
     onClick(e:MouseEvent):void{
@@ -69,11 +74,14 @@ export abstract class Guide{
         return guide;
     }
     removeAllGuides(){
-        this.retrieveGuideList.push(...this.guideList.map((item)=>{
+        const {guideList} = this;
+        if(guideList == null || guideList.length === 0) return;
+        this.retrieveGuideList.push(...guideList.map((item)=>{
             // this._rootEl.removeChild(item);
             this.guideEl.removeChild(item);
             return item;
         }))
+        this.guideList = [];
     }
     destroy(){
         const {guideEl} = this

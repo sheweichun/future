@@ -1,7 +1,7 @@
 import {OperationPos,Utils} from 'free-canvas-shared';
 import { IViewModel } from '../../render/type';
 import {AlignType, AlignItem,AlignValue,MarkEntityType,MakerAssistOptions, MakerData} from './type';
-
+import { GuideManager } from '../guide/index'
 
 enum BlockType{
     HORIZONTAL_LEFT="0",
@@ -194,7 +194,7 @@ export default class MakerAssist{
     private _horizontalKeys:number[] = []
     private _horizontalMiddleKeys:number[] = []
 
-    constructor(private _artBoard:IViewModel,vms:IViewModel[],private _options:MakerAssistOptions){
+    constructor(private _artBoard:IViewModel,vms:IViewModel[],private _guideManager:GuideManager,private _options:MakerAssistOptions){
         this.updateVms(vms);
     }
     updateVms(vms:IViewModel[]){
@@ -260,6 +260,18 @@ export default class MakerAssist{
 
         addAlignItem(this._horizontalMiddleAlignMap,pos.getVMiddle(),{type:AlignType.HORIZONTAL_MIDDLE,vm,left,right},false);
         this.initKeys();
+
+        const {vGuide,hGuide} = this._guideManager
+        hGuide.getOffsetList().forEach((hval)=>{
+            addAlignItem(this._verticalAlignMap,hval,{
+                type:AlignType.VERTICAL_GUIDE
+            },true)
+        })
+        vGuide.getOffsetList().forEach((vval)=>{
+            addAlignItem(this._horizontalAlignMap,vval,{
+                type:AlignType.HORIZONTAL_GUIDE
+            },false)
+        })
     }
     initKeys(){
         const {_verticalAlignMap,_verticalMiddleAlignMap,_horizontalAlignMap,_horizontalMiddleAlignMap} = this;
@@ -322,12 +334,19 @@ export default class MakerAssist{
     }
     verticalAlignItem2MarkerData(item:AlignValue,top:number,bottom:number):MakerData{
         let makerTop = top,makerBottom = bottom;
-        item.data.forEach((dataItem)=>{
-            const {top:dTop,bottom:dBottom} = dataItem;
+        const {value} = item;
+        for(let i = 0 ; i < item.data.length; i++){
+            const dataItem = item.data[i]
+            const {top:dTop,bottom:dBottom,type} = dataItem;
+            if(type === AlignType.HORIZONTAL_GUIDE || type === AlignType.VERTICAL_GUIDE) return
             if(dTop < makerTop) {makerTop = dTop}
             if(dBottom > makerBottom) {makerBottom = dBottom}
-        })
-        const {value} = item;
+        }
+        // item.data.forEach((dataItem)=>{
+        //     const {top:dTop,bottom:dBottom} = dataItem;
+        //     if(dTop < makerTop) {makerTop = dTop}
+        //     if(dBottom > makerBottom) {makerBottom = dBottom}
+        // })
         return {
             type:MarkEntityType.Line,
             data:{
@@ -341,12 +360,18 @@ export default class MakerAssist{
     }
     horizontalAlignItem2MarkerData(item:AlignValue,left:number,right:number):MakerData{
         let makerLeft = left,makerRight = right;
-        item.data.forEach((dataItem)=>{
-            const {left:dLeft,right:dRight} = dataItem;
+        const {value} = item;
+        for(let i = 0 ; i < item.data.length; i++){
+            const dataItem = item.data[i]
+            const {left:dLeft,right:dRight,type} = dataItem;
+            if(type === AlignType.HORIZONTAL_GUIDE || type === AlignType.VERTICAL_GUIDE) return
             if(dLeft < makerLeft) {makerLeft = dLeft}
             if(dRight > makerRight) {makerRight = dRight}
-        })
-        const {value} = item;
+        }
+        // item.data.forEach((dataItem)=>{
+            
+        // })
+        
         return {
             type:MarkEntityType.Line,
             data:{
@@ -474,12 +499,20 @@ export default class MakerAssist{
         this.extraAlignValue(_verticalMiddleKeys,_verticalMiddleAlignMap,[pos.getHMiddle()],data);
         this.extraAlignValue(_horizontalKeys,_horizontalAlignMap,[top,bottom],data);
         this.extraAlignValue(_horizontalMiddleKeys,_horizontalMiddleAlignMap,[pos.getVMiddle()],data);
-        return data.map((item)=>{
+        const makerDataList :MakerData[] = []
+        for(let i = 0 ; i< data.length; i++){
+            let makerData:MakerData;
+            const item = data[i];
             if(item.isVertical){
-                return this.verticalAlignItem2MarkerData(item,top,bottom)
+                makerData = this.verticalAlignItem2MarkerData(item,top,bottom)
+            }else{
+                makerData = this.horizontalAlignItem2MarkerData(item,left,right);
             }
-            return this.horizontalAlignItem2MarkerData(item,left,right);
-        })
+            if(makerData){
+                makerDataList.push(makerData);
+            }
+        }
+        return makerDataList
     }
     static getBlockListByValue(keys:number[],blockMap:BlockMap,block:Block){
         const {size} = block
