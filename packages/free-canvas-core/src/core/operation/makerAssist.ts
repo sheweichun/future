@@ -1,4 +1,4 @@
-import {OperationPos} from 'free-canvas-shared';
+import {OperationPos,Utils} from 'free-canvas-shared';
 import { IViewModel } from '../../render/type';
 import {AlignType, AlignItem,AlignValue,MarkEntityType,MakerAssistOptions, MakerData} from './type';
 
@@ -18,6 +18,10 @@ enum BlockDirectionType{
 
     HORIZONTAL,
     VERTICAL,
+}
+
+function isOverLap(blk1:Block,blk2:Block){
+    return Utils.isOverLap(blk1.left,blk1.top,blk1.right,blk1.bottom,blk2.left,blk2.top,blk2.right,blk2.bottom);
 }
 
 type BlockIndex = [number,number]
@@ -190,7 +194,10 @@ export default class MakerAssist{
     private _horizontalKeys:number[] = []
     private _horizontalMiddleKeys:number[] = []
 
-    constructor(vms:IViewModel[],private _options:MakerAssistOptions){
+    constructor(private _artBoard:IViewModel,vms:IViewModel[],private _options:MakerAssistOptions){
+        this.updateVms(vms);
+    }
+    updateVms(vms:IViewModel[]){
         const blockMap:{[key:string]:Block} = {};
         const vmPoses = vms.map((vm,index)=>{
             // console.log(`index -> id : ${index} --> ${vm.getModel().get('id',null)}`);
@@ -420,7 +427,7 @@ export default class MakerAssist{
             }
         })
         const moveX = this.calculateEachDirectionBlockInfo(horizontalBlockList,_horizontalBlockKeys,_horizontalBlockMap,BlockType.HORIZONTAL_LEFT);
-        const moveY = this.calculateEachDirectionBlockInfo(verticalBlockList,_verticalBlockKeys,_verticalBlockMap,BlockType.VERTICAL_BOTTOM);
+        const moveY = this.calculateEachDirectionBlockInfo(verticalBlockList,_verticalBlockKeys,_verticalBlockMap,BlockType.VERTICAL_TOP);
         return {
             moveX,
             moveY
@@ -428,6 +435,7 @@ export default class MakerAssist{
     }
     calculateAbsorb(pos:OperationPos){ 
         if(pos == null) return;
+        if(!this._artBoard.getRect().isOverlap(pos)) return {moveX:0,moveY:0};
         const {left,right,top,bottom} = pos;
         const {_verticalAlignMap,_verticalMiddleAlignMap,_horizontalAlignMap,_horizontalMiddleAlignMap,
         _verticalKeys,_verticalMiddleKeys,_horizontalKeys,_horizontalMiddleKeys} = this;
@@ -473,11 +481,15 @@ export default class MakerAssist{
             return this.horizontalAlignItem2MarkerData(item,left,right);
         })
     }
-    static getBlockListByValue(keys:number[],blockMap:BlockMap,value:number){
+    static getBlockListByValue(keys:number[],blockMap:BlockMap,block:Block){
+        const {size} = block
         for(let i = 0 ;i < keys.length; i++){
             const curVal = keys[i];
-            if(curVal === value){
-                return blockMap[curVal]
+            if(curVal === size){
+                const blkList = blockMap[curVal]
+                return blkList.filter((blk)=>{
+                    return !isOverLap(block,blk);
+                })
             }
         }
         return [];
@@ -491,9 +503,9 @@ export default class MakerAssist{
             let blockList:Block[];
             const {directionType} = block;
             if(directionType === BlockDirectionType.HORIZONTAL){
-                blockList = MakerAssist.getBlockListByValue(_horizontalBlockKeys,_horizontalBlockMap,block.size)
+                blockList = MakerAssist.getBlockListByValue(_horizontalBlockKeys,_horizontalBlockMap,block)
             }else{
-                blockList = MakerAssist.getBlockListByValue(_verticalBlockKeys,_verticalBlockMap,block.size)
+                blockList = MakerAssist.getBlockListByValue(_verticalBlockKeys,_verticalBlockMap,block)
             }
             if(blockList.length > 0){
                 // hightBlocks.push();
@@ -514,9 +526,10 @@ export default class MakerAssist{
             }
         })
     }
-    maker(pos:OperationPos){ 
+    maker(pos:OperationPos):MakerData[]{ 
         if(pos == null) return;
-        const {updateMakers} = this._options
+        // const {updateMakers} = this._options
+        if(!this._artBoard.getRect().isOverlap(pos)) return [];
         const makerDataList:MakerData[] = []
         const alignList = this.getAlignMakerDataList(pos);
         makerDataList.push(...alignList);
@@ -539,7 +552,7 @@ export default class MakerAssist{
         //         })
         //     })
         // })
-        updateMakers(makerDataList);
+        return makerDataList
     }
 }
 

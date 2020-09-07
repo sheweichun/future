@@ -1,7 +1,7 @@
 import {ObjectStyleDeclaration} from '../utils/type'
 import { BaseModel } from './dsl/store';
 import { OperationPos } from '../core/operation/pos';
-import {ICommander,ViewOptions,CreateView,ModelType} from 'free-canvas-shared'
+import {ICommander,ViewOptions,CreateView,ModelType, IView, Model} from 'free-canvas-shared'
 
 export interface ViewAttribute{
     style?:ObjectStyleDeclaration
@@ -47,15 +47,20 @@ export interface IViewModel{
     children:IViewModelCollection
     getModel():BaseModel
     getParent():IViewModel
+    getInitialParent():IViewModel
     getTypeParent(type:ModelType):IViewModel
     changeRect(target:string,diffx:number,diffy:number):void
     didMount():void
     update(model:BaseModel):void
     isChildren(vm:IViewModel):boolean
     getRect():OperationPos
+    changeArtboardId(artboardId:string):void
     // setRect(pos:OperationPos):void
     getAbsRect():OperationPos
     getView():IMovable
+    remove():void
+    separate():void
+    removeChildViewModel(vm:IViewModel):void
     getParentRect():{left:number,top:number}
     getViewModelByXY(x:number,y:number):IViewModel
     getRelativeRect(rect:OperationPos,parentRect?:{left:number,top:number}):{left:number,top:number,width:number,height:number}
@@ -67,10 +72,15 @@ export interface IViewModel{
     // moveBottom(diffy:number):void
     // canMove():boolean
     // disableMove():void
+    onDidUpdate():void
+    onDidMount():void
+    appendChild(vm:IViewModel):void
     changePosition(diffx:number,diffy:number):void
 }
 
 export interface IMovable{
+    view:IView<Model>
+    updateIsChild(isChild:boolean):void
     focus(x:number,y:number,shiftKey:boolean):void
     // mark():void
 }
@@ -104,9 +114,13 @@ export interface IMovable{
 
 export interface ViewModelOptions extends MovableOptions{
     commander?:ICommander,
+    artboardId?:string,
     createView?:CreateView
     addViewModel:(viewModel:IViewModel)=>void
     removeViewModel:(ViewModel:IViewModel)=>void
+    getRootViewModel:()=>IViewModel
+    getViewModel:(id:string)=>IViewModel
+    getArtboards:(excludeIds:{[key:string]:boolean})=>IViewModel[]
     updateViewModel:(prevId:string,curVm:IViewModel)=>void
     getRect:()=>OperationPos
 }
@@ -115,7 +129,7 @@ export interface MovableOptions extends ViewOptions{
     onPostionChange?:OnPositionChange,
     onFocus?:ViewLifeCallback,
     onBlur?:ViewLifeCallback
-    id:string[],
+    // id:string[],
     mountNode?:HTMLElement
     excute(name:number,data?:any):void
     // isRoot?:boolean

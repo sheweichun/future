@@ -1,7 +1,7 @@
 
 import {Mutation} from '../mutation'
 import { IViewModel } from '../../render/type';
-import {IOperation,OperationOptions} from './type';
+import {IOperation,OperationOptions, MakerData} from './type';
 import {IDisposable, HANDLER_ITEM_DIRECTION,KeyBoardKeys} from '../type';
 import {Utils, modelIsRoot, modelIsGroup, modelIsArtboard} from 'free-canvas-shared'
 import { completeOptions } from '../../utils';
@@ -18,6 +18,11 @@ const DEFAULT_OPTIONS = {
     margin:10
 }
 const MIN_MOVE_DISTANCE = 2;
+
+
+interface MakerAssistMap {
+    [key:string]:MakerAssist
+}
 
 const HANDLER_ITEM_DIRECTION_HANDLER_MAP:any = {
     [HANDLER_ITEM_DIRECTION.LEFT]:'moveLeft',
@@ -43,6 +48,18 @@ function eachViewModel(vm:IViewModel,fn:(ret:any,vm:IViewModel)=>any,defaultVal?
     return fnRet
 }
 
+
+function findMiniestMoveDistance(...nums:number[]){
+    let base = Infinity;
+    nums.forEach((num)=>{
+        if(num === 0) return;
+        const absVal = Math.abs(num);
+        if(absVal < base){
+            base = num;
+        }
+    })
+    return !isFinite(base) ? 0 : base
+}
 // function isChildren(selectModels:IViewModel[],target:IViewModel){
 //     for(let i = 0; i < selectModels.length; i++){
 //         const item = selectModels[i];
@@ -55,7 +72,7 @@ function eachViewModel(vm:IViewModel,fn:(ret:any,vm:IViewModel)=>any,defaultVal?
 
 function eachViewModelExcludeSelected(selectModels:IViewModel[],vm:IViewModel,fn:(ret:any,vm:IViewModel)=>any,defaultVal?:any){
     let fnRet = defaultVal
-    if(selectModels.indexOf(vm) >= 0){
+    if(selectModels.length > 0 && selectModels.indexOf(vm) >= 0){
         return defaultVal
     };
     //isRoot isGroup isArtboard
@@ -90,7 +107,8 @@ export class Operation implements IDisposable,IOperation{
     private _hideMakerTmId:NodeJS.Timeout
     private _showMakerTmId:NodeJS.Timeout
     private _rootViewModel:IViewModel;
-    private _makerAssist:MakerAssist;
+    // private _makerAssist:MakerAssist;
+    private _makerAssistList:MakerAssist[] = [];
     constructor(private _parent:HTMLElement,private _mutation:Mutation,private _keyboard:KeyBoard,options:OperationOptions){
         this._options = completeOptions(options,DEFAULT_OPTIONS);
         const div  = document.createElement('div');
@@ -101,6 +119,8 @@ export class Operation implements IDisposable,IOperation{
         this.addViewModel = this.addViewModel.bind(this)
         this.removeViewModel = this.removeViewModel.bind(this)
         this.updateViewModel = this.updateViewModel.bind(this)
+        this.getArtboards = this.getArtboards.bind(this)
+        this.getViewModel = this.getViewModel.bind(this)
         this.onMouseDown = this.onMouseDown.bind(this)
         this.onMouseMove = this.onMouseMove.bind(this)
         this._onUnSelect = this._onUnSelect.bind(this)
@@ -123,20 +143,20 @@ export class Operation implements IDisposable,IOperation{
 
         // this.onSizeStart = this.onSizeStart.bind(this)
     }
-    createMakerAssist(){
-        const makerViewModels:IViewModel[] = []
-        const {updateMakers,getRect} = this._options
-        this.eachRootViewModelExcludeSelected((ret,vm)=>{
-            makerViewModels.push(vm);
-            return ret;
-        })
-        this._makerAssist = new MakerAssist(makerViewModels,{
-            updateMakers,
-            getRect
-        });
-    }
+    // createMakerAssist(){
+    //     const makerViewModels:IViewModel[] = []
+    //     const {updateMakers,getRect} = this._options
+    //     this.eachRootViewModelExcludeSelected((ret,vm)=>{
+    //         makerViewModels.push(vm);
+    //         return ret;
+    //     })
+    //     this._makerAssist = new MakerAssist(makerViewModels,{
+    //         updateMakers,
+    //         getRect
+    //     });
+    // }
     onSizeStartMove(){
-        this.createMakerAssist();
+        this.createMakerAssistList();
     }
     _onPositionStart(data:{x:number,y:number}){
         const {x,y} = data;
@@ -144,7 +164,31 @@ export class Operation implements IDisposable,IOperation{
         this._startY = y;
         this._originX = x;
         this._originY = y;
-        this.createMakerAssist()
+        // this.createMakerAssist()
+        this.createMakerAssistList();
+    }
+ 
+    createMakerAssistList():MakerAssistMap{
+        let result:MakerAssist[] = []
+        const {updateMakers,getRect} = this._options
+        const {children} = this._rootViewModel;
+        if(children == null) return;
+        children.viewModelList.forEach((vm)=>{
+            if(modelIsArtboard(vm.modelType)){
+                const vmList:IViewModel[] = []
+                eachViewModelExcludeSelected(this._selectViewModels,vm,(ret,curVm)=>{
+                    vmList.push(curVm);
+                })
+                const artBoardId = vm.getModel().get('id',null)
+                result.push(new MakerAssist(vm,vmList,{
+                    updateMakers,
+                    getRect,
+                    artboardId:artBoardId
+                }))
+                // result[artBoardId] = 
+            }
+        })
+        this._makerAssistList = result;
     }
     registerShortcut(key:string,fn:any,params?:any[]){
         this.registerShortcuts([key],fn,params);
@@ -191,6 +235,19 @@ export class Operation implements IDisposable,IOperation{
             preventScroll:true //阻止因为获取焦点导致画板上移
         });  
     }
+    calculateAbsorb(calPos:OperationPos){
+        const {_makerAssistList}  = this;
+        const moveXList:number[] = [],moveYList:number[] = [];
+        _makerAssistList.forEach((makerAssist)=>{
+            const {moveX,moveY} = makerAssist.calculateAbsorb(calPos);
+            moveXList.push(moveX);
+            moveYList.push(moveY);
+        })
+        return {
+            moveX:findMiniestMoveDistance(...moveXList),
+            moveY:findMiniestMoveDistance(...moveYList)
+        }
+    }
     _onSelectMove(data:{x:number,y:number}){
         if(data == null || this._pos == null) return;
         const {x,y} = data;
@@ -207,7 +264,8 @@ export class Operation implements IDisposable,IOperation{
         
         const calPos = this._pos.clone();
         calPos.changeLeftAndTop(oriDiffx,oriDiffy,false);
-        const {moveX,moveY} = this._makerAssist.calculateAbsorb(calPos);
+        // const {moveX,moveY} = this._makerAssist.calculateAbsorb(calPos);
+        const {moveX,moveY} = this.calculateAbsorb(calPos)
         oriDiffx += moveX
         oriDiffy += moveY
 
@@ -241,7 +299,7 @@ export class Operation implements IDisposable,IOperation{
                 }
             })
         }
-        this._makerAssist = null;
+        this._makerAssistList = null;
         this.hideMakers()
     }
     changePosition(diffx:number,diffy:number){
@@ -267,7 +325,8 @@ export class Operation implements IDisposable,IOperation{
         const calPos = this._pos.clone();
         //@ts-ignore
         calPos[target](diffX,diffY,false);
-        const {moveX,moveY} = this._makerAssist.calculateAbsorb(calPos);
+        // const {moveX,moveY} = this._makerAssist.calculateAbsorb(calPos);
+        const {moveX,moveY} = this.calculateAbsorb(calPos)
         diffX += moveX
         diffY += moveY
         this.eachSelect((vm:IViewModel)=>{
@@ -312,9 +371,15 @@ export class Operation implements IDisposable,IOperation{
         this._mutation.addViewModel(viewModel);
         // this._viewModelMap.set(encode(viewModel.getModel()._keyPath),viewModel);
     }
+    getArtboards(excludeIds:{[key:string]:boolean}){
+        return this._mutation.getArtboards(excludeIds);
+    }
     removeViewModel(viewModel:IViewModel){
         this._mutation.removeViewModel(viewModel);
         // this._viewModelMap.delete(encode(viewModel.getModel()._keyPath))
+    }
+    getViewModel(id:string){
+        return this._mutation.getViewModel(id);
     }
     updateViewModel(preId:string,curVm:IViewModel){
         const {_mutation} = this;
@@ -458,7 +523,14 @@ export class Operation implements IDisposable,IOperation{
             clearTimeout(this._hideMakerTmId);
             this._hideMakerTmId = null
         }
-        this._makerAssist.maker(this._pos)
+        const {updateMakers} = this._options
+        let makerDataList:MakerData[] = [];
+        this._makerAssistList.forEach((makerAssist)=>{
+            const result = makerAssist.maker(this._pos);
+            makerDataList = makerDataList.concat(result);
+        })
+        updateMakers(makerDataList)
+        // this._makerAssist.maker(this._pos)
         // const result = this.eachRootViewModelExcludeSelected(calculateLatestVm,{
         //     curPos:this._pos,
         //     selectModels:this._selectViewModels,

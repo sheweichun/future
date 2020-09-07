@@ -82,6 +82,7 @@ export class Content implements IEvent{
             }
         });
         this.getRect = this.getRect.bind(this)
+        this.getRootViewModel = this.getRootViewModel.bind(this);
         this._store.subscribe((nextState:any)=>{
             this._viewModel.update(nextState.get('data'));
             this._operation.update();
@@ -111,8 +112,11 @@ export class Content implements IEvent{
             commander:this._commander,
             createView:this._options.createView,
             addViewModel:this._operation.addViewModel,
+            getViewModel:this._operation.getViewModel,
             removeViewModel:this._operation.removeViewModel,
             updateViewModel:this._operation.updateViewModel,
+            getRootViewModel:this.getRootViewModel,
+            getArtboards:this._operation.getArtboards,
             getRect:this.getRect
         });
         this._rectSelect = new RectSelect(document.body,{
@@ -124,6 +128,9 @@ export class Content implements IEvent{
         this.registerShortCuts();
         this.registerCommands();
         // this.test();
+    }
+    getRootViewModel(){
+        return this._viewModel;
     }
     getRoot(){
         return this._el;

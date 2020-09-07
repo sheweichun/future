@@ -108,6 +108,16 @@ export class Mutation extends EventHandler implements IMutation{
         // this._viewModelMap.set(encode(viewModel.getModel()._keyPath),viewModel);
         this._viewModelMap.set(viewModel.getModel().get('id',null),viewModel);
     }
+    getArtboards(excludeIds?:{[key:string]:boolean}){
+        const artboards:IViewModel[] = []
+        this._viewModelMap.forEach((value,key)=>{
+            if(excludeIds && excludeIds[key]) return;
+            if(modelIsArtboard(value.modelType)){
+                artboards.push(value)
+            }
+        })
+        return artboards;
+    }
     removeViewModel(viewModel:IViewModel){
         const vmId = viewModel.getModel().get('id',null)
         const oldVm = this._viewModelMap.get(vmId);
@@ -119,17 +129,18 @@ export class Mutation extends EventHandler implements IMutation{
         return this._viewModelMap.get(id);
     }
     getAllArtboardVms(){
-        const data = this.getDSLData();
-        const childs = data.get('children',[]);
-        const artboards:IViewModel[] = []
-        childs.forEach((child:BaseModel)=>{
-            const vm = this._viewModelMap.get(child.get('id',null));
-            if(vm == null) return;
-            if(modelIsArtboard(vm.modelType)){
-                artboards.push(vm);
-            }
-        })
-        return artboards;
+        // const data = this.getDSLData();
+        // const childs = data.get('children',[]);
+        // const artboards:IViewModel[] = []
+        // childs.forEach((child:BaseModel)=>{
+        //     const vm = this._viewModelMap.get(child.get('id',null));
+        //     if(vm == null) return;
+        //     if(modelIsArtboard(vm.modelType)){
+        //         artboards.push(vm);
+        //     }
+        // })
+        // return artboards;
+        return this.getArtboards()
     }
     getViewModelBaseModel(id:string){
         return this._viewModelMap.get(id).getModel();
@@ -634,55 +645,40 @@ export class Mutation extends EventHandler implements IMutation{
         }
 
         this.transition(()=>{
-            // const vmLength = vms.length;
             vms.forEach((vm)=>{
-                // if(vmLength > 1){
-                //     return changeVmPos(vm,posData);
-                // }
-                // const vmId = vm.getModel().get('id',null);
                 const vmIsArtboard = modelIsArtboard(vm.modelType);
                 if(vmIsArtboard) return changeVmPos(vm,posData);
-                const parentVm = vm.getParent();
+                const parentVm = vm.getInitialParent();
                 const parentVmIsArtboard = modelIsArtboard(parentVm.modelType);
                 const parentVmIsRoot = modelIsRoot(parentVm.modelType);
                 const overlapArtboard = getOverlapArtboard(vm); //todo 待完善 因为重叠的画板可能有多个 通过什么策略选择最合适的画板
                 if(parentVmIsRoot){ //根下节点
                     if(overlapArtboard){ //根下节点跟画板重合
-                        // console.log('vmIntoArtboard!!!',vmId);
                         vmIntoArtboard(overlapArtboard,vm,posData);
                         
                     }else{
-                        // console.log('changeVmPos!!!',vmId);
                         changeVmPos(vm,posData);
                     }
                 }else{ //非根下节点
                     if(parentVmIsArtboard){ //非根下节点父节点是画板
                         if(overlapArtboard){ //非根下节点跟一个画板重合
                             if(overlapArtboard !== parentVm){ //非根节点从原来的画板移动到新的画板
-                                // console.log('vmFromToArtboard!!!',vmId);
                                 vmFromToArtboard(parentVm,overlapArtboard,vm,posData);
                             }else{ //非根节点还在原来画板中
-                                // console.log('changeVmPos!!!',vmId);
                                 changeVmPos(vm,posData);
                             }
                         }else{ //todo 这里应该从画板中移除掉
-                            // console.log('vmOutArtboard!!!',vmId);
                             vmOutArtboard(parentVm,vm,posData);
                         }
                     }else{ //非根节点父节点不是画板
-                        // console.log('changeVmPos!!!',vmId);
                         changeVmPos(vm,posData);
                     }
                 }
             })
 
-            //todo 如何做到先删除后新增
             this._removeModelsFromEachModel(needRemoveVms,dslData); //先删除待删除的节点
-            // const {_store} = this
             needAddItems.forEach((item)=>{ //然后添加待添加的节点
                 const {parentModel,target} = item;
-                // const realModel = _store.getRealFromPath(parentModel._keyPath,null);
-                // if(realModel == null) return;
                 parentModel.updateIn(['children'],null,(childs:BaseModel)=>{
                     //@ts-ignore
                     return childs.push(target);

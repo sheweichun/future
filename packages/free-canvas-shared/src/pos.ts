@@ -1,4 +1,4 @@
-
+import {isOverLap} from './utils';
 
 type PosRect = {
     left:number,
@@ -131,12 +131,26 @@ export class OperationPos{
         && (top > this.top && top - this.top < this.height)
     }
     isOverlap(pos:OperationPos){
-        return (this.left + this.width  > pos.left &&
-            pos.left + pos.width  > this.left &&
-            this.top + this.height > pos.top &&
-            pos.top + pos.height > this.top
-           )
+        // return (this.left + this.width  > pos.left &&
+        //     pos.left + pos.width  > this.left &&
+        //     this.top + this.height > pos.top &&
+        //     pos.top + pos.height > this.top
+        //    )
+        const {left,top,right,bottom} = this;
+        // return (this.right  > pos.left &&
+        // pos.right  > this.left &&
+        // this.bottom > pos.top &&
+        // pos.bottom > this.top
+        // )
+        return isOverLap(left,top,right,bottom,pos.left,pos.top,pos.right,pos.bottom);
     }
+    // isOverlap2(left:number,top:number,right:number,bottom:number){
+    //     return (this.right  > left &&
+    //         right  > this.left &&
+    //         this.bottom > top &&
+    //         bottom > this.top
+    //        )
+    // }
     getHMiddle(){
         return Math.floor(this.left + this.width / 2)
     }

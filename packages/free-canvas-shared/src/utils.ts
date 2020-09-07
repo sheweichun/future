@@ -53,3 +53,13 @@ export function decodeFromShortId(val:string){
     })
     return ret;
 }
+
+
+export function isOverLap(left:number,top:number,right:number,bottom:number,
+    left1:number,top1:number,right1:number,bottom1:number){
+    return (right  > left1 &&
+        right1  > left &&
+        bottom > top1 &&
+        bottom1 > top
+    )
+}

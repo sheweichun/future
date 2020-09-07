@@ -32,7 +32,7 @@ export class Movable implements IMovable{
     // static onMouseUpQueue:OnMouseMoveCallback[] = []
     // static onBlurQueue:OnMouseMoveCallback[] = []
     protected _options:MovableOptions;
-    protected view:IView<Model>
+    view:IView<Model>
     el:HTMLElement
     elRect:OperationPos
     canMove:boolean = false
@@ -154,13 +154,16 @@ export class Movable implements IMovable{
     //     movable.view.destroy();
     //     this.view.getRoot().removeChild(movable.el);
     // }
-    removeFrom(parent:Movable){
+    removeFrom(parent:IMovable){
         if(parent == null) return;
         this.view.destroy();
         this.destroy();
         parent.view.getRoot().removeChild(this.el);
     }
-    
+    separate(parent:IMovable){
+        if(parent == null) return;
+        parent.view.getRoot().removeChild(this.el);
+    }
     // static onDocMouseMove(e:MouseEvent){
     //     Movable.onMouseMoveQueue.forEach((callback)=>{
     //         callback(e);
@@ -199,6 +202,7 @@ export class Movable implements IMovable{
     //     excute(COMMANDERS.VIEWBLUR);
     // }
     destroy(){
+        // console.log('destroy!!! :',this._data.id);
         // const {modelType} = this._options
         // if(!modelIsArtboard(modelType)){
             this.removeEvent(CanvasEvent.MOUSEDOWN,this.onMouseDown);
@@ -255,6 +259,9 @@ export class Movable implements IMovable{
         this.setStyle();
         this.updateIdSpan();
         this.view.update(newModel);
+    }
+    updateIsChild(isChild:boolean){
+        this._options.isChild = isChild
     }
     setStyle(el?:HTMLElement){
         const {isSelect} = this._data.extra
