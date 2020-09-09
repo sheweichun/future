@@ -78,14 +78,14 @@ export class Movable implements IMovable{
         
     }
     createIdSpan(){
-        const span = document.createElement('div')
-        span.setAttribute('style','position:absolute;top:0;left:0;color:white')
-        span.innerHTML = `id:${this._data.id}`
-        this.el.appendChild(span);
-        this.idSpan = span;
+        // const span = document.createElement('div')
+        // span.setAttribute('style','position:absolute;top:0;left:0;color:white')
+        // span.innerHTML = `id:${this._data.id}`
+        // this.el.appendChild(span);
+        // this.idSpan = span;
     }
     updateIdSpan(){
-        this.idSpan.innerHTML = `id:${this._data.id}`
+        // this.idSpan.innerHTML = `id:${this._data.id}`
     }
     setModelType(type:ModelType){
         this._options.modelType = type;
@@ -318,8 +318,8 @@ export class Movable implements IMovable{
         });
     }
     onMouseEnter(e:MouseEvent){
-        const {isChild} = this._options
-        if(isChild && !e.shiftKey) return;
+        const {isChild,isOperating} = this._options
+        if(isOperating() || (isChild && !e.shiftKey)) return;
         this.el.style.outline = `${styleSizeHoverColor} solid 1px`;
     }
     onMouseLeave(e:MouseEvent){

@@ -45,6 +45,7 @@ abstract class HanlerItem{
     private _canMove:boolean = false
     private _hasChanged:boolean = false
     private _isShow:boolean
+    protected _display:string
     protected _needLockScale:boolean = false
     // private _x:number
     // private _y:number
@@ -64,12 +65,14 @@ abstract class HanlerItem{
     show(){
         if(this._isShow) return
         this._isShow = true;
-        this._el.style.display = 'block'
+        this._display = 'block'
+        this.setStyle()
     }
     hide(){
         if(!this._isShow) return
         this._isShow = false;
-        this._el.style.display = 'none'
+        this._display = 'none'
+        this.setStyle()
     }
     onMouseDown(e:MouseEvent){
         this._canMove = true;
@@ -138,6 +141,7 @@ class LeftHandlerItem extends HanlerItem{
     setStyle(){
         const {height} = this._pos;
         this._el.setAttribute('style',`
+            display:${this._display};
             cursor: ew-resize;
             left:-${HALF_STYLE_SIZE_SIZE}px;
             top:${(height - styleSizeSize - 2) / 2}px
@@ -154,6 +158,7 @@ class TopHandlerItem extends HanlerItem{
     setStyle(){
         const {width} = this._pos;
         this._el.setAttribute('style',`
+            display:${this._display};
             cursor: ns-resize;
             top:-${HALF_STYLE_SIZE_SIZE}px;
             left:${(width - styleSizeSize - 2) / 2}px
@@ -168,6 +173,7 @@ class RightHandlerItem extends HanlerItem{
     setStyle(){
         const {width,height} = this._pos;
         this._el.setAttribute('style',`
+            display:${this._display};
             cursor: ew-resize;
             right:${-HALF_STYLE_SIZE_SIZE}px;
             top:${(height - styleSizeSize - 2) / 2}px
@@ -182,6 +188,7 @@ class BottomHandlerItem extends HanlerItem{
     setStyle(){
         const {width,height} = this._pos;
         this._el.setAttribute('style',`
+            display:${this._display};
             cursor: ns-resize;
             bottom:${-HALF_STYLE_SIZE_SIZE}px;
             left:${(width - styleSizeSize - 2) / 2}px
@@ -198,6 +205,7 @@ class LeftTopHandlerItem extends HanlerItem{
     setStyle(){
         // const {width} = this._pos;
         this._el.setAttribute('style',`
+            display:${this._display};
             cursor: nwse-resize;
             top:-${HALF_STYLE_SIZE_SIZE}px;
             left:-${HALF_STYLE_SIZE_SIZE}px;
@@ -212,6 +220,7 @@ class RightTopHandlerItem extends HanlerItem{
     setStyle(){
         // const {width} = this._pos;
         this._el.setAttribute('style',`
+            display:${this._display};
             cursor: nesw-resize;
             top:-${HALF_STYLE_SIZE_SIZE}px;
             right:${-HALF_STYLE_SIZE_SIZE}px;
@@ -227,6 +236,7 @@ class RightBottomHandlerItem extends HanlerItem{
     setStyle(){
         // const {width} = this._pos;
         this._el.setAttribute('style',`
+            display:${this._display};
             cursor: nwse-resize;
             bottom:${-HALF_STYLE_SIZE_SIZE}px;
             right:${-HALF_STYLE_SIZE_SIZE}px;
@@ -242,6 +252,7 @@ class LeftBottomHandlerItem extends HanlerItem{
     setStyle(){
         // const {width} = this._pos;
         this._el.setAttribute('style',`
+            display:${this._display};
             cursor: nesw-resize;
             bottom:${-HALF_STYLE_SIZE_SIZE}px;
             left:-${HALF_STYLE_SIZE_SIZE}px;

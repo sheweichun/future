@@ -522,7 +522,7 @@ export class Mutation extends EventHandler implements IMutation{
                     // })
                     return model.updateIn(['extra'],null,(extra:BaseModel)=>{
                         //@ts-ignore
-                        return extra.merge(createMap({
+                        return extra.merge(WrapData({
                             position:{
                                 left:modelPos.left - pos.left,
                                 top:modelPos.top - pos.top,

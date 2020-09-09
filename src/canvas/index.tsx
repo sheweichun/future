@@ -18,10 +18,10 @@ initTheme();
 const canvas = FreeCanvas('canvas',{
     createView,
     data:{
-        data:ModelData,
-        type:0
-        // data:[imgCookData,imgCookData1,imgCookData2],
-        // type:1
+        // data:ModelData,
+        // type:0
+        data:[imgCookData,imgCookData1,imgCookData2],
+        type:1
     }
 });
 // @ts-ignore

@@ -37,4 +37,6 @@ export const PADDING_8_VAR = 'PADDING_8'
 export const PADDING_9_VAR = 'PADDING_9'
 
 
+export const LINE_1_VAR = 'LINE_1'
+
 

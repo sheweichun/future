@@ -104,6 +104,7 @@ export class ViewModel implements IViewModel{
         const MovableClass = modelIsArtboard(this.modelType) ? ArtBoardMovable : Movable
         this.view = new MovableClass(baseModel2Model(model),Object.assign({},_options || {},{
             modelType:this.modelType,
+            isOperating:this._options.isOperating,
             // id:model._keyPath,
             vm:this,
             isChild:_parent != null && !modelIsRoot(_parent.modelType) && !modelIsArtboard(_parent.modelType),
@@ -244,6 +245,7 @@ export class ViewModel implements IViewModel{
         // console.log('parent :',this._parent.modelType,this._initialParent.modelType,this._parent === this._initialParent);
         const {artboardId,getViewModel,getArtboards,getRootViewModel} = this._options
         this._rect.changeLeftAndTop(diffx,diffy);
+        if(modelIsArtboard(this.modelType)) return; //如果是画板就不需要走下面的逻辑
         if(artboardId != null){
             const artboard = getViewModel(artboardId);
             if(artboard == null) return

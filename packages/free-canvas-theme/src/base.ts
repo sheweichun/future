@@ -23,7 +23,8 @@ import {
     PADDING_6_VAR,
     PADDING_7_VAR,
     PADDING_8_VAR,
-    PADDING_9_VAR
+    PADDING_9_VAR,
+    LINE_1_VAR
 } from './constant'
 
 // export const TEXT_COLOR = '#83868E'
@@ -66,4 +67,6 @@ export default {
     [PADDING_7_VAR]:'28px',
     [PADDING_8_VAR]:'32px',
     [PADDING_9_VAR]:'36px',
+
+    [LINE_1_VAR]:'#3D7FFF',
 }

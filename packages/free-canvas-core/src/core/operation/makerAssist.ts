@@ -10,6 +10,14 @@ enum BlockType{
     VERTICAL_BOTTOM="3"
 }
 
+// interface BlockTypeMap{
+//     [key:BlockType]:Block
+// }
+
+type BlockTypeMap = {
+    [key in BlockType]?:Block
+}
+
 enum BlockDirectionType{
     // HORIZONTAL_LEFT="0",
     // HORIZONTAL_RIGHT="1",
@@ -436,28 +444,6 @@ export default class MakerAssist{
         }
         return moveDistance
     }
-    calculateSelectedBlocks(selectedPos:OperationPos){
-        const {_asbPosList,_verticalBlockMap,_verticalBlockKeys,_horizontalBlockMap,_horizontalBlockKeys} = this;
-        const verticalBlockList:Block[] = [];
-        const horizontalBlockList:Block[] = [];
-        _asbPosList.forEach((pos,index)=>{
-            // const block = calculateBlock(pos,index,selectedPos,-1);
-            const block = calculateBlock(selectedPos,-1,pos,index);
-            if(block == null) return;
-            const {directionType} = block;
-            if(directionType === BlockDirectionType.HORIZONTAL){
-                horizontalBlockList.push(block);
-            }else{
-                verticalBlockList.push(block);
-            }
-        })
-        const moveX = this.calculateEachDirectionBlockInfo(horizontalBlockList,_horizontalBlockKeys,_horizontalBlockMap,BlockType.HORIZONTAL_LEFT);
-        const moveY = this.calculateEachDirectionBlockInfo(verticalBlockList,_verticalBlockKeys,_verticalBlockMap,BlockType.VERTICAL_TOP);
-        return {
-            moveX,
-            moveY
-        }
-    }
     calculateAbsorb(pos:OperationPos){ 
         if(pos == null) return;
         if(!this._artBoard.getRect().isOverlap(pos)) return {moveX:0,moveY:0};
@@ -527,22 +513,78 @@ export default class MakerAssist{
         }
         return [];
     }
+    calculateSelectedBlocks(selectedPos:OperationPos){
+        const {_asbPosList,_verticalBlockMap,_verticalBlockKeys,_horizontalBlockMap,_horizontalBlockKeys} = this;
+        const verticalBlockList:Block[] = [];
+        const horizontalBlockList:Block[] = [];
+        const blockTypeMap:BlockTypeMap = {};
+        _asbPosList.forEach((pos,index)=>{
+            // const block = calculateBlock(pos,index,selectedPos,-1);
+            const block = calculateBlock(selectedPos,-1,pos,index); //不可调换参数顺序
+            if(block == null || block.size === 0) return;
+            const minBlock = blockTypeMap[block.type]
+            if(minBlock == null || minBlock.size > block.size){
+                blockTypeMap[block.type] = block
+            }
+            // const {directionType} = block;
+            // if(directionType === BlockDirectionType.HORIZONTAL){
+            //     horizontalBlockList.push(block);
+            // }else{
+            //     verticalBlockList.push(block);
+            // }
+        })
+        Object.keys(blockTypeMap).forEach((blkType:BlockType)=>{
+            const target = blockTypeMap[blkType];
+            if(target == null) return;
+            const {directionType} = target;
+            if(directionType === BlockDirectionType.HORIZONTAL){
+                horizontalBlockList.push(target);
+            }else{
+                verticalBlockList.push(target);
+            }
+        })
+        const moveX = this.calculateEachDirectionBlockInfo(horizontalBlockList,_horizontalBlockKeys,_horizontalBlockMap,BlockType.HORIZONTAL_LEFT);
+        const moveY = this.calculateEachDirectionBlockInfo(verticalBlockList,_verticalBlockKeys,_verticalBlockMap,BlockType.VERTICAL_TOP);
+        return {
+            moveX,
+            moveY
+        }
+    }
     getBlockMakerDataList(selectedPos:OperationPos){
         const {_asbPosList,_verticalBlockMap,_verticalBlockKeys,_horizontalBlockMap,_horizontalBlockKeys} = this;
         const hightBlocks:Block[] = []
+        const blockTypeMap:BlockTypeMap = {};
         _asbPosList.forEach((pos,index)=>{
-            const block = calculateBlock(selectedPos,-1,pos,index);
-            if(block == null) return;
+            const block = calculateBlock(selectedPos,-1,pos,index); //不可调换参数顺序
+            if(block == null || block.size === 0) return;
+            const minBlock = blockTypeMap[block.type]
+            if(minBlock == null || minBlock.size > block.size){
+                blockTypeMap[block.type] = block
+            }
+            // let blockList:Block[];
+            // const {directionType} = block;
+            // if(directionType === BlockDirectionType.HORIZONTAL){
+            //     blockList = MakerAssist.getBlockListByValue(_horizontalBlockKeys,_horizontalBlockMap,block)
+            // }else{
+            //     blockList = MakerAssist.getBlockListByValue(_verticalBlockKeys,_verticalBlockMap,block)
+            // }
+            // if(blockList.length > 0){
+            //     // hightBlocks.push();
+            //     hightBlocks.push(block,...blockList);
+            // }
+        })
+        Object.keys(blockTypeMap).forEach((blkType:BlockType)=>{
+            const target = blockTypeMap[blkType];
+            if(target == null) return;
             let blockList:Block[];
-            const {directionType} = block;
+            const {directionType} = target;
             if(directionType === BlockDirectionType.HORIZONTAL){
-                blockList = MakerAssist.getBlockListByValue(_horizontalBlockKeys,_horizontalBlockMap,block)
+                blockList = MakerAssist.getBlockListByValue(_horizontalBlockKeys,_horizontalBlockMap,target)
             }else{
-                blockList = MakerAssist.getBlockListByValue(_verticalBlockKeys,_verticalBlockMap,block)
+                blockList = MakerAssist.getBlockListByValue(_verticalBlockKeys,_verticalBlockMap,target)
             }
             if(blockList.length > 0){
-                // hightBlocks.push();
-                hightBlocks.push(block,...blockList);
+                hightBlocks.push(target,...blockList);
             }
         })
         return hightBlocks.map((blk:Block)=>{
@@ -552,6 +594,7 @@ export default class MakerAssist{
                     left:blk.left,
                     right:blk.right,
                     top:blk.top,
+                    isVertical:blk.directionType === BlockDirectionType.VERTICAL,
                     bottom:blk.bottom,
                     val:blk.size + '',
                     background:'#ff3db156'

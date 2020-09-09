@@ -197,9 +197,10 @@ export default class Core extends EventHandler{
                         }
                     )
                 }else if(type === MarkEntityType.RectMark){
-                    const {left,top,right,bottom,val,background} = data;
+                    const {left,top,right,bottom,val,background,isVertical} = data;
                     return new RectMark(left,top,right - left,bottom - top,val,{
                         background,
+                        isVertical,
                         color:background
                     })
                 }

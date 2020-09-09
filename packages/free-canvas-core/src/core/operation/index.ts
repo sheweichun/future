@@ -98,6 +98,7 @@ export class Operation implements IDisposable,IOperation{
     private _selectViewModels:IViewModel[]
     private _options:OperationOptions
     private _canMove:boolean = false
+    public isOperating:boolean = false
     private _pos:OperationPos
     private _startX:number
     private _startY:number
@@ -157,6 +158,7 @@ export class Operation implements IDisposable,IOperation{
     //     });
     // }
     onSizeStartMove(){
+        this.isOperating = true;
         this.createMakerAssistList();
     }
     _onPositionStart(data:{x:number,y:number}){
@@ -165,6 +167,7 @@ export class Operation implements IDisposable,IOperation{
         this._startY = y;
         this._originX = x;
         this._originY = y;
+        this.isOperating = true;
         // this.createMakerAssist()
         this.createMakerAssistList();
     }
@@ -177,7 +180,7 @@ export class Operation implements IDisposable,IOperation{
         children.viewModelList.forEach((vm)=>{
             if(modelIsArtboard(vm.modelType)){
                 const vmList:IViewModel[] = []
-                eachViewModelExcludeSelected(this._selectViewModels,vm,(ret,curVm)=>{
+                eachViewModelExcludeSelected(this._selectViewModels,vm,(ret,curVm)=>{ //todo如果选中节点非画板下顶级节点，那么只需要在父节点内进行计算就行了
                     vmList.push(curVm);
                 })
                 const artBoardId = vm.getModel().get('id',null)
@@ -345,6 +348,7 @@ export class Operation implements IDisposable,IOperation{
         // }
     }
     onSizeChange(){// todo 有BUG
+        this.isOperating = false;
         this._mutation.changePosAndSize(this._selectViewModels)
         if(this._showMakerTmId){
             clearTimeout(this._showMakerTmId);
@@ -514,6 +518,7 @@ export class Operation implements IDisposable,IOperation{
         })
     }
     onMouseUp(e:MouseEvent){
+        this.isOperating = false;
         if(this._canMove === false) return;
         this._canMove = false;
         this._onUnSelect(null);

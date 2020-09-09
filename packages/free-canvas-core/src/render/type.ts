@@ -123,6 +123,7 @@ export interface ViewModelOptions extends MovableOptions{
     getArtboards:(excludeIds:{[key:string]:boolean})=>IViewModel[]
     updateViewModel:(prevId:string,curVm:IViewModel)=>void
     getRect:()=>OperationPos
+    isOperating:()=>boolean
 }
 
 export interface MovableOptions extends ViewOptions{
@@ -137,5 +138,6 @@ export interface MovableOptions extends ViewOptions{
     modelType:ModelType
     isChild?:boolean
     createView?:CreateView
+    isOperating:()=>boolean
     vm:IViewModel
 }

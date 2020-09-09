@@ -36,6 +36,8 @@ export interface RectMakerOption extends RectOption,FontOption{
     // height:number,
     // x:number,
     // y:number
+    intervalLen?:number
+    isVertical?:boolean
     lineWidth?:number
     background?:string
     color?:string
