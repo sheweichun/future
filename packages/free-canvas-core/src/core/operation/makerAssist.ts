@@ -597,7 +597,7 @@ export default class MakerAssist{
                     isVertical:blk.directionType === BlockDirectionType.VERTICAL,
                     bottom:blk.bottom,
                     val:blk.size + '',
-                    background:'#ff3db156'
+                    // background:'#ff3db156'
                 }
             }
         })

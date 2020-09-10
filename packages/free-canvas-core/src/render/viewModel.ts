@@ -241,6 +241,11 @@ export class ViewModel implements IViewModel{
             })
         }
     }
+    getArtboard():IViewModel{
+        const {artboardId,getViewModel} = this._options
+        if(artboardId == null) return null;
+        return getViewModel(artboardId)
+    }
     changePosition(diffx:number,diffy:number):boolean{ //todo 由于在实际拖动以及最终释放之后是分别计算转换逻辑的，需要确保最终行为一致性
         // console.log('parent :',this._parent.modelType,this._initialParent.modelType,this._parent === this._initialParent);
         const {artboardId,getViewModel,getArtboards,getRootViewModel} = this._options

@@ -29,11 +29,20 @@ export interface GuideOptions extends LabelOptions{
 export interface ContextMenuData {
     icon?:string,
     label:string,
-    callback?:(data?:ContextMenuData)=>void
+    callback?:(data?:ContextMenuData)=>boolean | void
 }
 
 export interface ContextMenuOptions{
     getMenuData:(e:MouseEvent)=>ContextMenuData[]
-    onHide:(e?:MouseEvent)=>void
+    onHide?:(e?:MouseEvent)=>void
+    style?:Partial<CSSStyleDeclaration>
+}
+
+export interface ContextMenuItem{
+    getMenuData:(e:MouseEvent)=>ContextMenuData[]
+    onContextMenu?:(e:MouseEvent)=>void
+    onHide?:(e?:MouseEvent)=>void
+    style?:Partial<CSSStyleDeclaration>
+    el:HTMLElement
 }
 

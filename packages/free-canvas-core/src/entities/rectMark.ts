@@ -9,7 +9,6 @@ import {drawLine} from './util'
 
 const DEFAULT_LINESTYLE = {
     color:'#ccc',
-    background:'transparent',
     lineWidth:1,
     isVertical:false,
     fontSize:10,
@@ -28,9 +27,12 @@ export class RectMark extends Rect{
         _height:number,
         private _val:string,
         options?:RectMakerOption){
-        super(_x,_y,_width,_height,options);
-        this._lineStyle = getPropertyValue(`var(--${themeConst.TEXT_COLOR_VAR})`);
-        this._options = completeOptions(options || {},DEFAULT_LINESTYLE); 
+        super(_x,_y,_width,_height,Object.assign({
+            background:getPropertyValue(`var(--${themeConst.CANVAS_MASK_BACKGROUND_VAR})`),
+            color:getPropertyValue(`var(--${themeConst.CANVAS_MASK_BACKGROUND_VAR})`)
+        },options));
+        this._lineStyle = getPropertyValue(`var(--${themeConst.LINE_1_VAR})`);
+        this._options = completeOptions(this._options || {},DEFAULT_LINESTYLE); 
     }
     drawContent(context:CanvasRenderingContext2D){
         const {_x,_y,_width,_height,_options} = this;

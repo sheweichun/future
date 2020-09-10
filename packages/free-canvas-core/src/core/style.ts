@@ -25,6 +25,7 @@ export default `
         height:100vh;
         margin:0;
         font-size:12px;
+        overflow: hidden;
     }
     @font-face {
         font-family: 'iconfont';  /* project id 1991465 */
@@ -110,23 +111,26 @@ export default `
         color:#EB5648;
     }
     .${CONTEXT_MEUNU}{
-        box-shadow: rgba(39, 54, 78, 0.08) 0px 2px 10px 0px, rgba(39, 54, 78, 0.1) 0px 12px 40px 0px;
+
+        box-shadow: rgb(8 8 8 / 44%) 0px 4px 6px 1px;
         z-index: 999;
-        background: rgb(255, 255, 255);
+        background: var(--BACKGROUND_3);
+        border-radius:4px;
+        overflow:hidden;
+        padding:4px 0;
     }
     .${CONTEXT_MEUNU_ITEM}{
-        color: rgb(65, 80, 88);
+        color: var(--ACTIVE_TEXT_COLOR);
         width: 100%;
-        height: 26px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0px 12px;
+        padding: 4px 12px;
     }
     .${CONTEXT_MEUNU_ITEM}:hover{
         cursor: pointer;
-        color: rgb(41, 141, 248);
-        background: rgb(242, 242, 242);
+        color:var(--HIGHTLIGHT_TEXT_COLOR);
+        background: var(--HIGHTLIGHT_COLOR);
     }
 
     .${MOVABLE_HANDLER_CLASSNAME}{
@@ -145,3 +149,5 @@ export default `
         color: rgb(41, 141, 248);
     }
 `
+
+        //box-shadow: rgba(39, 54, 78, 0.08) 0px 2px 10px 0px, rgba(39, 54, 78, 0.1) 0px 12px 40px 0px;

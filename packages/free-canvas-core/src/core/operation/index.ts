@@ -61,6 +61,31 @@ function findMiniestMoveDistance(...nums:number[]){
     })
     return !isFinite(base) ? 0 : base
 }
+
+
+function getVmsByArtboard(artBoard:IViewModel,viewList:IViewModel[]){
+    if(artBoard == null) return [];
+    for(let i = 0;i < viewList.length; i++){
+        const vm = viewList[i]
+        const curVmArtboard = vm.getArtboard();
+        if(curVmArtboard == null) continue;
+        if(curVmArtboard === artBoard){
+            viewList.splice(i,1);
+            const parentVm = vm.getParent();
+            if(parentVm == null || parentVm.children == null) return [];
+            const result:IViewModel[] = [];
+            const vms = parentVm.children.viewModelList
+            for(let j = 0; j < vms.length; j++){
+                const retVm = vms[j];
+                if(retVm !== vm){
+                    result.push(retVm)
+                }
+            }
+            return result
+        }
+    }
+    return artBoard.children ? artBoard.children.viewModelList : []
+}
 // function isChildren(selectModels:IViewModel[],target:IViewModel){
 //     for(let i = 0; i < selectModels.length; i++){
 //         const item = selectModels[i];
@@ -177,17 +202,19 @@ export class Operation implements IDisposable,IOperation{
         const {updateMakers,getRect} = this._options
         const {children} = this._rootViewModel;
         if(children == null) return;
+        const selectedViewModels = [].concat(this._selectViewModels);
         children.viewModelList.forEach((vm)=>{
             if(modelIsArtboard(vm.modelType)){
-                const vmList:IViewModel[] = []
-                eachViewModelExcludeSelected(this._selectViewModels,vm,(ret,curVm)=>{ //todo如果选中节点非画板下顶级节点，那么只需要在父节点内进行计算就行了
-                    vmList.push(curVm);
-                })
-                const artBoardId = vm.getModel().get('id',null)
+                // const vmList:IViewModel[] = []
+                // eachViewModelExcludeSelected(this._selectViewModels,vm,(ret,curVm)=>{ //todo如果选中节点非画板下顶级节点，那么只需要在父节点内进行计算就行了
+                //     vmList.push(curVm);
+                // })
+                const vmList = getVmsByArtboard(vm,selectedViewModels);  //如果画板中包含了当前选中节点，则返回当前节点的所有兄弟节点，否则返回画板的所有子节点
+                // const artboardId = vm.getModel().get('id',null)
                 result.push(new MakerAssist(vm,vmList,this._guideManager,{
                     updateMakers,
                     getRect,
-                    artboardId:artBoardId
+                    // artboardId
                 }))
                 // result[artBoardId] = 
             }
@@ -224,6 +251,9 @@ export class Operation implements IDisposable,IOperation{
         this.registerShortcuts([KeyBoardKeys.METAKEY,'g'],this.group);
         this.registerShortcuts([KeyBoardKeys.METAKEY,KeyBoardKeys.SHIFTKEY,'g'],this.unGroup);
     }
+    getSelectViewModels(){
+        return this._selectViewModels
+    }
     group(){
         this._mutation.group(this._selectViewModels,this._pos);
     }
@@ -255,9 +285,9 @@ export class Operation implements IDisposable,IOperation{
     _onSelectMove(data:{x:number,y:number}){
         if(data == null || this._pos == null) return;
         const {x,y} = data;
-        // const diffx = x - this._startX;
-        // const diffy = y - this._startY;
-        // if(Math.abs(diffx) < MIN_MOVE_DISTANCE && Math.abs(diffy) < MIN_MOVE_DISTANCE) return;
+        const diffx = x - this._startX;
+        const diffy = y - this._startY;
+        if(Math.abs(diffx) < MIN_MOVE_DISTANCE && Math.abs(diffy) < MIN_MOVE_DISTANCE) return;
         this._changed = true;
         this._size && this._size.hide();
         // pos.left += diffx;

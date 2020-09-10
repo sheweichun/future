@@ -16,6 +16,7 @@ import allStyle from './style'
 import { MakerData,MarkEntityType } from './operation/type';
 import {OperationPos,calculateIncludeRect} from './operation/pos'
 import { RectMark } from '../entities/rectMark';
+import {initGlobalContextMenu} from '../components/contextMenu'
 
 const {CONTENT} = ThemeVar 
 // export interface CoreOptions  {
@@ -129,6 +130,7 @@ export default class Core extends EventHandler{
         div.className = CONTAINER
         div.setAttribute('style',`padding:${this.margin}px 0 0 ${this.margin}px;background-color:${CONTENT.backgroundColor}`);
         // const contentDiv = document.createElement('div');
+        initGlobalContextMenu(div);
         this._content = new Content(div,_data,this._guideManage,{
             createView:this._options.createView,
             x:this._translateX,
@@ -148,6 +150,7 @@ export default class Core extends EventHandler{
         div.appendChild(fragment);
         parent.appendChild(div);
         this._eventEl = div;
+        
       
         // this._eventHandler = new EventHandler(div);
     }
@@ -197,11 +200,9 @@ export default class Core extends EventHandler{
                         }
                     )
                 }else if(type === MarkEntityType.RectMark){
-                    const {left,top,right,bottom,val,background,isVertical} = data;
+                    const {left,top,right,bottom,val,isVertical} = data;
                     return new RectMark(left,top,right - left,bottom - top,val,{
-                        background,
-                        isVertical,
-                        color:background
+                        isVertical
                     })
                 }
             })

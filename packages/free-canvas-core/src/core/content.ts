@@ -18,6 +18,7 @@ import { MoveEventData } from "../events/type";
 import {PluginManager} from './pluginManager';
 import { IViewModel } from '../render/type';
 import {GuideManager} from './guide/index'
+import {ContextMenu,ContextMenuData,registerContextMenu,unregisterContextMenu,ContextMenuItem} from '../components/contextMenu'
 
 
 // function completeData(data:Model){
@@ -69,6 +70,8 @@ export class Content implements IEvent{
     private _rectSelect:RectSelect
     private _pluginManager:PluginManager
     private _el:HTMLElement
+    private _contextMenu:ContextMenu
+    private _contextMenuItem:ContextMenuItem
     constructor(private _parent:HTMLElement,_data:Model,private _guideManager:GuideManager,options:ContentOptions){
         this._options = completeOptions(options,{x:0,y:0});
         this._el = document.createElement('div');
@@ -82,6 +85,15 @@ export class Content implements IEvent{
             prototype:{
             }
         });
+        this.getMenuData = this.getMenuData.bind(this)
+        this._contextMenuItem = {
+            getMenuData:this.getMenuData,
+            style:{
+                width:'200px'
+            },
+            el:_parent
+        }
+        this._contextMenu = registerContextMenu(this._contextMenuItem)
         this.getRect = this.getRect.bind(this)
         this.isOperating = this.isOperating.bind(this)
         this.getRootViewModel = this.getRootViewModel.bind(this);
@@ -132,6 +144,42 @@ export class Content implements IEvent{
         this.registerCommands();
         // this.test();
     }
+    getMenuData(e:MouseEvent):ContextMenuData[]{
+        const {_operation} = this
+        const selectedVms = _operation.getSelectViewModels();
+        const {length} = selectedVms
+        if(length === 0){
+            return [
+                {
+                    label:'第一楼',
+                    callback:()=>{
+                        console.log('第一楼');
+                    }
+    
+                },
+                {
+                    label:'第二楼',
+                    callback:()=>{
+                        console.log('第二楼');
+                    }
+                }
+            ];
+        }else if(length === 1){
+            return [
+                {
+                    label:'置顶'
+                },{
+                    label:'上移一层'
+                },{
+                    label:'下移一层'
+                },{
+                    label:'置底'
+                }
+            ]
+        }else{
+
+        }
+    }
     isOperating(){
         return this._operation.isOperating
         // return false
@@ -155,6 +203,8 @@ export class Content implements IEvent{
         this._keyboard.destroy();
         this._pluginManager.destroy();
         this._mutation.destroy();
+        unregisterContextMenu(this._contextMenuItem)
+        this._contextMenu = null;
     }
     getRect(){
         return this._rect
@@ -218,32 +268,6 @@ export class Content implements IEvent{
     redo(){
         this._store.redo();
     }
-    // test(){
-    //     setTimeout(()=>{
-    //         // console.log('children :',this._store.currentState.get('children')._deref());
-    //         this._store.currentState.getIn(['data','children']).push(WrapData({
-    //             id:'113',
-    //             name:'div',
-    //             style:{
-    //                 width:'150px',
-    //                 height:'150px',
-    //                 backgroundColor:'orange'
-    //             },
-    //             extra:{
-    //                 position:{
-    //                     left:800,
-    //                     top:400,
-    //                 }
-    //             }
-    //         }))
-    //         setTimeout(()=>{
-    //             this._store.undo();
-    //             setTimeout(()=>{
-    //                 this._store.redo();
-    //             },1000)
-    //         },1000)
-    //     },2000)
-    // }
     setStyle(){
         const {_el,_x,_y} = this;
         _el.setAttribute('style',`outline:none !important;width:100%;height:100%;transform:matrix(1,0,0,1,${_x},${_y})`);

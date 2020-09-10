@@ -46,6 +46,7 @@ export interface IViewModel{
     modelType:ModelType
     children:IViewModelCollection
     getModel():BaseModel
+    getArtboard():IViewModel
     getParent():IViewModel
     getInitialParent():IViewModel
     getTypeParent(type:ModelType):IViewModel

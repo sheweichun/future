@@ -34,7 +34,7 @@ export interface OperationOptions{
 export interface MakerAssistOptions{
     updateMakers:(data?:MakerData[])=>void
     getRect:()=>OperationPos
-    artboardId:string
+    // artboardId:string
 }
 // export interface AlignItem{
 //     type:AlignType,
