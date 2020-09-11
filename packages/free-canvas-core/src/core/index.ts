@@ -11,7 +11,7 @@ import {CanvasEvent,EventHandler} from '../events/event';
 import {transformDsl} from '../render/index'
 import {GuideManager} from './guide/index'
 // import {MoveEventData} from '../events/type';
-import {CONTAINER,REFRESH_BUTTON_CLASSNAME} from '../utils/constant';
+import {CONTAINER,WRAPPER,REFRESH_BUTTON_CLASSNAME} from '../utils/constant';
 import allStyle from './style'
 import { MakerData,MarkEntityType } from './operation/type';
 import {OperationPos,calculateIncludeRect} from './operation/pos'
@@ -71,11 +71,13 @@ export default class Core extends EventHandler{
     private _mouseWheelList:IEvent[] = [];
     private _drawTimeId:number
     private _eventEl:HTMLElement;
+    private _containerEl:HTMLElement;
 
     private _makers:Entity[] = []
     private _selectRect:Rect
     private _translateX:number = 0
     private _translateY:number = 0
+    private _scale:number = 1
 
     private _refreshEl:HTMLElement
 
@@ -102,6 +104,7 @@ export default class Core extends EventHandler{
             rulerBackgroundColor
         });
         this._mouseWheelList.push(this._rulerGroup);
+        this.onMouseWheel = this.onMouseWheel.bind(this);
         this.draw = this.draw.bind(this);
         this.listen()
         this.draw()
@@ -125,17 +128,24 @@ export default class Core extends EventHandler{
         this._content.uninstallPlugin(plugin);
     }
     createEventElement(parent:DocumentFragment,children?:HTMLCollection){
-        const {_data} = this
+        const {_data,_scale} = this
         const div = document.createElement('div');
-        div.className = CONTAINER
-        div.setAttribute('style',`padding:${this.margin}px 0 0 ${this.margin}px;background-color:${CONTENT.backgroundColor}`);
+        const wrapDiv = document.createElement('div');
+        div.className = CONTAINER;
+        wrapDiv.className = WRAPPER;
+        // div.setAttribute('style',`padding:0`);
+        // div.setAttribute('style',`padding:${this.margin}px 0 0 ${this.margin}px;background-color:${CONTENT.backgroundColor}`);
+        div.setAttribute('style',`transform:matrix(${_scale},0,0,${_scale},0,0)`);
+        wrapDiv.setAttribute('style',`padding:${this.margin}px 0 0 ${this.margin}px;background-color:${CONTENT.backgroundColor}`);
         // const contentDiv = document.createElement('div');
-        initGlobalContextMenu(div);
+        initGlobalContextMenu(wrapDiv);
         this._content = new Content(div,_data,this._guideManage,{
             createView:this._options.createView,
+            eventEl:wrapDiv,
             x:this._translateX,
             y:this._translateY,
-            margin:this.margin,
+            scale:this._scale,
+            // margin:this.margin,
             updateMakers:this.updateMakers,
             updateRectSelect:this.updateRectSelect
         })
@@ -148,9 +158,11 @@ export default class Core extends EventHandler{
         }
         fragment.appendChild(this._content.getRoot());
         div.appendChild(fragment);
-        parent.appendChild(div);
-        this._eventEl = div;
-        
+        wrapDiv.appendChild(div);
+        parent.appendChild(wrapDiv);
+        // this._eventEl = div;
+        this._containerEl = div;
+        this._eventEl = wrapDiv;
       
         // this._eventHandler = new EventHandler(div);
     }
@@ -263,6 +275,35 @@ export default class Core extends EventHandler{
         this._guideManage.mount();
         this._content.listen();
     }
+    onMouseWheel(e:MouseWheelEvent){
+        const {wheelSpeedX,wheelSpeedY} = this._options
+        const {deltaX,deltaY} = e as WheelEvent;
+        const newDeltaX = controlDelta(deltaX,wheelSpeedX)
+        const newDeltaY = controlDelta(deltaY,wheelSpeedY)
+        this._translateX += newDeltaX;
+        this._translateY += newDeltaY;
+        this._mouseWheelList.forEach((ett)=>{ 
+            ett.fireEvent(CanvasEvent.MOUSEWHEEL,{
+                deltaX:newDeltaX,
+                deltaY:newDeltaY
+            } as MouseWheelEvent,this.draw);
+            e.stopPropagation();
+            e.preventDefault();
+        });
+    }
+    changeScale(scale:number){
+        if(scale < 0.3) {scale = 0.3};
+        this._scale = scale;
+        // console.log('event :',this._scale);
+        this._containerEl.style.transform = `matrix(${scale},0,0,${scale},0,0)`
+        this._content.changeScale(scale);
+    }
+    onPinch(e:MouseWheelEvent){
+        const {deltaY} = e;
+        this.changeScale(this._scale - deltaY / 100);
+        e.stopPropagation();
+        e.preventDefault();
+    }
     listen(){
         // this._mouseWheelList.forEach((ett)=>{ //滚动事件
         //     this.addEvent(this._eventEl,CanvasEvent.MOUSEWHEEL,(e)=>{
@@ -271,21 +312,14 @@ export default class Core extends EventHandler{
         //         e.preventDefault();
         //     })
         // })
-        const {wheelSpeedX,wheelSpeedY} = this._options
+        // const {wheelSpeedX,wheelSpeedY} = this._options
         this.addEvent(this._eventEl,CanvasEvent.MOUSEWHEEL,(e)=>{
-            const {deltaX,deltaY} = e as WheelEvent;
-            const newDeltaX = controlDelta(deltaX,wheelSpeedX)
-            const newDeltaY = controlDelta(deltaY,wheelSpeedY)
-            this._translateX += newDeltaX;
-            this._translateY += newDeltaY;
-            this._mouseWheelList.forEach((ett)=>{ 
-                ett.fireEvent(CanvasEvent.MOUSEWHEEL,{
-                    deltaX:newDeltaX,
-                    deltaY:newDeltaY
-                } as MouseWheelEvent,this.draw);
-                e.stopPropagation();
-                e.preventDefault();
-            });
+            const {deltaX,ctrlKey} = e as MouseWheelEvent;
+            if(deltaX === 0 && ctrlKey){
+                this.onPinch(e as MouseWheelEvent)
+            }else{
+                this.onMouseWheel(e as MouseWheelEvent);
+            }
         })
         //@ts-ignore
         this.addEvent(window,CanvasEvent.RESIZE,debounce(()=>{
@@ -296,15 +330,10 @@ export default class Core extends EventHandler{
         },100))
         this.addEvent(this._refreshEl,CanvasEvent.CLICK,()=>{
             const {x,y} = this.getInitTranslate(this._content.getCurrentData());
-            // this._mouseWheelList.forEach((ett)=>{ 
-            //     ett.fireEvent(CanvasEvent.MOUSEWHEEL,{
-            //         deltaX:x - this._translateX,
-            //         deltaY:y - this._translateY
-            //     } as MouseWheelEvent,this.draw);
-            // });
-            this._content.changeTranslation(x,y);
+            this.changeScale(1);
             this._rulerGroup.setNewBaseValue(x,y);
             this.draw();
+            this._content.changeTranslation(x,y);
             this._translateX = x;
             this._translateY = y;
         })

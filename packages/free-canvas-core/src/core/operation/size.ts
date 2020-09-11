@@ -98,7 +98,9 @@ abstract class HanlerItem{
         if(this._needLockScale && e.shiftKey){
             changeData = calcuateLockScalXY(this._originX,this._originY,x,y,this._pos,this._direction);
         }
-        onMove && onMove(changeData.x,changeData.y,this._direction);
+        const {getScale} = this._options;
+        const scale = getScale();
+        onMove && onMove(Math.floor(changeData.x / scale),Math.floor(changeData.y / scale),this._direction);
         // onMove && onMove(x - this._startX,y - this._startY,this._direction);
         // this._startX = x;
         // this._startY = y;

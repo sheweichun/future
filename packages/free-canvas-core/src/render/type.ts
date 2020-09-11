@@ -55,6 +55,7 @@ export interface IViewModel{
     update(model:BaseModel):void
     isChildren(vm:IViewModel):boolean
     getRect():OperationPos
+    recalculateRect():void
     changeArtboardId(artboardId:string):void
     // setRect(pos:OperationPos):void
     getAbsRect():OperationPos
@@ -120,6 +121,7 @@ export interface ViewModelOptions extends MovableOptions{
     addViewModel:(viewModel:IViewModel)=>void
     removeViewModel:(ViewModel:IViewModel)=>void
     getRootViewModel:()=>IViewModel
+    getScale:()=>number
     getViewModel:(id:string)=>IViewModel
     getArtboards:(excludeIds:{[key:string]:boolean})=>IViewModel[]
     updateViewModel:(prevId:string,curVm:IViewModel)=>void
@@ -133,6 +135,7 @@ export interface MovableOptions extends ViewOptions{
     onBlur?:ViewLifeCallback
     // id:string[],
     mountNode?:HTMLElement
+    getScale:()=>number
     excute(name:number,data?:any):void
     // isRoot?:boolean
     // isGroup?:boolean

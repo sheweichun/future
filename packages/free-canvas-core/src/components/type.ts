@@ -26,10 +26,14 @@ export interface GuideOptions extends LabelOptions{
 }
 
 
-export interface ContextMenuData {
+export interface ContextMenuDataItem {
     icon?:string,
     label:string,
-    callback?:(data?:ContextMenuData)=>boolean | void
+    callback?:(data?:ContextMenuDataItem)=>boolean | void
+}
+
+export interface ContextMenuData{
+    children:ContextMenuDataItem[]
 }
 
 export interface ContextMenuOptions{

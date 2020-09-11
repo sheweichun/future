@@ -65,6 +65,7 @@ export interface OperationSizeOptions{
     onMove:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
     onChange:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
     onStartMove:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
+    getScale:()=>number
     noNeedOperation?:boolean
     // onStart:()=>void
 }
@@ -88,8 +89,10 @@ export interface ContentOptions{
     updateRectSelect:(data?:OperationPos)=>void
     // wheelSpeedX:number,
     // wheelSpeedY:number,
-    margin:number,
-    createView?:CreateView
+    // margin:number,
+    createView?:CreateView,
+    eventEl:HTMLElement
+    scale:number,
     x?:number,
     y?:number
 }

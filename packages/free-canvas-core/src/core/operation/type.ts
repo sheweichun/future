@@ -26,8 +26,9 @@ export enum AlignType{
 
 
 export interface OperationOptions{
-    margin:number,
+    // margin:number,
     updateMakers:(data?:MakerData[])=>void
+    scale:number
     getRect:()=>OperationPos
 }
 

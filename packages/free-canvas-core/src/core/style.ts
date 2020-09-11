@@ -5,6 +5,7 @@ import {
     styleSizeSize,
     styleSizeColor,
     CONTAINER,
+    WRAPPER,
     DRAG_OVER,
     MOVABLE_HANDLER_CLASSNAME,
     REFRESH_BUTTON_CLASSNAME,
@@ -12,6 +13,7 @@ import {
     ARTBOARD_VERTICAL_GUIDE,
     CONTEXT_MEUNU,
     CONTEXT_MEUNU_ITEM,
+    CONTEXT_MEUNU_ITEM_SECTION,
     styleSizeHoverColor
 } from '../utils/constant'
 
@@ -64,9 +66,11 @@ export default `
     .${CONTAINER}{
         width:100%;
         height:100%;
-        position:absolute;
-        background-color:#F9F9F9;
         overflow: hidden;
+    }
+    .${WRAPPER}{
+        width:100%;
+        height:100%;
     }
     .${MOVABLE_CLASSNAME}{
         box-sizing:border-box;
@@ -117,7 +121,14 @@ export default `
         background: var(--BACKGROUND_3);
         border-radius:4px;
         overflow:hidden;
+        padding:0 0;
+    }
+    .${CONTEXT_MEUNU_ITEM_SECTION}{
+        border-bottom:1px solid #737373;
         padding:4px 0;
+    }
+    .${CONTEXT_MEUNU_ITEM_SECTION}:last-child{
+        border-bottom:0;
     }
     .${CONTEXT_MEUNU_ITEM}{
         color: var(--ACTIVE_TEXT_COLOR);
@@ -125,7 +136,7 @@ export default `
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 4px 12px;
+        padding: 6px 12px;
     }
     .${CONTEXT_MEUNU_ITEM}:hover{
         cursor: pointer;

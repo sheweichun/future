@@ -17,6 +17,7 @@ type OnSelected = (data:{x:number,y:number})=>void
 
 type BaseModelAndPos = {
     pos:OperationPos,
+    keyPath:string[],
     model:BaseModel
 }
 // function extractAllModel(model:BaseModel,ret:BaseModel[]=[]){
@@ -183,6 +184,16 @@ export class Mutation extends EventHandler implements IMutation{
         })
         return arr;
     }
+    // getAllSelectedBaseModels(){
+    //     const arr:BaseModel[] = [];
+    //     this.reduceSelectedKeyPath((keyPath:string)=>{
+    //         const item = this._viewModelMap.get(keyPath);
+    //         if(item){
+    //             arr.push(item.getModel())
+    //         }
+    //     })
+    //     return arr;
+    // }
     register(){
         this._commander.register(COMMANDERS.POSITIONCHANGE,this.onPostionChanges,this);
         this._commander.register(COMMANDERS.SELECTED,this.onSelected,this);
@@ -495,13 +506,14 @@ export class Mutation extends EventHandler implements IMutation{
                 deepVm = parentVm
             }
             const model = vm.getModel();
+            // console.log('keyPath :',model._keyPath);
             childs.push({
                 pos:vm.getRect(),
+                keyPath:model._keyPath,
                 model:model.deref(null)
-            });
+            })
             this.removeModel(parentModel,model);
         })
-        
         const targetParent = this._store.getRealFromPath(deepKeyPath,null);
         if(targetParent == null) return;
 
@@ -788,5 +800,133 @@ export class Mutation extends EventHandler implements IMutation{
     onSelected(val:{vm:IViewModel,data:{needKeep:boolean,x:number,y:number,noTrigger?:boolean}}){
         const {vm,data} = val;
         return this.onModelSelected(vm.getModel(),data);
+    }
+    getTreeStuctrueSelectedViewModels(){
+        const selectVms = this.getAllSelectedViewModels();
+        const vmMap:{[key:string]:{
+            parent:IViewModel,
+            childrenMap:{
+                [key:string]:boolean
+            }
+        }} = {}
+        selectVms.forEach((selectedVm)=>{
+            const selectedModel = selectedVm.getModel();
+            const parent = selectedVm.getParent();
+            if(parent == null) return;
+            const parentModel = parent.getModel();
+            const parentId = parentModel.get('id',null);
+            let target = vmMap[parentId];
+            if(target == null){
+                target = {parent,childrenMap:{}}
+                vmMap[parentId] = target;
+            }
+            target.childrenMap[selectedModel.get('id',null)] = true
+        })
+        return vmMap
+    }
+    //model 层级操作
+    moveUpest(){
+        this.transition(()=>{
+            const vmMap = this.getTreeStuctrueSelectedViewModels();
+            Object.keys(vmMap).forEach((id)=>{
+                const {parent,childrenMap} = vmMap[id]
+                const newModelList:BaseModel[] = []
+                const parentModel = parent.getModel();
+                const appendMds:BaseModel[] = []
+                parent.children.viewModelList.forEach((vm)=>{
+                    const vmModel = vm.getModel();
+                    const vmId = vmModel.get('id',null);
+                    const derefModel = vmModel.deref(null)
+                    if(childrenMap[vmId] == null){
+                        newModelList.push(derefModel)
+                    }else{
+                        appendMds.push(derefModel)
+                    }
+                })
+                parentModel.updateIn(['children'],null,()=>{
+                    return createList([].concat(newModelList,appendMds));
+                })
+            })
+        })
+    }
+    moveDownest(){
+        this.transition(()=>{
+            const vmMap = this.getTreeStuctrueSelectedViewModels();
+            Object.keys(vmMap).forEach((id)=>{
+                const {parent,childrenMap} = vmMap[id]
+                const newModelList:BaseModel[] = []
+                const parentModel = parent.getModel();
+                const appendMds:BaseModel[] = []
+                parent.children.viewModelList.forEach((vm)=>{
+                    const vmModel = vm.getModel();
+                    const vmId = vmModel.get('id',null);
+                    const derefModel = vmModel.deref(null);
+                    if(childrenMap[vmId] == null){
+                        newModelList.push(derefModel)
+                    }else{
+                        appendMds.push(derefModel)
+                    }
+                })
+                parentModel.updateIn(['children'],null,()=>{
+                    return createList([].concat(appendMds,newModelList));
+                })
+            })
+        })
+    }
+    moveDownOneStep(){
+        this.transition(()=>{
+            const vmMap = this.getTreeStuctrueSelectedViewModels();
+            Object.keys(vmMap).forEach((id)=>{
+                const {parent,childrenMap} = vmMap[id]
+                const newModelList:BaseModel[] = []
+                const parentModel = parent.getModel();
+                parent.children.viewModelList.forEach((vm)=>{
+                    const vmModel = vm.getModel();
+                    const vmId = vmModel.get('id',null);
+                    const derefModel = vmModel.deref(null)
+                    if(childrenMap[vmId] == null){
+                        newModelList.push(derefModel)
+                    }else{
+                        newModelList.splice(newModelList.length - 1,0,derefModel);
+                    }
+                })
+                parentModel.updateIn(['children'],null,()=>{
+                    return createList(newModelList);
+                })
+            })
+        })
+    }
+    moveUpOneStep(){
+        this.transition(()=>{
+            const vmMap = this.getTreeStuctrueSelectedViewModels();
+            Object.keys(vmMap).forEach((id)=>{
+                const {parent,childrenMap} = vmMap[id]
+                const newModelList:BaseModel[] = []
+                const parentModel = parent.getModel();
+                let needAppendList:BaseModel[];
+                parent.children.viewModelList.forEach((vm)=>{
+                    const vmModel = vm.getModel();
+                    const vmId = vmModel.get('id',null);
+                    const derefModel = vmModel.deref(null)
+                    if(childrenMap[vmId] == null){
+                        newModelList.push(derefModel)
+                        if(needAppendList){
+                            newModelList.push(...needAppendList);
+                            needAppendList = null;
+                        }
+                    }else{
+                        if(needAppendList == null){needAppendList = []}
+                        needAppendList.push(derefModel);
+                    }
+                })
+                if(needAppendList){
+                    newModelList.push(...needAppendList)
+                    needAppendList = null
+                }
+                parentModel.updateIn(['children'],null,()=>{
+                    return createList(newModelList);
+                })
+            })
+        })
     }
 }

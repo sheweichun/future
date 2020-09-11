@@ -3,6 +3,7 @@
 
 import {IEvent} from '../entities/index'
 import {completeOptions} from '../utils/index';
+import {getBoundingClientRect} from '../utils/style';
 import {CanvasEvent} from '../events/event';
 import {ContentOptions,KeyBoardKeys} from './type';
 import {Model,createViewModel,Store,completeData} from '../render/index'
@@ -34,7 +35,15 @@ import {ContextMenu,ContextMenuData,registerContextMenu,unregisterContextMenu,Co
 //     return data;
 // }
 
-function calculateRectData(data:MoveEventData){
+function ignoreDrag(){
+    return false;
+}
+
+function fixVal(val:number,scale:number){
+    return Math.floor(val / scale)
+}
+
+function calculateRectData(data:MoveEventData,scale:number){
     if(data == null) return;
     const {x,y,originX,originY} = data;
     let startX,startY,width,height;
@@ -52,7 +61,7 @@ function calculateRectData(data:MoveEventData){
         startY = y;
         height = originY - y;
     }
-    return new OperationPos(startX,startY,width,height)
+    return new OperationPos(fixVal(startX,scale),fixVal(startY,scale),fixVal(width,scale),fixVal(height,scale))
 }
 
 export class Content implements IEvent{
@@ -72,11 +81,13 @@ export class Content implements IEvent{
     private _el:HTMLElement
     private _contextMenu:ContextMenu
     private _contextMenuItem:ContextMenuItem
+    private _scale:number
     constructor(private _parent:HTMLElement,_data:Model,private _guideManager:GuideManager,options:ContentOptions){
         this._options = completeOptions(options,{x:0,y:0});
         this._el = document.createElement('div');
         this._x = this._options.x;
         this._y = this._options.y;
+        this._scale = options.scale;
         this.setStyle();
         this._store = new Store({
             data:completeData(_data),
@@ -91,12 +102,14 @@ export class Content implements IEvent{
             style:{
                 width:'200px'
             },
-            el:_parent
+            el:options.eventEl
         }
         this._contextMenu = registerContextMenu(this._contextMenuItem)
         this.getRect = this.getRect.bind(this)
         this.isOperating = this.isOperating.bind(this)
         this.getRootViewModel = this.getRootViewModel.bind(this);
+        this.triggerUnselect = this.triggerUnselect.bind(this);
+        this.getScale = this.getScale.bind(this);
         this._store.subscribe((nextState:any)=>{
             this._viewModel.update(nextState.get('data'));
             this._operation.update();
@@ -111,11 +124,13 @@ export class Content implements IEvent{
             getContentRect:this.getRect
         });
         this.createWrapEl();
-        this._keyboard = new KeyBoard(_parent);
+        // this._keyboard = new KeyBoard(_parent);
+        this._keyboard = new KeyBoard(options.eventEl);
         this._keyboard.listen();
         this._operation = new Operation(this._el,this._mutation,this._guideManager,this._keyboard.createNameSpace('operation'),{
-            margin:this._options.margin,
+            // margin:this._options.margin,
             getRect:this.getRect,
+            scale:this._scale,
             updateMakers:this._options.updateMakers
         });
         this._mutation.setOperation(this._operation);
@@ -125,6 +140,7 @@ export class Content implements IEvent{
             mountNode:this._wrapEl,
             commander:this._commander,
             createView:this._options.createView,
+            getScale:this.getScale,
             addViewModel:this._operation.addViewModel,
             getViewModel:this._operation.getViewModel,
             removeViewModel:this._operation.removeViewModel,
@@ -151,34 +167,58 @@ export class Content implements IEvent{
         if(length === 0){
             return [
                 {
-                    label:'第一楼',
-                    callback:()=>{
-                        console.log('第一楼');
-                    }
-    
-                },
-                {
-                    label:'第二楼',
-                    callback:()=>{
-                        console.log('第二楼');
-                    }
+                    children:[
+                        {
+                            label:'第一楼',
+                            callback:()=>{
+                                console.log('第一楼');
+                            }
+            
+                        },
+                        {
+                            label:'第二楼',
+                            callback:()=>{
+                                console.log('第二楼');
+                            }
+                        }
+                    ]
                 }
             ];
-        }else if(length === 1){
+        }else if(length >= 1){
             return [
                 {
-                    label:'置顶'
-                },{
-                    label:'上移一层'
-                },{
-                    label:'下移一层'
-                },{
-                    label:'置底'
+                    children:[
+                        {
+                            label:'置顶',
+                            callback:()=>{
+                                this._mutation.moveUpest();
+                            }
+                        },{
+                            label:'上移一层',
+                            callback:()=>{
+                                this._mutation.moveUpOneStep();
+                            }
+                        },{
+                            label:'下移一层',
+                            callback:()=>{
+                                this._mutation.moveDownOneStep();
+                            }
+                        },{
+                            label:'置底',
+                            callback:()=>{
+                                this._mutation.moveDownest();
+                            }
+                        }
+                    ]
                 }
             ]
         }else{
 
         }
+    }
+    update(){
+        this.initRect();
+        // this._viewModel.recalculateRect();
     }
     isOperating(){
         return this._operation.isOperating
@@ -200,11 +240,17 @@ export class Content implements IEvent{
         this._pluginManager.uninstall(plugin);
     }
     destroy(){
+        const {eventEl} = this._options
         this._keyboard.destroy();
         this._pluginManager.destroy();
         this._mutation.destroy();
         unregisterContextMenu(this._contextMenuItem)
         this._contextMenu = null;
+        document.body.removeEventListener(CanvasEvent.DRAGSTART,ignoreDrag)
+        eventEl.removeEventListener(CanvasEvent.MOUSEDOWN,this.triggerUnselect)
+    }
+    triggerUnselect(){
+        this._commander.excute(COMMANDERS.UNSELECTED,null);
     }
     getRect(){
         return this._rect
@@ -219,20 +265,19 @@ export class Content implements IEvent{
         this._mutation.updateSelectVmsByPos(this._store.currentState.get('data'),this._viewModel,pos);
     }
     initRect(){
-        const rect = this._el.getBoundingClientRect()
+        // const rect = this._el.getBoundingClientRect()
+        const rect = getBoundingClientRect(this._el,this._scale);
         this._rect = new OperationPos(rect.left,rect.top,rect.width,rect.height);
     }
+    
     listen(){
         // const rect = this._el.getBoundingClientRect()
         // this._rect = new OperationPos(rect.left,rect.top,rect.width,rect.height); //必须紧接着下面代码
+        const {eventEl} = this._options
         this.initRect(); //必须紧接着下面代码
         this._viewModel.didMount();
-        document.body.addEventListener(CanvasEvent.MOUSEDOWN,()=>{
-            this._commander.excute(COMMANDERS.UNSELECTED,null);
-        })
-        document.body.addEventListener(CanvasEvent.DRAGSTART,()=>{
-            return false;
-        })
+        eventEl.addEventListener(CanvasEvent.MOUSEDOWN,this.triggerUnselect)
+        document.body.addEventListener(CanvasEvent.DRAGSTART,ignoreDrag)
         this._operation.listen();
         this._rectSelect.listen();
     }
@@ -256,7 +301,7 @@ export class Content implements IEvent{
         })
     }
     updateRectSelect(data:MoveEventData){
-        const pos = calculateRectData(data);
+        const pos = calculateRectData(data,this._scale);
         this._options.updateRectSelect(pos);
     }
     registerCommands(){
@@ -273,11 +318,20 @@ export class Content implements IEvent{
         _el.setAttribute('style',`outline:none !important;width:100%;height:100%;transform:matrix(1,0,0,1,${_x},${_y})`);
         // _el.setAttribute('style',`outline:none !important;width:100%;height:100%;transform:translate(${_x}px,${_y}px)`);
     }
+    getScale(){
+        return this._scale
+    }
+    changeScale(scale:number){
+        this._scale = scale;
+        this._operation.changeScale(scale);
+        this.update();
+    }
     changeTranslation(x:number,y:number){
         this._x = x;
         this._y = y;
         this.setStyle();
-        this.initRect();
+        // this.initRect();
+        this.update();
     }
     onMousewheel(deltaX:number,deltaY:number){
         // console.log('on mouse!! :',deltaX,deltaY,this._x,this._y);

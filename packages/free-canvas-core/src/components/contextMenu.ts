@@ -1,16 +1,17 @@
 
 import {completeOptions} from '../utils/index';
-import {CONTEXT_MEUNU,CONTEXT_MEUNU_ITEM} from '../utils/constant'
-import {ContextMenuOptions,ContextMenuData,ContextMenuItem} from './type'
+import {CONTEXT_MEUNU,CONTEXT_MEUNU_ITEM,CONTEXT_MEUNU_ITEM_SECTION} from '../utils/constant'
+import {ContextMenuData,ContextMenuItem} from './type'
 import {CanvasEvent} from 'free-canvas-shared'
-export {ContextMenuData,ContextMenuItem} from './type'
+import { ContextMenuDataItem } from '.';
+export {ContextMenuData,ContextMenuItem,ContextMenuDataItem} from './type'
 const DEFAULT_OPTIONS = {
 
 }
 
-// function stopPropagation(e:MouseEvent){
-//     e.stopPropagation()
-// }
+function stopPropagation(e:MouseEvent){
+    e.stopPropagation()
+}
 
 const MIN_DISTANCE = 20
 
@@ -21,7 +22,7 @@ function preventDefault(e:MouseEvent){
 function style2Str(style:CSSStyleDeclaration){
     let ret:string[] = []
     Object.keys(style).forEach((name:string)=>{
-        const newName = name.replace(/[A-Z]/g,(val)=>{console.log('val :',val); return `-${val.toLocaleLowerCase()}`})
+        const newName = name.replace(/[A-Z]/g,(val)=>{return `-${val.toLocaleLowerCase()}`})
         ret.push(`${newName}:${style[name as keyof CSSStyleDeclaration]}`)
     })
     return ret.join(';')
@@ -48,6 +49,7 @@ export class ContextMenu{
         //     position:'absolute'
         // } as CSSStyleDeclaration,style || {}))
         // innerDiv.setAttribute('style',styleStr);
+        innerDiv.addEventListener(CanvasEvent.MOUSEDOWN,stopPropagation);
         innerDiv.addEventListener(CanvasEvent.CLICK,this.hideMenu);
         innerDiv.addEventListener(CanvasEvent.CONTEXTMENU,preventDefault);
         _rootEl.addEventListener(CanvasEvent.CLICK,this.clearMenu);
@@ -80,6 +82,7 @@ export class ContextMenu{
         })
         _menuEl.removeEventListener(CanvasEvent.CLICK,this.hideMenu);
         _menuEl.removeEventListener(CanvasEvent.CONTEXTMENU,preventDefault);
+        _menuEl.removeEventListener(CanvasEvent.MOUSEDOWN,stopPropagation);
         // document.body.removeEventListener(CanvasEvent.CLICK,this.clearMenu)
         _rootEl.removeEventListener(CanvasEvent.CLICK,this.clearMenu)
         _rootEl.removeEventListener(CanvasEvent.BLUR,this.clearMenu);
@@ -95,10 +98,17 @@ export class ContextMenu{
             top:`${y}px`
         } as CSSStyleDeclaration,_activeItem.style || {}))
         _menuEl.setAttribute('style',styleStr);
-        _menuEl.innerHTML = data.map((item,index)=>{
-            return `<div class="${CONTEXT_MEUNU_ITEM}" data-index="${index}">
-                ${item.label}
+        _menuEl.innerHTML = data.map((items,gindex)=>{
+            return `<div class="${CONTEXT_MEUNU_ITEM_SECTION}">
+                ${
+                    items.children && items.children.map((item,index)=>{
+                        return `<div class="${CONTEXT_MEUNU_ITEM}" data-index="${index}" data-gindex="${gindex}">
+                            ${item.label}
+                        </div>`
+                    }).join('')
+                }
             </div>`
+            
         }).join('')
         const {right,bottom,width} = _menuEl.getBoundingClientRect()
         const doEl = document.documentElement
@@ -125,7 +135,7 @@ export class ContextMenu{
         this._menuEl.style.visibility = 'none'
         if(!this._isShow){
             // document.body.appendChild(this._maskEl);
-            document.body.appendChild(this._menuEl);
+            this._rootEl.appendChild(this._menuEl);
         }
         this._activeItem = item;
         this._isShow = true;
@@ -137,7 +147,7 @@ export class ContextMenu{
         // console.log('showMenu !');
         this.render(x,y,menuData);
     }
-    onClickMenuItem(data:ContextMenuData){
+    onClickMenuItem(data:ContextMenuDataItem){
         if(data && data.callback){
             return data.callback(data);
         }
@@ -145,12 +155,16 @@ export class ContextMenu{
     hideMenu(e:MouseEvent){
         const {target} = e
         e.stopPropagation();
-        //@ts-ignore
-        const itemIndex = target.dataset.index;
-        if(itemIndex != null && this._menuData){
-            const ret = this.onClickMenuItem(this._menuData[itemIndex])
-            if(ret){
-                return
+        const dataset = (target as HTMLElement).dataset;
+        const itemIndex = parseInt(dataset.index);
+        const itemGIndex = parseInt(dataset.gindex);
+        if(itemIndex != null && itemGIndex != null && this._menuData){
+            const group = this._menuData[itemGIndex];
+            if(group != null && group.children != null){
+                const ret = this.onClickMenuItem(group.children[itemIndex])
+                if(ret){
+                    return
+                }
             }
         }
         this.clearMenu()
@@ -166,14 +180,13 @@ export class ContextMenu{
         // console.log('_isShow :',this._isShow);
         this._isShow = false;
         // document.body.removeChild(this._maskEl);
-        document.body.removeChild(this._menuEl);
+        this._rootEl.removeChild(this._menuEl);
     }
 }
 
 let GlobalContextMenu:ContextMenu
 
 export function initGlobalContextMenu(el:HTMLElement){
-    console.log('el :',el);
     GlobalContextMenu = new ContextMenu(el)
 }
 

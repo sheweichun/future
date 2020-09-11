@@ -2,7 +2,7 @@
 import {CanvasEvent} from 'free-canvas-shared';
 import {ARTBOARD_HORIZONTAL_GUIDE,ARTBOARD_VERTICAL_GUIDE} from '../../utils/constant';
 import {completeOptions} from '../../utils/index'
-import {registerContextMenu,unregisterContextMenu,ContextMenuData, ContextMenuItem, ContextMenu} from '../../components/index'
+import {registerContextMenu,unregisterContextMenu,ContextMenuData, ContextMenuItem, ContextMenu,ContextMenuDataItem} from '../../components/index'
 import {GuideOptions} from './type';
 
 
@@ -130,7 +130,7 @@ export abstract class Guide{
             curGuide.style.display = 'none'
         }
         // this._canvasLeave = false;
-        const menuList:ContextMenuData[] = [
+        const menuList:ContextMenuDataItem[] = [
             {
                 label:'移除所有参考线',
                 callback:this.removeAllGuides
@@ -142,7 +142,11 @@ export abstract class Guide{
                 callback:this.removeGuideFromList.bind(this,target)
             })
         }
-        return menuList
+        return [
+            {
+                children:menuList
+            }
+        ]
     }
     hideMenu(){
         const {curGuide,_contextMenuGuide}  = this;

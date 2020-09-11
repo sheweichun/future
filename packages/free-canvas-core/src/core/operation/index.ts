@@ -11,12 +11,12 @@ import {Size} from './size';
 import { OperationPos,calculateIncludeRect } from './pos';
 import MakerAssist from './makerAssist'
 import {GuideManager} from '../guide/index'
-import {calculateLatestVm,transformCalculateItem2MarkerData, transformAliItem2MarkerData} from './service'
+// import {calculateLatestVm,transformCalculateItem2MarkerData, transformAliItem2MarkerData} from './service'
 import { KeyBoard } from '../keyboard';
 const {encode} = Utils
 // import { ViewModel } from 'src/render';
 const DEFAULT_OPTIONS = {
-    margin:10
+    // margin:10
 }
 const MIN_MOVE_DISTANCE = 2;
 
@@ -134,10 +134,12 @@ export class Operation implements IDisposable,IOperation{
     private _hideMakerTmId:NodeJS.Timeout
     private _showMakerTmId:NodeJS.Timeout
     private _rootViewModel:IViewModel;
+    private _scale:number;
     // private _makerAssist:MakerAssist;
     private _makerAssistList:MakerAssist[] = [];
     constructor(private _parent:HTMLElement,private _mutation:Mutation,private _guideManager:GuideManager,private _keyboard:KeyBoard,options:OperationOptions){
         this._options = completeOptions(options,DEFAULT_OPTIONS);
+        this._scale = options.scale;
         const div  = document.createElement('div');
         div.style.display = 'none';
         div.className = OPERATION_CLASSNAME
@@ -146,6 +148,7 @@ export class Operation implements IDisposable,IOperation{
         this.addViewModel = this.addViewModel.bind(this)
         this.removeViewModel = this.removeViewModel.bind(this)
         this.updateViewModel = this.updateViewModel.bind(this)
+        this._getScale = this._getScale.bind(this)
         this.getArtboards = this.getArtboards.bind(this)
         this.getViewModel = this.getViewModel.bind(this)
         this.onMouseDown = this.onMouseDown.bind(this)
@@ -169,6 +172,9 @@ export class Operation implements IDisposable,IOperation{
             this._onSelectEnd) //todo 需要感知点击的坐标，保证蒙层可以在点击之后能够移动，实现不够优雅，待优化
 
         // this.onSizeStart = this.onSizeStart.bind(this)
+    }
+    changeScale(scale:number){
+        this._scale = scale;
     }
     // createMakerAssist(){
     //     const makerViewModels:IViewModel[] = []
@@ -282,6 +288,9 @@ export class Operation implements IDisposable,IOperation{
             moveY:findMiniestMoveDistance(...moveYList)
         }
     }
+    _fixData(val:number){
+        return Math.floor(val / this._scale);
+    }
     _onSelectMove(data:{x:number,y:number}){
         if(data == null || this._pos == null) return;
         const {x,y} = data;
@@ -292,8 +301,8 @@ export class Operation implements IDisposable,IOperation{
         this._size && this._size.hide();
         // pos.left += diffx;
         // pos.top += diffy;
-        let oriDiffx = x - this._originX;
-        let oriDiffy = y - this._originY;
+        let oriDiffx = this._fixData(x - this._originX);
+        let oriDiffy = this._fixData(y - this._originY);
         
         const calPos = this._pos.clone();
         calPos.changeLeftAndTop(oriDiffx,oriDiffy,false);
@@ -302,6 +311,8 @@ export class Operation implements IDisposable,IOperation{
         oriDiffx += moveX
         oriDiffy += moveY
 
+        // this._startX = x;
+        // this._startY = y;
         this._startX = this._originX + oriDiffx;
         this._startY = this._originY + oriDiffy;
         this._pos.changeLeftAndTop(oriDiffx,oriDiffy);
@@ -486,6 +497,7 @@ export class Operation implements IDisposable,IOperation{
                 onMove:this.onSizeMove,
                 onChange:this.onSizeChange,
                 onStartMove:this.onSizeStartMove,
+                getScale:this._getScale,
                 noNeedOperation:isArtboard
                 // onStart:this.onSizeStart
             });
@@ -496,7 +508,9 @@ export class Operation implements IDisposable,IOperation{
     eachSelect(fn:(vm:IViewModel)=>void){
         this._selectViewModels.forEach(fn);
     }
-    
+    _getScale(){
+        return this._scale
+    }
     setStyle(){
         const pos = this._pos;
         this._root.setAttribute('style',`display:block;left:${pos.left}px;top:${pos.top}px;width:${pos.width}px;height:${pos.height}px`)

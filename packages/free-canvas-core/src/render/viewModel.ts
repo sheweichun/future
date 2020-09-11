@@ -2,7 +2,8 @@
 // import {ViewAttribute} from './type';
 import {baseModel2Model,ModelType,modelIsRoot, modelIsArtboard} from 'free-canvas-shared'
 import {BaseModel,WrapData,isEqual} from './index'
-import {Model} from './model';
+// import {Model} from './model';
+
 import {Movable,ArtBoardMovable} from './movable';
 import {IViewModel,IViewModelCollection,ViewModelOptions, IMovable} from './type'
 import { OperationPos } from '../core/operation/pos';
@@ -105,6 +106,7 @@ export class ViewModel implements IViewModel{
         this.view = new MovableClass(baseModel2Model(model),Object.assign({},_options || {},{
             modelType:this.modelType,
             isOperating:this._options.isOperating,
+            getScale:_options.getScale,
             // id:model._keyPath,
             vm:this,
             isChild:_parent != null && !modelIsRoot(_parent.modelType) && !modelIsArtboard(_parent.modelType),
@@ -196,9 +198,10 @@ export class ViewModel implements IViewModel{
             }
         }
     }
-    
-    updateRect(){ //更新当前viewModel 是相对画布的坐标 todo 当isGroup的时候需要动态更新
-        const pos = this._options.getRect();
+    recalculateRect(){ //更新当前viewModel 是相对画布的坐标 todo 当isGroup的时候需要动态更新
+        const {getRect} = this._options
+        // const scale = getScale();
+        const pos = getRect();
         const cur = this.view.getBoundingClientRect();
         this._rect = new OperationPos(fixData(cur.left - pos.left),fixData(cur.top - pos.top),fixData(cur.width),fixData(cur.height),(rect)=>{
             this.view.updatePosAndSize(this.getRelativeRect(rect)) //当更新的时候需要还原到父容器下的相对坐标
@@ -284,7 +287,7 @@ export class ViewModel implements IViewModel{
     // }
     getRect(){ //相对rect
         if(this._rect == null) {
-            this.updateRect();
+            this.recalculateRect();
         }
         return this._rect
     }
@@ -323,13 +326,13 @@ export class ViewModel implements IViewModel{
         this.view.onDidUpdate();
         this.children && this.children.didUpdate();
         // console.log(`【${this.model.get('id',null)}】updated!`);
-        this.updateRect();
+        this.recalculateRect();
         // this._rect = this.view.getRect();
     }
     onDidMount(){
         this.view.onDidMount();
         // console.log(`【${this.model.get('id',null)}】mounted!`);
-        this.updateRect();
+        this.recalculateRect();
         // ViewModel.updateChildrenPosAndSize(this);
     }
     remove(){  //销毁

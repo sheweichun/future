@@ -1,4 +1,4 @@
-import {ObjectStyleDeclaration} from './type';
+import {ObjectStyleDeclaration,DOMRect} from './type';
 
 
 export function setStyle(el:HTMLElement,style:ObjectStyleDeclaration){
@@ -29,4 +29,15 @@ export function createStyle(val:string){
     var head = document.getElementsByTagName("head")[0];
 
     head.appendChild(style);
+}
+
+
+export function getBoundingClientRect(el:HTMLElement,scale:number):DOMRect{
+    const {left,top,width,height} = el.getBoundingClientRect();
+    return {
+        left:Math.floor(left / scale),
+        top:Math.floor(top / scale),
+        width:Math.floor(width / scale),
+        height:Math.floor(height / scale),
+    }
 }

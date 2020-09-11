@@ -1,14 +1,13 @@
 import {COMMANDERS,Utils,IView,modelIsRoot, ModelType, modelIsArtboard} from 'free-canvas-shared';
 import {CanvasEvent} from '../events/event';
 import {ObjectStyleDeclaration} from '../utils/type';
-import {setStyle} from '../utils/style';
+import {setStyle,getBoundingClientRect} from '../utils/style';
 import {completeOptions} from '../utils/index';
 import {MovableOptions,OnPositionChange,IMovable} from './type';
 import {FragmentView,createView} from './view';
 import {Model} from './model';
 import {OperationPos} from '../core/operation/pos'
 import {MOVABLE_CLASSNAME,MOVABLE_HANDLER_CLASSNAME,styleSizeHoverColor,styleSizeColor} from '../utils/constant'
-
 type OnMouseMoveCallback = (e:MouseEvent)=>void
 const DEFAULT_OPTIONS = {
 
@@ -132,7 +131,8 @@ export class Movable implements IMovable{
         this.updateRect();
     }
     updateRect(){
-        const rect = this.el.getBoundingClientRect()
+        // const rect = this.el.getBoundingClientRect()
+        const rect = getBoundingClientRect(this.el,this._options.getScale());
         this.elRect = new OperationPos(rect.left,rect.top,rect.width,rect.height);
     }
     getBoundingClientRect(){
