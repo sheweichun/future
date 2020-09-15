@@ -22,16 +22,13 @@ export interface RectSelectOption{
     updateRectSelect:(data?:MoveEventData)=>void
 }
 
-export interface OperationOptions{
-    margin:number,
-    updateMakers:(data?:MakerData[])=>void
-}
 
 export interface ICanvas{
     context:CanvasRenderingContext2D;
     width:number;
     height:number;
     resize():void;
+    getRadio():number;
     getLineWidth():number;
     getLineOffset():number;
 }
@@ -68,6 +65,8 @@ export interface IDisposable{
 export interface OperationSizeOptions{
     onMove:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
     onChange:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
+    onStartMove:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
+    getScale:()=>number
     noNeedOperation?:boolean
     // onStart:()=>void
 }
@@ -91,10 +90,12 @@ export interface ContentOptions{
     updateRectSelect:(data?:OperationPos)=>void
     // wheelSpeedX:number,
     // wheelSpeedY:number,
-    margin:number,
-    createView?:CreateView
-    x?:number,
-    y?:number
+    // margin:number,
+    createView?:CreateView,
+    eventEl:HTMLElement
+    scale:number,
+    // x?:number,
+    // y?:number
 }
 
 export interface HanlerItemOption extends OperationSizeOptions{

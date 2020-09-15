@@ -5,6 +5,11 @@ export interface RulerGroupOptions{
     rulerBackgroundColor?:string
     length:number,
     baseX:number,
+    unit:number,
+    scale:number,
+    centerX:number,
+    centerY:number,
+    // unitPerPX:number,
     baseY:number,
     // wheelSpeedX:number,
     // wheelSpeedY:number
@@ -26,14 +31,27 @@ export interface GuideOptions extends LabelOptions{
 }
 
 
-export interface ContextMenuData {
+export interface ContextMenuDataItem {
     icon?:string,
     label:string,
-    callback?:(data?:ContextMenuData)=>void
+    callback?:(data?:ContextMenuDataItem)=>boolean | void
+}
+
+export interface ContextMenuData{
+    children:ContextMenuDataItem[]
 }
 
 export interface ContextMenuOptions{
     getMenuData:(e:MouseEvent)=>ContextMenuData[]
-    onHide:(e?:MouseEvent)=>void
+    onHide?:(e?:MouseEvent)=>void
+    style?:Partial<CSSStyleDeclaration>
+}
+
+export interface ContextMenuItem{
+    getMenuData:(e:MouseEvent)=>ContextMenuData[]
+    onContextMenu?:(e:MouseEvent)=>void
+    onHide?:(e?:MouseEvent)=>void
+    style?:Partial<CSSStyleDeclaration>
+    el:HTMLElement
 }
 

@@ -3,16 +3,20 @@ export interface LineOption{
     lineDash?:number[]
 }
 
-export interface LineMarkOption extends LineOption{
-    size?:number,
-    val:string,
+
+export interface FontOption{
     fontStyle?:string
     fontWeight?:string
+    fontSize?:number
+    fontFamily?:string
+}
+
+export interface LineMarkOption extends LineOption,FontOption{
+    size?:number,
+    val:string,
     padding?:number
     margin?:number
     radius?:number
-    fontSize?:number
-    fontFamily?:string
     color?:string
 }
 
@@ -21,6 +25,19 @@ export interface RectOption{
     // height:number,
     // x:number,
     // y:number
+    lineWidth?:number
+    background?:string
+    color?:string
+}
+
+
+export interface RectMakerOption extends RectOption,FontOption{
+    // width:number
+    // height:number,
+    // x:number,
+    // y:number
+    intervalLen?:number
+    isVertical?:boolean
     lineWidth?:number
     background?:string
     color?:string

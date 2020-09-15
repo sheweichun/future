@@ -12,6 +12,7 @@ import {
     BACKGROUND_4_VAR,
     BACKGROUND_5_VAR,
     HIGHLIGHT_BACKGROUND_VAR,
+    CANVAS_MASK_BACKGROUND_VAR,
     HEAD_HEIGHT,
     ASIDE_WIDTH,
     PANEL_WIDTH,
@@ -23,7 +24,9 @@ import {
     PADDING_6_VAR,
     PADDING_7_VAR,
     PADDING_8_VAR,
-    PADDING_9_VAR
+    PADDING_9_VAR,
+    HIGHTLIGHT_TEXT_COLOR_VAR,
+    LINE_1_VAR
 } from './constant'
 
 // export const TEXT_COLOR = '#83868E'
@@ -39,6 +42,7 @@ export default {
     [TEXT_COLOR_VAR]:'#83868E',
     [ACTIVE_TEXT_COLOR_VAR]:'#EFEFF0',
     [HIGHTLIGHT_COLOR_VAR]:'#ffb364',
+    [HIGHTLIGHT_TEXT_COLOR_VAR]:'#4e4f50',
 
     [BACKGROUND_0_VAR]:'#090a0a',
     [BACKGROUND_1_VAR]:'#1A2233',
@@ -47,6 +51,7 @@ export default {
     [BACKGROUND_4_VAR]:'#333B4E',
     [BACKGROUND_5_VAR]:'#525252',
     [HIGHLIGHT_BACKGROUND_VAR]:'#ffb364',
+    [CANVAS_MASK_BACKGROUND_VAR]:'#ff3db136',
     // [TEXT_COLOR_VAR]:'#83868E',
     // [ACTIVE_TEXT_COLOR_VAR]:'#EFEFF0',
     // [BACKGROUND_1_VAR]:'#ffffff',
@@ -66,4 +71,6 @@ export default {
     [PADDING_7_VAR]:'28px',
     [PADDING_8_VAR]:'32px',
     [PADDING_9_VAR]:'36px',
+
+    [LINE_1_VAR]:'#3D7FFF',
 }

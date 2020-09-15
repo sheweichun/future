@@ -2,9 +2,10 @@
 // import {ViewAttribute} from './type';
 import {baseModel2Model,ModelType,modelIsRoot, modelIsArtboard} from 'free-canvas-shared'
 import {BaseModel,WrapData,isEqual} from './index'
-import {Model} from './model';
+// import {Model} from './model';
+
 import {Movable,ArtBoardMovable} from './movable';
-import {IViewModel,IViewModelCollection,ViewModelOptions} from './type'
+import {IViewModel,IViewModelCollection,ViewModelOptions, IMovable} from './type'
 import { OperationPos } from '../core/operation/pos';
 
 // const MINI_NUMBER = 0.0000000001
@@ -16,9 +17,8 @@ import { OperationPos } from '../core/operation/pos';
 function fixData(val:number){
     return Math.floor(val);
 }
-
 export class ViewModelCollection implements IViewModelCollection{
-    viewModelList:ViewModel[]
+    viewModelList:IViewModel[]
     constructor(private _parent:ViewModel,private _models:BaseModel,private _options:ViewModelOptions){
         
         const viewModels:any[] = []
@@ -33,6 +33,9 @@ export class ViewModelCollection implements IViewModelCollection{
         this.viewModelList.forEach((vm)=>{
             vm.onDidUpdate();
         })
+    }
+    appendViewModel(vm:IViewModel){
+        this.viewModelList.push(vm)
     }
     didMount(){
         this.viewModelList.forEach((vm)=>{
@@ -50,6 +53,13 @@ export class ViewModelCollection implements IViewModelCollection{
             const newModel = newModels.get(modelIndex);
             if(newModel){
                 const prevModel = item.getModel();
+                // if(newModel.get('id',null) === '113'){
+                //     count++;
+                //     console.log('id ==> ',prevModel.get('id',null),newModel.get('id',null));
+                //     if(count === 3){
+                //         debugger;
+                //     }
+                // }
                 if(prevModel.get('id',null) !== newModel.get('id',null)){ //当次数据按照顺序复用原来ID一致的数据，确保顺序一致
                     // console.log('id ==> ',prevModel.get('id',null),newModel.get('id',null));
                     item.remove();
@@ -84,26 +94,46 @@ export class ViewModel implements IViewModel{
     view:Movable
     _rect:OperationPos
     modelType:ModelType
+    _initialParent:IViewModel
     // isRoot:boolean
     // isGroup:boolean
-    constructor(public model:BaseModel,private _parent:ViewModel,private _options:ViewModelOptions){
+    constructor(public model:BaseModel,private _parent:IViewModel,private _options:ViewModelOptions){
         // this.isRoot = model.get('isRoot',false)
         // this.isGroup = model.get('isGroup',false);
         this.modelType = model.get('type',null);
+        this._initialParent = _parent;
         const MovableClass = modelIsArtboard(this.modelType) ? ArtBoardMovable : Movable
         this.view = new MovableClass(baseModel2Model(model),Object.assign({},_options || {},{
             modelType:this.modelType,
-            id:model._keyPath,
+            isOperating:this._options.isOperating,
+            getScale:_options.getScale,
+            // id:model._keyPath,
             vm:this,
             isChild:_parent != null && !modelIsRoot(_parent.modelType) && !modelIsArtboard(_parent.modelType),
             excute:this.excute.bind(this)
         }))
+        let childOption = this._options;
+        if(modelIsArtboard(this.modelType)){
+            childOption = Object.assign({},this._options,{
+                artboardId:model.get('id',null)
+            })
+        }
         //@ts-ignore
-        this.children = createViewModels(this,this.getModel().get('children'),this._options);
+        this.children = createViewModels(this,this.getModel().get('children'),childOption);
 
         _parent && _parent.appendChild(this)
         this.view.mount();
         this._options.addViewModel(this);
+    }
+    changeParent(parent:IViewModel){
+        if(parent == null || parent.children == null) return;
+        this._parent = parent;
+        parent.children.viewModelList.push(this);
+        this.view.updatePosAndSize(this.getRelativeRect(this._rect)) //当更改父容器的时候需要还原到新父容器下的相对坐标
+        parent.appendChild(this);
+        this.view.updateIsChild(
+            parent != null && !modelIsRoot(parent.modelType) && !modelIsArtboard(parent.modelType)
+        )
     }
     didMount(){
         this.children && this.children.didMount();
@@ -121,19 +151,6 @@ export class ViewModel implements IViewModel{
     getView(){
         return this.view;
     }
-    // static _getViewModelByXY(x:number,y:number,vm:IViewModel):IViewModel{
-    //     const children = vm.children;
-    //     if(children == null) return;
-    //     const {viewModelList} = children
-    //     for(let i = 0; i < viewModelList.length ; i++){
-    //         const cvm = viewModelList[i];
-    //         if(cvm.getRect().include(x,y)){
-    //             return cvm
-    //         }else{
-                
-    //         }
-    //     }
-    // }
     getViewModelByXY(x:number,y:number):IViewModel{
         const {left,top} = this._options.getRect();
         const curLeft = x - left,curTop = y - top;
@@ -155,6 +172,9 @@ export class ViewModel implements IViewModel{
     getParent(){
         return this._parent;
     }
+    getInitialParent(){
+        return this._initialParent
+    }
     getTypeParent(type:ModelType):IViewModel{
         const {_parent} = this;
         if(_parent == null) return;
@@ -166,55 +186,27 @@ export class ViewModel implements IViewModel{
         if(_parent == vm) return true;
         return _parent.isChildren(vm);
     }
-    // isInside(vm:IViewModel):boolean{
-    //     const {left:curLeft,top:curTop} = this._rect;
-    //     const {left,top,width,height} = vm.getRect();
-    //     return (curLeft > left && curLeft < left + width && curTop > top && curTop < top + height);
-    // }
-    // moveLeft(diffx:number):void{
-    //     const {_rect} = this;
-    //     _rect.left += diffx;
-    //     _rect.width -= diffx;
-    //     this.view.updatePosAndSize(_rect)
-    // }
-    // moveTop(diffy:number):void{
-
-    // }
-    // moveRight(diffx:number):void{
-
-    // }
-    // moveBottom(diffy:number):void{
-
-    // }
-    // canMove(){
-    //     return this.view.canMove
-    // }
-    // disableMove(){
-    //     this.view.canMove = false;
-    // }
-    // onPostionChange(left:number,top:number){
-    //     const model = this.model;
-    //     model.updateIn(['extra','position'],null,()=>{
-    //         return WrapData({
-    //             left,
-    //             top
-    //         })
-    //     })
-    // }
-    // onFocus(){
-    //     this.model.updateIn(['extra','isSelect'],null,()=>{
-    //         return true
-    //     })
-    // }
-    // onBlur(){
-    //     this.model.updateIn(['extra','isSelect'],null,()=>{
-    //         return false
-    //     })
-    // }
-    updateRect(){ //更新当前viewModel 是相对画布的坐标 todo 当isGroup的时候需要动态更新
-        const pos = this._options.getRect();
+    removeChildViewModel(vm:IViewModel){
+        const {children} = this;
+        if(children == null) return;
+        const {viewModelList} = children;
+        for(let i = 0 ; i < viewModelList.length; i++){
+            const curVm = viewModelList[i];
+            if(curVm === vm){
+                viewModelList.splice(i,1);
+                vm.separate()
+            }
+        }
+    }
+    recalculateRect(){ //更新当前viewModel 是相对画布的坐标 todo 当isGroup的时候需要动态更新
+        const {getRect} = this._options
+        // const scale = getScale();
+        const pos = getRect();
         const cur = this.view.getBoundingClientRect();
-        this._rect = new OperationPos(fixData(cur.left - pos.left),fixData(cur.top - pos.top),fixData(cur.width),fixData(cur.height),(rect)=>{
+        // this._rect = new OperationPos(fixData(cur.left - pos.left),fixData(cur.top - pos.top),fixData(cur.width),fixData(cur.height),(rect)=>{
+        //     this.view.updatePosAndSize(this.getRelativeRect(rect)) //当更新的时候需要还原到父容器下的相对坐标
+        // })
+        this._rect = new OperationPos((cur.left - pos.left),(cur.top - pos.top),(cur.width),(cur.height),(rect)=>{
             this.view.updatePosAndSize(this.getRelativeRect(rect)) //当更新的时候需要还原到父容器下的相对坐标
         })
     }
@@ -247,9 +239,48 @@ export class ViewModel implements IViewModel{
         })
         // vm.setRect(newRect);
     }
-    changePosition(diffx:number,diffy:number){
-        this._rect.moveLeftAndTop(diffx,diffy);
-        // this.view.move(diffx,diffy);
+    changeArtboardId(artboardId:string){
+        this._options.artboardId = artboardId;
+        if(this.children){
+            this.children.viewModelList.forEach((vm)=>{
+                vm.changeArtboardId(artboardId);
+            })
+        }
+    }
+    getArtboard():IViewModel{
+        const {artboardId,getViewModel} = this._options
+        if(artboardId == null) return null;
+        return getViewModel(artboardId)
+    }
+    changePosition(diffx:number,diffy:number):boolean{ //todo 由于在实际拖动以及最终释放之后是分别计算转换逻辑的，需要确保最终行为一致性
+        // console.log('parent :',this._parent.modelType,this._initialParent.modelType,this._parent === this._initialParent);
+        const {artboardId,getViewModel,getArtboards,getRootViewModel} = this._options
+        this._rect.changeLeftAndTop(diffx,diffy);
+        if(modelIsArtboard(this.modelType)) return; //如果是画板就不需要走下面的逻辑
+        if(artboardId != null){
+            const artboard = getViewModel(artboardId);
+            if(artboard == null) return
+            const isOverlap = artboard.getRect().isOverlap(this._rect)
+            if(!isOverlap){ //移动到顶层
+                this._parent.removeChildViewModel(this);
+                this.changeParent(getRootViewModel());
+                this.changeArtboardId(null);
+                return true;
+                //todo 添加到顶层
+            }
+            return false;
+        }
+        const allArtboards = getArtboards({[artboardId]:true});
+        for(let i = 0 ; i < allArtboards.length; i++){
+            const curArtboard = allArtboards[i];
+            if(curArtboard.getRect().isOverlap(this._rect)){ //移动到对应的artboard里面
+                this._parent.removeChildViewModel(this);
+                this.changeParent(curArtboard);
+                this.changeArtboardId(curArtboard.getModel().get('id',null));
+                return true;
+            }
+        }
+        return false;
     }
     // updateRectByWheel(scrollX:number,scrollY:number){
     //     this._rect.moveLeftAndTop(scrollX,scrollY,true);
@@ -259,7 +290,7 @@ export class ViewModel implements IViewModel{
     // }
     getRect(){ //相对rect
         if(this._rect == null) {
-            this.updateRect();
+            this.recalculateRect();
         }
         return this._rect
     }
@@ -298,32 +329,29 @@ export class ViewModel implements IViewModel{
         this.view.onDidUpdate();
         this.children && this.children.didUpdate();
         // console.log(`【${this.model.get('id',null)}】updated!`);
-        this.updateRect();
+        this.recalculateRect();
         // this._rect = this.view.getRect();
     }
     onDidMount(){
         this.view.onDidMount();
         // console.log(`【${this.model.get('id',null)}】mounted!`);
-        this.updateRect();
+        this.recalculateRect();
         // ViewModel.updateChildrenPosAndSize(this);
     }
-     
-    // static updateChildrenPosAndSize(vm:IViewModel){
-    //     const parent = vm.getParent();
-    //     if(parent == null || parent.isRoot) return;
-    //     const {width,height} = parent.getRect();
-        
-    // }
     remove(){  //销毁
         if(this._parent == null) return;
-        // this._parent.view.removeChild(this.view);
-        this.view.removeFrom(this._parent.view);
+        this.view.removeFrom(this._parent.getView());
         this._options.removeViewModel(this);
+    }
+    separate(){
+        if(this._parent == null) return;
+        this.view.separate(this._parent.getView());
     }
     getModel(){
         return this.model;
     }
     update(model:BaseModel){
+        this._initialParent = this._parent;
         if(model == null) {
             this.remove();
             return;

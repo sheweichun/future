@@ -2,7 +2,6 @@
 const path = require('path');
 const ExtractTextPlugin = require('mini-css-extract-plugin');
 exports.getCssLoader = function(isProd,noModel){
-  console.log('noModel :',!noModel);
     const ret = [{
         loader: 'css-loader',
         options: {

@@ -9,7 +9,7 @@ const DEFAULT_OPTION = {
     fontStyle:'normal',
     fontWeight:'normal',
     fontFamily:'sans-serif',
-    padding:5,
+    padding:2,
     color:`var(--${themeConst.TEXT_COLOR_VAR})`
 }
 
@@ -24,7 +24,7 @@ class VLabel extends Line{
         const {start,end,_options} = this;
         const {fontSize,fontStyle,color,fontFamily,fontWeight,value,padding} = _options as LabelOptions;
         const {context} = drawer;
-        const textX = start.x - padding * 2,textY = end.y - padding
+        const textX = start.x + padding * 2,textY = end.y - padding
         super.draw(drawer);
         context.save();
         context.translate(textX,textY);

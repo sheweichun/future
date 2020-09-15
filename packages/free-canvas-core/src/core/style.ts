@@ -5,6 +5,7 @@ import {
     styleSizeSize,
     styleSizeColor,
     CONTAINER,
+    WRAPPER,
     DRAG_OVER,
     MOVABLE_HANDLER_CLASSNAME,
     REFRESH_BUTTON_CLASSNAME,
@@ -12,6 +13,7 @@ import {
     ARTBOARD_VERTICAL_GUIDE,
     CONTEXT_MEUNU,
     CONTEXT_MEUNU_ITEM,
+    CONTEXT_MEUNU_ITEM_SECTION,
     styleSizeHoverColor
 } from '../utils/constant'
 
@@ -25,6 +27,7 @@ export default `
         height:100vh;
         margin:0;
         font-size:12px;
+        overflow: hidden;
     }
     @font-face {
         font-family: 'iconfont';  /* project id 1991465 */
@@ -63,9 +66,13 @@ export default `
     .${CONTAINER}{
         width:100%;
         height:100%;
-        position:absolute;
-        background-color:#F9F9F9;
-        overflow: hidden;
+    }
+    .${WRAPPER}{
+        width:100%;
+        height:100%;
+    }
+    .${WRAPPER}:focus{
+        outline:none;
     }
     .${MOVABLE_CLASSNAME}{
         box-sizing:border-box;
@@ -110,23 +117,33 @@ export default `
         color:#EB5648;
     }
     .${CONTEXT_MEUNU}{
-        box-shadow: rgba(39, 54, 78, 0.08) 0px 2px 10px 0px, rgba(39, 54, 78, 0.1) 0px 12px 40px 0px;
+
+        box-shadow: rgb(8 8 8 / 44%) 0px 4px 6px 1px;
         z-index: 999;
-        background: rgb(255, 255, 255);
+        background: var(--BACKGROUND_3);
+        border-radius:4px;
+        overflow:hidden;
+        padding:0 0;
+    }
+    .${CONTEXT_MEUNU_ITEM_SECTION}{
+        border-bottom:1px solid #737373;
+        padding:4px 0;
+    }
+    .${CONTEXT_MEUNU_ITEM_SECTION}:last-child{
+        border-bottom:0;
     }
     .${CONTEXT_MEUNU_ITEM}{
-        color: rgb(65, 80, 88);
+        color: var(--ACTIVE_TEXT_COLOR);
         width: 100%;
-        height: 26px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0px 12px;
+        padding: 6px 12px;
     }
     .${CONTEXT_MEUNU_ITEM}:hover{
         cursor: pointer;
-        color: rgb(41, 141, 248);
-        background: rgb(242, 242, 242);
+        color:var(--HIGHTLIGHT_TEXT_COLOR);
+        background: var(--HIGHTLIGHT_COLOR);
     }
 
     .${MOVABLE_HANDLER_CLASSNAME}{
@@ -145,3 +162,5 @@ export default `
         color: rgb(41, 141, 248);
     }
 `
+
+        //box-shadow: rgba(39, 54, 78, 0.08) 0px 2px 10px 0px, rgba(39, 54, 78, 0.1) 0px 12px 40px 0px;

@@ -8,9 +8,16 @@ import {Editor,EditorComponents} from './editor/index'
 // import {Market} from './market/index'
 // import {Header} from './header/index'
 
-function preventDragOver(e:DragEvent){
+function preventDefault(e:DragEvent){
     e.preventDefault();
 }
+
+
+// function preventWheel(e:MouseEvent){
+//     e.preventDefault()
+//     e.stopPropagation();
+// }
+
 export interface SetupOptions{
     runTask(plugin:IPlugin):void
 }
@@ -25,7 +32,8 @@ export * from './panel/index'
 export * from './tree/index'
 export * from './aside/index'
 export function setup(mountNode:HTMLElement,components:EditorComponents,opt:SetupOptions){
-    document.body.addEventListener(CanvasEvent.DRAGOVER,preventDragOver)
+    document.body.addEventListener(CanvasEvent.DRAGOVER,preventDefault)
+    mountNode.addEventListener(CanvasEvent.MOUSEWHEEL,preventDefault)
     ReactDOM.render(
         <GlobalContext.Provider value={GlobalContextValue}>
             <Editor
@@ -34,4 +42,9 @@ export function setup(mountNode:HTMLElement,components:EditorComponents,opt:Setu
             ></Editor>
         </GlobalContext.Provider>
     ,mountNode)
+    return function(){
+        document.body.removeEventListener(CanvasEvent.DRAGOVER,preventDefault)
+        mountNode.removeEventListener(CanvasEvent.MOUSEWHEEL,preventDefault)
+        ReactDOM.unmountComponentAtNode(mountNode);
+    }
 }

@@ -1,22 +1,29 @@
 
 import {Mutation} from '../mutation'
 import { IViewModel } from '../../render/type';
-import {IOperation} from './type';
-import {OperationOptions,IDisposable, HANDLER_ITEM_DIRECTION,KeyBoardKeys} from '../type';
+import {IOperation,OperationOptions, MakerData} from './type';
+import {IDisposable, HANDLER_ITEM_DIRECTION,KeyBoardKeys} from '../type';
 import {Utils, modelIsRoot, modelIsGroup, modelIsArtboard} from 'free-canvas-shared'
 import { completeOptions } from '../../utils';
 import { CanvasEvent } from '../../events/event';
 import {OPERATION_CLASSNAME} from '../../utils/constant'
 import {Size} from './size';
 import { OperationPos,calculateIncludeRect } from './pos';
-import {calculateLatestVm,transformCalculateItem2MarkerData, transformAliItem2MarkerData} from './service'
+import MakerAssist from './makerAssist'
+import {GuideManager} from '../guide/index'
+// import {calculateLatestVm,transformCalculateItem2MarkerData, transformAliItem2MarkerData} from './service'
 import { KeyBoard } from '../keyboard';
 const {encode} = Utils
 // import { ViewModel } from 'src/render';
 const DEFAULT_OPTIONS = {
-    margin:10
+    // margin:10
 }
 const MIN_MOVE_DISTANCE = 2;
+
+
+interface MakerAssistMap {
+    [key:string]:MakerAssist
+}
 
 const HANDLER_ITEM_DIRECTION_HANDLER_MAP:any = {
     [HANDLER_ITEM_DIRECTION.LEFT]:'moveLeft',
@@ -42,6 +49,43 @@ function eachViewModel(vm:IViewModel,fn:(ret:any,vm:IViewModel)=>any,defaultVal?
     return fnRet
 }
 
+
+function findMiniestMoveDistance(...nums:number[]){
+    let base = Infinity;
+    nums.forEach((num)=>{
+        if(num === 0) return;
+        const absVal = Math.abs(num);
+        if(absVal < base){
+            base = num;
+        }
+    })
+    return !isFinite(base) ? 0 : base
+}
+
+
+function getVmsByArtboard(artBoard:IViewModel,viewList:IViewModel[]){
+    if(artBoard == null) return [];
+    for(let i = 0;i < viewList.length; i++){
+        const vm = viewList[i]
+        const curVmArtboard = vm.getArtboard();
+        if(curVmArtboard == null) continue;
+        if(curVmArtboard === artBoard){
+            viewList.splice(i,1);
+            const parentVm = vm.getParent();
+            if(parentVm == null || parentVm.children == null) return [];
+            const result:IViewModel[] = [artBoard];
+            const vms = parentVm.children.viewModelList
+            for(let j = 0; j < vms.length; j++){
+                const retVm = vms[j];
+                if(retVm !== vm){
+                    result.push(retVm)
+                }
+            }
+            return result
+        }
+    }
+    return artBoard.children ? artBoard.children.viewModelList : []
+}
 // function isChildren(selectModels:IViewModel[],target:IViewModel){
 //     for(let i = 0; i < selectModels.length; i++){
 //         const item = selectModels[i];
@@ -54,7 +98,7 @@ function eachViewModel(vm:IViewModel,fn:(ret:any,vm:IViewModel)=>any,defaultVal?
 
 function eachViewModelExcludeSelected(selectModels:IViewModel[],vm:IViewModel,fn:(ret:any,vm:IViewModel)=>any,defaultVal?:any){
     let fnRet = defaultVal
-    if(selectModels.indexOf(vm) >= 0){
+    if(selectModels.length > 0 && selectModels.indexOf(vm) >= 0){
         return defaultVal
     };
     //isRoot isGroup isArtboard
@@ -79,6 +123,7 @@ export class Operation implements IDisposable,IOperation{
     private _selectViewModels:IViewModel[]
     private _options:OperationOptions
     private _canMove:boolean = false
+    public isOperating:boolean = false
     private _pos:OperationPos
     private _startX:number
     private _startY:number
@@ -89,8 +134,12 @@ export class Operation implements IDisposable,IOperation{
     private _hideMakerTmId:NodeJS.Timeout
     private _showMakerTmId:NodeJS.Timeout
     private _rootViewModel:IViewModel;
-    constructor(private _parent:HTMLElement,private _mutation:Mutation,private _keyboard:KeyBoard,options:OperationOptions){
+    private _scale:number;
+    // private _makerAssist:MakerAssist;
+    private _makerAssistList:MakerAssist[] = [];
+    constructor(private _parent:HTMLElement,private _mutation:Mutation,private _guideManager:GuideManager,private _keyboard:KeyBoard,options:OperationOptions){
         this._options = completeOptions(options,DEFAULT_OPTIONS);
+        this._scale = options.scale;
         const div  = document.createElement('div');
         div.style.display = 'none';
         div.className = OPERATION_CLASSNAME
@@ -99,6 +148,9 @@ export class Operation implements IDisposable,IOperation{
         this.addViewModel = this.addViewModel.bind(this)
         this.removeViewModel = this.removeViewModel.bind(this)
         this.updateViewModel = this.updateViewModel.bind(this)
+        this._getScale = this._getScale.bind(this)
+        this.getArtboards = this.getArtboards.bind(this)
+        this.getViewModel = this.getViewModel.bind(this)
         this.onMouseDown = this.onMouseDown.bind(this)
         this.onMouseMove = this.onMouseMove.bind(this)
         this._onUnSelect = this._onUnSelect.bind(this)
@@ -106,6 +158,7 @@ export class Operation implements IDisposable,IOperation{
         this._onSelectMove = this._onSelectMove.bind(this) 
         this.onMouseUp = this.onMouseUp.bind(this)
         this.onSizeMove = this.onSizeMove.bind(this)
+        this.onSizeStartMove = this.onSizeStartMove.bind(this);
         this.onSizeChange = this.onSizeChange.bind(this)
         this.onOperationUpdate = this.onOperationUpdate.bind(this);
         this.onDbClick = this.onDbClick.bind(this);
@@ -120,12 +173,59 @@ export class Operation implements IDisposable,IOperation{
 
         // this.onSizeStart = this.onSizeStart.bind(this)
     }
+    changeScale(scale:number){
+        this._scale = scale;
+    }
+    // createMakerAssist(){
+    //     const makerViewModels:IViewModel[] = []
+    //     const {updateMakers,getRect} = this._options
+    //     this.eachRootViewModelExcludeSelected((ret,vm)=>{
+    //         makerViewModels.push(vm);
+    //         return ret;
+    //     })
+    //     this._makerAssist = new MakerAssist(makerViewModels,{
+    //         updateMakers,
+    //         getRect
+    //     });
+    // }
+    onSizeStartMove(){
+        this.isOperating = true;
+        this.createMakerAssistList();
+    }
     _onPositionStart(data:{x:number,y:number}){
         const {x,y} = data;
         this._startX = x;
         this._startY = y;
         this._originX = x;
         this._originY = y;
+        this.isOperating = true;
+        // this.createMakerAssist()
+        this.createMakerAssistList();
+    }
+ 
+    createMakerAssistList():MakerAssistMap{
+        let result:MakerAssist[] = []
+        const {updateMakers,getRect} = this._options
+        const {children} = this._rootViewModel;
+        if(children == null) return;
+        const selectedViewModels = [].concat(this._selectViewModels);
+        children.viewModelList.forEach((vm)=>{
+            if(modelIsArtboard(vm.modelType)){
+                // const vmList:IViewModel[] = []
+                // eachViewModelExcludeSelected(this._selectViewModels,vm,(ret,curVm)=>{ //todo如果选中节点非画板下顶级节点，那么只需要在父节点内进行计算就行了
+                //     vmList.push(curVm);
+                // })
+                const vmList = getVmsByArtboard(vm,selectedViewModels);  //如果画板中包含了当前选中节点，则返回当前节点的所有兄弟节点，否则返回画板的所有子节点
+                // const artboardId = vm.getModel().get('id',null)
+                result.push(new MakerAssist(vm,vmList,this._guideManager,{
+                    updateMakers,
+                    getRect,
+                    // artboardId
+                }))
+                // result[artBoardId] = 
+            }
+        })
+        this._makerAssistList = result;
     }
     registerShortcut(key:string,fn:any,params?:any[]){
         this.registerShortcuts([key],fn,params);
@@ -157,6 +257,9 @@ export class Operation implements IDisposable,IOperation{
         this.registerShortcuts([KeyBoardKeys.METAKEY,'g'],this.group);
         this.registerShortcuts([KeyBoardKeys.METAKEY,KeyBoardKeys.SHIFTKEY,'g'],this.unGroup);
     }
+    getSelectViewModels(){
+        return this._selectViewModels
+    }
     group(){
         this._mutation.group(this._selectViewModels,this._pos);
     }
@@ -172,10 +275,25 @@ export class Operation implements IDisposable,IOperation{
             preventScroll:true //阻止因为获取焦点导致画板上移
         });  
     }
+    calculateAbsorb(calPos:OperationPos){
+        const {_makerAssistList}  = this;
+        const moveXList:number[] = [],moveYList:number[] = [];
+        _makerAssistList.forEach((makerAssist)=>{
+            const {moveX,moveY} = makerAssist.calculateAbsorb(calPos);
+            moveXList.push(moveX);
+            moveYList.push(moveY);
+        })
+        return {
+            moveX:findMiniestMoveDistance(...moveXList),
+            moveY:findMiniestMoveDistance(...moveYList)
+        }
+    }
+    _fixData(val:number){
+        return Math.floor(val / this._scale);
+    }
     _onSelectMove(data:{x:number,y:number}){
-        if(data == null) return;
+        if(data == null || this._pos == null) return;
         const {x,y} = data;
-        // const pos = this._pos;
         const diffx = x - this._startX;
         const diffy = y - this._startY;
         if(Math.abs(diffx) < MIN_MOVE_DISTANCE && Math.abs(diffy) < MIN_MOVE_DISTANCE) return;
@@ -183,23 +301,36 @@ export class Operation implements IDisposable,IOperation{
         this._size && this._size.hide();
         // pos.left += diffx;
         // pos.top += diffy;
-        this._startX = x;
-        this._startY = y;
-        if(this._pos){
-            this._pos.moveLeftAndTop(diffx,diffy);
-            this.setStyle();
-        }
+        let oriDiffx = this._fixData(x - this._originX);
+        let oriDiffy = this._fixData(y - this._originY);
+        
+        const calPos = this._pos.clone();
+        calPos.changeLeftAndTop(oriDiffx,oriDiffy,false);
+        // const {moveX,moveY} = this._makerAssist.calculateAbsorb(calPos);
+        const {moveX,moveY} = this.calculateAbsorb(calPos)
+        oriDiffx += moveX
+        oriDiffy += moveY
+
+        // this._startX = x;
+        // this._startY = y;
+        this._startX = this._originX + oriDiffx;
+        this._startY = this._originY + oriDiffy;
+        this._pos.changeLeftAndTop(oriDiffx,oriDiffy);
+        // this.setStyle();
+
         this._selectViewModels.forEach((vm)=>{
-            vm.changePosition(diffx,diffy)
+            vm.changePosition(oriDiffx,oriDiffy);
         })
-        if(this._showMakerTmId){
-            clearTimeout(this._showMakerTmId);
-            this.showMakers();
-        }else{
-            this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
-                this.showMakers();
-            },50)
-        }
+
+        this.showMakers();
+        // if(this._showMakerTmId){
+        //     clearTimeout(this._showMakerTmId);
+        //     this.showMakers();
+        // }else{
+        //     this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
+        //         this.showMakers();
+        //     },50)
+        // }
     }
     _onUnSelect(data:{x:number,y:number}){
         if(this._changed){
@@ -212,6 +343,7 @@ export class Operation implements IDisposable,IOperation{
                 }
             })
         }
+        // this._makerAssistList = null;
         this.hideMakers()
     }
     changePosition(diffx:number,diffy:number){
@@ -234,21 +366,30 @@ export class Operation implements IDisposable,IOperation{
     }
     onSizeMove(diffX:number,diffY:number,direct:HANDLER_ITEM_DIRECTION){
         const target = HANDLER_ITEM_DIRECTION_HANDLER_MAP[direct] as string;
+        const calPos = this._pos.clone();
+        //@ts-ignore
+        calPos[target](diffX,diffY,false);
+        // const {moveX,moveY} = this._makerAssist.calculateAbsorb(calPos);
+        const {moveX,moveY} = this.calculateAbsorb(calPos)
+        diffX += moveX
+        diffY += moveY
         this.eachSelect((vm:IViewModel)=>{
             vm.changeRect(target,diffX,diffY);
-            //@ts-ignore
-            this._pos[target](diffX,diffY);
         })
-        if(this._showMakerTmId){
-            clearTimeout(this._showMakerTmId);
-            this.showMakers();
-        }else{
-            this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
-                this.showMakers();
-            },50)
-        }
+        //@ts-ignore
+        this._pos[target](diffX,diffY);
+        this.showMakers();
+        // if(this._showMakerTmId){
+        //     clearTimeout(this._showMakerTmId);
+        //     this.showMakers();
+        // }else{
+        //     this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
+        //         this.showMakers();
+        //     },50)
+        // }
     }
     onSizeChange(){// todo 有BUG
+        this.isOperating = false;
         this._mutation.changePosAndSize(this._selectViewModels)
         if(this._showMakerTmId){
             clearTimeout(this._showMakerTmId);
@@ -275,9 +416,15 @@ export class Operation implements IDisposable,IOperation{
         this._mutation.addViewModel(viewModel);
         // this._viewModelMap.set(encode(viewModel.getModel()._keyPath),viewModel);
     }
+    getArtboards(excludeIds:{[key:string]:boolean}){
+        return this._mutation.getArtboards(excludeIds);
+    }
     removeViewModel(viewModel:IViewModel){
         this._mutation.removeViewModel(viewModel);
         // this._viewModelMap.delete(encode(viewModel.getModel()._keyPath))
+    }
+    getViewModel(id:string){
+        return this._mutation.getViewModel(id);
     }
     updateViewModel(preId:string,curVm:IViewModel){
         const {_mutation} = this;
@@ -344,11 +491,14 @@ export class Operation implements IDisposable,IOperation{
         }
         const pos = calculateIncludeRect(allRects)
         this._pos = new OperationPos(pos.left,pos.top,pos.width,pos.height,this.onOperationUpdate);
+        // console.log('pos :',this._pos);
         this.setStyle();
         if(this._size == null){
             this._size = new Size(this._root,this._pos,{
                 onMove:this.onSizeMove,
                 onChange:this.onSizeChange,
+                onStartMove:this.onSizeStartMove,
+                getScale:this._getScale,
                 noNeedOperation:isArtboard
                 // onStart:this.onSizeStart
             });
@@ -359,7 +509,9 @@ export class Operation implements IDisposable,IOperation{
     eachSelect(fn:(vm:IViewModel)=>void){
         this._selectViewModels.forEach(fn);
     }
-    
+    _getScale(){
+        return this._scale
+    }
     setStyle(){
         const pos = this._pos;
         this._root.setAttribute('style',`display:block;left:${pos.left}px;top:${pos.top}px;width:${pos.width}px;height:${pos.height}px`)
@@ -376,7 +528,7 @@ export class Operation implements IDisposable,IOperation{
         if(_selectViewModels == null || _selectViewModels.length === 0) return;
         for(let i = 0 ; i < _selectViewModels.length; i++){
             const vm = _selectViewModels[i];
-            const target = vm.getViewModelByXY(x,y);
+            const target = vm.getViewModelByXY(this._fixData(x),this._fixData(y));
             if(target){
                 this._mutation.onSelected({
                     vm:target,
@@ -411,28 +563,39 @@ export class Operation implements IDisposable,IOperation{
         })
     }
     onMouseUp(e:MouseEvent){
+        this.isOperating = false;
         if(this._canMove === false) return;
         this._canMove = false;
         this._onUnSelect(null);
     }
     showMakers(){
-        this._showMakerTmId = null;
         if(this._hideMakerTmId != null){
             clearTimeout(this._hideMakerTmId);
             this._hideMakerTmId = null
         }
-        const result = this.eachRootViewModelExcludeSelected(calculateLatestVm,{
-            curPos:this._pos,
-            selectModels:this._selectViewModels,
-            data:[]
+        const {updateMakers} = this._options
+        let makerDataList:MakerData[] = [];
+        if(this._makerAssistList == null){
+            this.createMakerAssistList();
+        }
+        this._makerAssistList.forEach((makerAssist)=>{
+            const result = makerAssist.maker(this._pos,this._scale);
+            makerDataList = makerDataList.concat(result);
         })
-        const {alignMap,data} = result;
-        if(alignMap == null || data == null) return;
-        const {updateMakers} = this._options 
-        updateMakers([].concat(
-            transformCalculateItem2MarkerData(this._pos,data),
-            transformAliItem2MarkerData(alignMap)
-        ));
+        updateMakers(makerDataList)
+        // this._makerAssist.maker(this._pos)
+        // const result = this.eachRootViewModelExcludeSelected(calculateLatestVm,{
+        //     curPos:this._pos,
+        //     selectModels:this._selectViewModels,
+        //     data:[]
+        // })
+        // const {alignMap,data} = result;
+        // if(alignMap == null || data == null) return;
+        // const {updateMakers} = this._options 
+        // updateMakers([].concat(
+        //     transformCalculateItem2MarkerData(this._pos,data),
+        //     transformAliItem2MarkerData(alignMap)
+        // ));
     }
     hideMakers(){
         const {updateMakers} = this._options 
@@ -440,6 +603,7 @@ export class Operation implements IDisposable,IOperation{
             clearTimeout(this._showMakerTmId)
             this._showMakerTmId = null;
         }
+        this._makerAssistList = null;
         updateMakers() 
     }
     disableMove(){

@@ -27,10 +27,6 @@ export class View implements IView<Model>{
         this.el = el;
         this.updateAttribute();
     }
-    // getBoundingClientRect(){
-    //     return this.el.getBoundingClientRect();
-    // }
-    // getRect(){return this.getRoot().getBoundingClientRect()}
     getModel(){
         return this._model;
     }

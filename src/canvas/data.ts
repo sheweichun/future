@@ -15,7 +15,8 @@ export default [
                 height:812
             }
         },
-        children:[{
+        children:[
+        {
             id:'111',
             name:'div',
             style:{
@@ -77,7 +78,8 @@ export default [
                     }
                 } 
             ]
-        },{
+        },
+        {
             id:'112',
             name:'div',
             style:{
@@ -85,10 +87,10 @@ export default [
             },
             extra:{
                 position:{
-                    left:400,
-                    top:300,
-                    width:150,
-                    height:150,
+                    left:50,
+                    top:360,
+                    width:80,
+                    height:80,
                 }
             }
         },{
@@ -99,14 +101,15 @@ export default [
             },
             extra:{
                 position:{
-                    left:600,
+                    left:200,
                     top:400,
-                    width:150,
-                    height:150,
+                    width:100,
+                    height:100,
                 }
             }
         }]
-    },{
+    }
+    ,{
         type:2,
         id:'120',
         name:'div',

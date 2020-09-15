@@ -1,3 +1,5 @@
+
+
 const SPLIT = '.'
 
 
@@ -52,4 +54,19 @@ export function decodeFromShortId(val:string){
         return KEY_MAP[item]
     })
     return ret;
+}
+
+
+export function isOverLap(left:number,top:number,right:number,bottom:number,
+    left1:number,top1:number,right1:number,bottom1:number){
+    return (right  > left1 &&
+        right1  > left &&
+        bottom > top1 &&
+        bottom1 > top
+    )
+}
+
+export function fixValue(val:number,scale:number){
+    // return Math.floor(val * scale)
+    return val * scale
 }

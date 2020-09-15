@@ -1,14 +1,13 @@
 import {COMMANDERS,Utils,IView,modelIsRoot, ModelType, modelIsArtboard} from 'free-canvas-shared';
 import {CanvasEvent} from '../events/event';
 import {ObjectStyleDeclaration} from '../utils/type';
-import {setStyle} from '../utils/style';
+import {setStyle,getBoundingClientRect} from '../utils/style';
 import {completeOptions} from '../utils/index';
 import {MovableOptions,OnPositionChange,IMovable} from './type';
 import {FragmentView,createView} from './view';
 import {Model} from './model';
 import {OperationPos} from '../core/operation/pos'
 import {MOVABLE_CLASSNAME,MOVABLE_HANDLER_CLASSNAME,styleSizeHoverColor,styleSizeColor} from '../utils/constant'
-
 type OnMouseMoveCallback = (e:MouseEvent)=>void
 const DEFAULT_OPTIONS = {
 
@@ -32,7 +31,7 @@ export class Movable implements IMovable{
     // static onMouseUpQueue:OnMouseMoveCallback[] = []
     // static onBlurQueue:OnMouseMoveCallback[] = []
     protected _options:MovableOptions;
-    protected view:IView<Model>
+    view:IView<Model>
     el:HTMLElement
     elRect:OperationPos
     canMove:boolean = false
@@ -132,7 +131,8 @@ export class Movable implements IMovable{
         this.updateRect();
     }
     updateRect(){
-        const rect = this.el.getBoundingClientRect()
+        // const rect = this.el.getBoundingClientRect()
+        const rect = getBoundingClientRect(this.el,this._options.getScale());
         this.elRect = new OperationPos(rect.left,rect.top,rect.width,rect.height);
     }
     getBoundingClientRect(){
@@ -154,13 +154,16 @@ export class Movable implements IMovable{
     //     movable.view.destroy();
     //     this.view.getRoot().removeChild(movable.el);
     // }
-    removeFrom(parent:Movable){
+    removeFrom(parent:IMovable){
         if(parent == null) return;
         this.view.destroy();
         this.destroy();
         parent.view.getRoot().removeChild(this.el);
     }
-    
+    separate(parent:IMovable){
+        if(parent == null) return;
+        parent.view.getRoot().removeChild(this.el);
+    }
     // static onDocMouseMove(e:MouseEvent){
     //     Movable.onMouseMoveQueue.forEach((callback)=>{
     //         callback(e);
@@ -199,6 +202,7 @@ export class Movable implements IMovable{
     //     excute(COMMANDERS.VIEWBLUR);
     // }
     destroy(){
+        // console.log('destroy!!! :',this._data.id);
         // const {modelType} = this._options
         // if(!modelIsArtboard(modelType)){
             this.removeEvent(CanvasEvent.MOUSEDOWN,this.onMouseDown);
@@ -256,6 +260,9 @@ export class Movable implements IMovable{
         this.updateIdSpan();
         this.view.update(newModel);
     }
+    updateIsChild(isChild:boolean){
+        this._options.isChild = isChild
+    }
     setStyle(el?:HTMLElement){
         const {isSelect} = this._data.extra
         
@@ -311,8 +318,8 @@ export class Movable implements IMovable{
         });
     }
     onMouseEnter(e:MouseEvent){
-        const {isChild} = this._options
-        if(isChild && !e.shiftKey) return;
+        const {isChild,isOperating} = this._options
+        if(isOperating() || (isChild && !e.shiftKey)) return;
         this.el.style.outline = `${styleSizeHoverColor} solid 1px`;
     }
     onMouseLeave(e:MouseEvent){

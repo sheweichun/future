@@ -22,7 +22,6 @@ export class FragmentView implements IView<Model>{
         return this._model
     }
     updateStyle(){}
-    // getRect(){return this.getRoot().getBoundingClientRect()}
     destroy(){}
     update(){}
     getFragmentAndChange(){

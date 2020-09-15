@@ -17,6 +17,7 @@ type OnSelected = (data:{x:number,y:number})=>void
 
 type BaseModelAndPos = {
     pos:OperationPos,
+    keyPath:string[],
     model:BaseModel
 }
 // function extractAllModel(model:BaseModel,ret:BaseModel[]=[]){
@@ -108,6 +109,16 @@ export class Mutation extends EventHandler implements IMutation{
         // this._viewModelMap.set(encode(viewModel.getModel()._keyPath),viewModel);
         this._viewModelMap.set(viewModel.getModel().get('id',null),viewModel);
     }
+    getArtboards(excludeIds?:{[key:string]:boolean}){
+        const artboards:IViewModel[] = []
+        this._viewModelMap.forEach((value,key)=>{
+            if(excludeIds && excludeIds[key]) return;
+            if(modelIsArtboard(value.modelType)){
+                artboards.push(value)
+            }
+        })
+        return artboards;
+    }
     removeViewModel(viewModel:IViewModel){
         const vmId = viewModel.getModel().get('id',null)
         const oldVm = this._viewModelMap.get(vmId);
@@ -119,17 +130,18 @@ export class Mutation extends EventHandler implements IMutation{
         return this._viewModelMap.get(id);
     }
     getAllArtboardVms(){
-        const data = this.getDSLData();
-        const childs = data.get('children',[]);
-        const artboards:IViewModel[] = []
-        childs.forEach((child:BaseModel)=>{
-            const vm = this._viewModelMap.get(child.get('id',null));
-            if(vm == null) return;
-            if(modelIsArtboard(vm.modelType)){
-                artboards.push(vm);
-            }
-        })
-        return artboards;
+        // const data = this.getDSLData();
+        // const childs = data.get('children',[]);
+        // const artboards:IViewModel[] = []
+        // childs.forEach((child:BaseModel)=>{
+        //     const vm = this._viewModelMap.get(child.get('id',null));
+        //     if(vm == null) return;
+        //     if(modelIsArtboard(vm.modelType)){
+        //         artboards.push(vm);
+        //     }
+        // })
+        // return artboards;
+        return this.getArtboards()
     }
     getViewModelBaseModel(id:string){
         return this._viewModelMap.get(id).getModel();
@@ -172,6 +184,16 @@ export class Mutation extends EventHandler implements IMutation{
         })
         return arr;
     }
+    // getAllSelectedBaseModels(){
+    //     const arr:BaseModel[] = [];
+    //     this.reduceSelectedKeyPath((keyPath:string)=>{
+    //         const item = this._viewModelMap.get(keyPath);
+    //         if(item){
+    //             arr.push(item.getModel())
+    //         }
+    //     })
+    //     return arr;
+    // }
     register(){
         this._commander.register(COMMANDERS.POSITIONCHANGE,this.onPostionChanges,this);
         this._commander.register(COMMANDERS.SELECTED,this.onSelected,this);
@@ -484,13 +506,14 @@ export class Mutation extends EventHandler implements IMutation{
                 deepVm = parentVm
             }
             const model = vm.getModel();
+            // console.log('keyPath :',model._keyPath);
             childs.push({
                 pos:vm.getRect(),
+                keyPath:model._keyPath,
                 model:model.deref(null)
-            });
+            })
             this.removeModel(parentModel,model);
         })
-        
         const targetParent = this._store.getRealFromPath(deepKeyPath,null);
         if(targetParent == null) return;
 
@@ -511,7 +534,7 @@ export class Mutation extends EventHandler implements IMutation{
                     // })
                     return model.updateIn(['extra'],null,(extra:BaseModel)=>{
                         //@ts-ignore
-                        return extra.merge(createMap({
+                        return extra.merge(WrapData({
                             position:{
                                 left:modelPos.left - pos.left,
                                 top:modelPos.top - pos.top,
@@ -634,55 +657,40 @@ export class Mutation extends EventHandler implements IMutation{
         }
 
         this.transition(()=>{
-            // const vmLength = vms.length;
             vms.forEach((vm)=>{
-                // if(vmLength > 1){
-                //     return changeVmPos(vm,posData);
-                // }
-                // const vmId = vm.getModel().get('id',null);
                 const vmIsArtboard = modelIsArtboard(vm.modelType);
                 if(vmIsArtboard) return changeVmPos(vm,posData);
-                const parentVm = vm.getParent();
+                const parentVm = vm.getInitialParent();
                 const parentVmIsArtboard = modelIsArtboard(parentVm.modelType);
                 const parentVmIsRoot = modelIsRoot(parentVm.modelType);
                 const overlapArtboard = getOverlapArtboard(vm); //todo 待完善 因为重叠的画板可能有多个 通过什么策略选择最合适的画板
                 if(parentVmIsRoot){ //根下节点
                     if(overlapArtboard){ //根下节点跟画板重合
-                        // console.log('vmIntoArtboard!!!',vmId);
                         vmIntoArtboard(overlapArtboard,vm,posData);
                         
                     }else{
-                        // console.log('changeVmPos!!!',vmId);
                         changeVmPos(vm,posData);
                     }
                 }else{ //非根下节点
                     if(parentVmIsArtboard){ //非根下节点父节点是画板
                         if(overlapArtboard){ //非根下节点跟一个画板重合
                             if(overlapArtboard !== parentVm){ //非根节点从原来的画板移动到新的画板
-                                // console.log('vmFromToArtboard!!!',vmId);
                                 vmFromToArtboard(parentVm,overlapArtboard,vm,posData);
                             }else{ //非根节点还在原来画板中
-                                // console.log('changeVmPos!!!',vmId);
                                 changeVmPos(vm,posData);
                             }
                         }else{ //todo 这里应该从画板中移除掉
-                            // console.log('vmOutArtboard!!!',vmId);
                             vmOutArtboard(parentVm,vm,posData);
                         }
                     }else{ //非根节点父节点不是画板
-                        // console.log('changeVmPos!!!',vmId);
                         changeVmPos(vm,posData);
                     }
                 }
             })
 
-            //todo 如何做到先删除后新增
             this._removeModelsFromEachModel(needRemoveVms,dslData); //先删除待删除的节点
-            // const {_store} = this
             needAddItems.forEach((item)=>{ //然后添加待添加的节点
                 const {parentModel,target} = item;
-                // const realModel = _store.getRealFromPath(parentModel._keyPath,null);
-                // if(realModel == null) return;
                 parentModel.updateIn(['children'],null,(childs:BaseModel)=>{
                     //@ts-ignore
                     return childs.push(target);
@@ -792,5 +800,133 @@ export class Mutation extends EventHandler implements IMutation{
     onSelected(val:{vm:IViewModel,data:{needKeep:boolean,x:number,y:number,noTrigger?:boolean}}){
         const {vm,data} = val;
         return this.onModelSelected(vm.getModel(),data);
+    }
+    getTreeStuctrueSelectedViewModels(){
+        const selectVms = this.getAllSelectedViewModels();
+        const vmMap:{[key:string]:{
+            parent:IViewModel,
+            childrenMap:{
+                [key:string]:boolean
+            }
+        }} = {}
+        selectVms.forEach((selectedVm)=>{
+            const selectedModel = selectedVm.getModel();
+            const parent = selectedVm.getParent();
+            if(parent == null) return;
+            const parentModel = parent.getModel();
+            const parentId = parentModel.get('id',null);
+            let target = vmMap[parentId];
+            if(target == null){
+                target = {parent,childrenMap:{}}
+                vmMap[parentId] = target;
+            }
+            target.childrenMap[selectedModel.get('id',null)] = true
+        })
+        return vmMap
+    }
+    //model 层级操作
+    moveUpest(){
+        this.transition(()=>{
+            const vmMap = this.getTreeStuctrueSelectedViewModels();
+            Object.keys(vmMap).forEach((id)=>{
+                const {parent,childrenMap} = vmMap[id]
+                const newModelList:BaseModel[] = []
+                const parentModel = parent.getModel();
+                const appendMds:BaseModel[] = []
+                parent.children.viewModelList.forEach((vm)=>{
+                    const vmModel = vm.getModel();
+                    const vmId = vmModel.get('id',null);
+                    const derefModel = vmModel.deref(null)
+                    if(childrenMap[vmId] == null){
+                        newModelList.push(derefModel)
+                    }else{
+                        appendMds.push(derefModel)
+                    }
+                })
+                parentModel.updateIn(['children'],null,()=>{
+                    return createList([].concat(newModelList,appendMds));
+                })
+            })
+        })
+    }
+    moveDownest(){
+        this.transition(()=>{
+            const vmMap = this.getTreeStuctrueSelectedViewModels();
+            Object.keys(vmMap).forEach((id)=>{
+                const {parent,childrenMap} = vmMap[id]
+                const newModelList:BaseModel[] = []
+                const parentModel = parent.getModel();
+                const appendMds:BaseModel[] = []
+                parent.children.viewModelList.forEach((vm)=>{
+                    const vmModel = vm.getModel();
+                    const vmId = vmModel.get('id',null);
+                    const derefModel = vmModel.deref(null);
+                    if(childrenMap[vmId] == null){
+                        newModelList.push(derefModel)
+                    }else{
+                        appendMds.push(derefModel)
+                    }
+                })
+                parentModel.updateIn(['children'],null,()=>{
+                    return createList([].concat(appendMds,newModelList));
+                })
+            })
+        })
+    }
+    moveDownOneStep(){
+        this.transition(()=>{
+            const vmMap = this.getTreeStuctrueSelectedViewModels();
+            Object.keys(vmMap).forEach((id)=>{
+                const {parent,childrenMap} = vmMap[id]
+                const newModelList:BaseModel[] = []
+                const parentModel = parent.getModel();
+                parent.children.viewModelList.forEach((vm)=>{
+                    const vmModel = vm.getModel();
+                    const vmId = vmModel.get('id',null);
+                    const derefModel = vmModel.deref(null)
+                    if(childrenMap[vmId] == null){
+                        newModelList.push(derefModel)
+                    }else{
+                        newModelList.splice(newModelList.length - 1,0,derefModel);
+                    }
+                })
+                parentModel.updateIn(['children'],null,()=>{
+                    return createList(newModelList);
+                })
+            })
+        })
+    }
+    moveUpOneStep(){
+        this.transition(()=>{
+            const vmMap = this.getTreeStuctrueSelectedViewModels();
+            Object.keys(vmMap).forEach((id)=>{
+                const {parent,childrenMap} = vmMap[id]
+                const newModelList:BaseModel[] = []
+                const parentModel = parent.getModel();
+                let needAppendList:BaseModel[];
+                parent.children.viewModelList.forEach((vm)=>{
+                    const vmModel = vm.getModel();
+                    const vmId = vmModel.get('id',null);
+                    const derefModel = vmModel.deref(null)
+                    if(childrenMap[vmId] == null){
+                        newModelList.push(derefModel)
+                        if(needAppendList){
+                            newModelList.push(...needAppendList);
+                            needAppendList = null;
+                        }
+                    }else{
+                        if(needAppendList == null){needAppendList = []}
+                        needAppendList.push(derefModel);
+                    }
+                })
+                if(needAppendList){
+                    newModelList.push(...needAppendList)
+                    needAppendList = null
+                }
+                parentModel.updateIn(['children'],null,()=>{
+                    return createList(newModelList);
+                })
+            })
+        })
     }
 }

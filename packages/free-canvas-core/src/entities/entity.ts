@@ -1,5 +1,8 @@
 import {ICanvas} from '../core/type';
 
+
+
+
 export interface IEvent{
     fireEvent(name:string,e:MouseEvent,repaint:()=>void):void
 }
