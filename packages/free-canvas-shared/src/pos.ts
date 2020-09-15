@@ -12,9 +12,10 @@ function fixPercent(percent:number){
     return percent < MINI_NUMBER ? MINI_NUMBER : percent
 }
 
-function fixValue(val:number){
+function fixValue(val:number,scale:number=1){
     // return val;
-    return Math.floor(val);
+    // return Math.floor(val * scale);
+    return val * scale
 }
 
 function getRelativeRect(rect:OperationPos,parentRect?:PosRect){
@@ -85,6 +86,41 @@ export class OperationPos{
             this.right = this._right;
             this.bottom = this._bottom;
     }
+    // scale(scale:number){
+    //     const left = fixValue(this.left,scale),
+    //     right = fixValue(this.right,scale),
+    //     top = fixValue(this.top,scale),
+    //     bottom = fixValue(this.bottom,scale);
+    //     const pos = new OperationPos(left,top,right - left,bottom - top,this._updater);
+    //     pos._left = fixValue(this._left,scale);
+    //     pos._right = fixValue(this._right,scale);
+    //     pos._top = fixValue(this._top,scale);
+    //     pos._bottom = fixValue(this._bottom,scale);
+    //     return pos;
+    // }
+    scaleClone(scale:number){
+        const left = fixValue(this.left,scale),
+        right = fixValue(this.right,scale),
+        top = fixValue(this.top,scale),
+        bottom = fixValue(this.bottom,scale);
+        const pos = new OperationPos(left,top,right - left,bottom - top,this._updater);
+        pos._left = this._left;
+        pos._right = this._right;
+        pos._top = this._top;
+        pos._bottom = this._bottom;
+        return pos;
+    }
+    scale(scale:number){
+        // this.left = fixValue(this.left,scale),
+        // this.right = fixValue(this.right,scale),
+        // this.top = fixValue(this.top,scale),
+        // this.bottom = fixValue(this.bottom,scale);
+        this.left = fixValue(this.left,scale),
+        this.right = fixValue(this.right,scale),
+        this.top = fixValue(this.top,scale),
+        this.bottom = fixValue(this.bottom,scale);
+        return this;
+    }
     clone(){
         const {left,top,width,height,_left,_top,_right,_bottom} = this;
         const pos = new OperationPos(left,top,width,height,this._updater);
@@ -152,10 +188,10 @@ export class OperationPos{
     //        )
     // }
     getHMiddle(){
-        return Math.floor(this.left + this.width / 2)
+        return Math.round(this.left + this.width / 2)
     }
     getVMiddle(){
-        return Math.floor(this.top + this.height / 2)
+        return Math.round(this.top + this.height / 2)
     }
 
     moveLeftAndTop_immutation(x:number,y:number){

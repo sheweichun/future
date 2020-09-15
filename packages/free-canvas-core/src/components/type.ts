@@ -5,6 +5,8 @@ export interface RulerGroupOptions{
     rulerBackgroundColor?:string
     length:number,
     baseX:number,
+    unit:number,
+    // unitPerPX:number,
     baseY:number,
     // wheelSpeedX:number,
     // wheelSpeedY:number

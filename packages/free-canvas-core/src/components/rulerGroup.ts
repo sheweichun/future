@@ -20,7 +20,7 @@ export class RulerGroup extends DrawEntity{
         super(drawer)
         const {_drawer} = this;
         this._options = completeOptions(options,DEFAULT_OPTIONS);
-        const {lineStyle,length,rulerBackgroundColor} = this._options
+        const {lineStyle,length,rulerBackgroundColor,unit} = this._options
         // const halfLineWidth = _drawer.getLineWidth() / 2;
         // const lineWidth = _drawer.getLineWidth();
         const halfLineWidth = 0;
@@ -30,6 +30,7 @@ export class RulerGroup extends DrawEntity{
             size:length - halfLineWidth * 2,
             backgroundColor:rulerBackgroundColor,
             lineOffset,
+            unit,
             base: - this._options.baseX,
             lineStyle:lineStyle,
             end:new Point(_drawer.width,halfLineWidth)
@@ -41,6 +42,7 @@ export class RulerGroup extends DrawEntity{
             size:length - halfLineWidth * 2,
             lineStyle:lineStyle,
             lineOffset,
+            unit,
             backgroundColor:rulerBackgroundColor,
             end:new Point(halfLineWidth,_drawer.height)
         })
@@ -61,6 +63,10 @@ export class RulerGroup extends DrawEntity{
             shouldUpdate = true;
         }
         shouldUpdate && repaint();
+    }
+    setValueAndUnit(x:number,y:number,unit:number){
+        this._topRuler.setValueAndUnit(-x,unit);
+        this._leftRuler.setValueAndUnit(-y,unit);
     }
     setNewBaseValue(x:number,y:number){
         this._topRuler.setValue(-x);

@@ -12,7 +12,8 @@ export interface RulerOptions{
     lineStyle:string,
     base?:number, // 起点值
     size?:number,
-    unit?:number,
+    unit:number,
+    // unitPerPX:number
 }
 
 const DEFAUL_OPTIONS = {
@@ -23,11 +24,16 @@ const DEFAUL_OPTIONS = {
 }
 
 abstract class RulerModel{
-    
+    protected _unit:number
+    protected _baseValue:number
+    // protected _unitPerPX:number
     constructor(protected _start:Point,
-        protected _end:Point){}
+        protected _end:Point,protected _options:RulerOptions){
+            this._unit = _options.unit
+            this._baseValue = _options.base
+            // this._unitPerPX = _options.unitPerPX
+        }
     entities:Entity[]
-    protected _options:RulerOptions
     abstract initEntities():void
     abstract changeSize(width:number,height:number):void
     changeValue(val:number){
@@ -38,14 +44,20 @@ abstract class RulerModel{
         this._options.base = val;
         this.initEntities();
     }
+    setValueAndUnit(val:number,unit:number){
+        this._options.base = val;
+        this._unit = unit;
+        // this._unitPerPX = unitPerPX;
+        this.initEntities();
+    }
 }
 
 class VerticalRulerModel extends RulerModel{
     private _base:number
 
     entities:Entity[]
-    constructor(protected _options:RulerOptions){
-        super(_options.start,_options.end);
+    constructor(_options:RulerOptions){
+        super(_options.start,_options.end,_options);
         this.initEntities();
     }
     changeSize(width:number,height:number){
@@ -54,8 +66,8 @@ class VerticalRulerModel extends RulerModel{
         this.initEntities();
     }
     initEntities(){
-        const {_options,_start:start,_end:end} = this;
-        const {base,size,unit,backgroundColor,lineOffset} = _options;
+        const {_options,_start:start,_end:end,_unit:unit} = this;
+        const {base,size,backgroundColor,lineOffset} = _options;
         const baseRemain = base % unit;
         const baseDiff = unit - baseRemain;
         // this._base = baseRemain === 0 ? base : (base + diff);
@@ -69,7 +81,7 @@ class VerticalRulerModel extends RulerModel{
         ]
         const startY = start.y;
         const baseY = startY + (this._base - base);
-        for(let y = baseY;  y <= end.y; y += unit){
+        for(let y = baseY;  y <= end.y; y += unit ){
             let interval = size - 5, entity:Entity;
             let curVal  = y - baseY + this._base;
             if(curVal % 200 === 0){
@@ -105,8 +117,8 @@ class HorizontalRulerModel extends RulerModel{
 
     entities:Entity[]
     
-    constructor(protected _options:RulerOptions){
-        super(_options.start,_options.end);
+    constructor(_options:RulerOptions){
+        super(_options.start,_options.end,_options);
         this.initEntities();
     }
     changeSize(width:number,height:number){
@@ -114,8 +126,8 @@ class HorizontalRulerModel extends RulerModel{
         this.initEntities();
     }
     initEntities(){
-        const {_options} = this;
-        const {start,end,base,size,unit,backgroundColor,lineOffset} = _options;
+        const {_options,_start:start,_end:end,_unit:unit} = this;
+        const {base,size,backgroundColor,lineOffset} = _options; //base是逻辑像素值
         const baseRemain = base % unit;
         const baseDiff = unit - baseRemain;
         this._base = baseRemain === 0 ? base : (baseRemain > 0 ? base + baseDiff : base - baseRemain);
@@ -126,12 +138,13 @@ class HorizontalRulerModel extends RulerModel{
             // new Line(start,end,lineOpt),
             // new Line(start.addY(size),end.addY(size),lineOpt),
         ]
+        // console.log('start :',start.x,this._base,base);
         const startX = start.x;
-        const baseX = startX + (this._base - base);
-        for(let x = baseX;  x <= end.x; x += unit){
+        const baseX = startX + (this._base - base); //物理像素值
+        for(let x = baseX;  x <= end.x; x += unit ){
             let interval = size - 5,entity:Entity;
             let curVal  = x - baseX + this._base;
-            if(curVal % 200 === 0){
+            if(curVal % 100 === 0){
                 interval = 0;
                 entity = createLabel(
                     new Point(x,start.y + size),
@@ -180,6 +193,10 @@ export class Ruler extends Entity{
     }
     setValue(val:number){
         this._rulerModel.setValue(val);
+    }
+    setValueAndUnit(val:number,unit:number){
+        // console.log('unit :',unit);
+        this._rulerModel.setValueAndUnit(val,unit);
     }
     draw(drawer:ICanvas):void{
         this._rulerModel.entities.forEach((entity)=>{

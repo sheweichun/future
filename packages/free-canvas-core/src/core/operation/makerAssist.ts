@@ -2,7 +2,6 @@ import {OperationPos,Utils} from 'free-canvas-shared';
 import { IViewModel } from '../../render/type';
 import {AlignType, AlignItem,AlignValue,MarkEntityType,MakerAssistOptions, MakerData} from './type';
 import { GuideManager } from '../guide/index'
-
 enum BlockType{
     HORIZONTAL_LEFT="0",
     HORIZONTAL_RIGHT="1",
@@ -27,6 +26,8 @@ enum BlockDirectionType{
     HORIZONTAL,
     VERTICAL,
 }
+
+
 
 function isOverLap(blk1:Block,blk2:Block){
     return Utils.isOverLap(blk1.left,blk1.top,blk1.right,blk1.bottom,blk2.left,blk2.top,blk2.right,blk2.bottom);
@@ -70,6 +71,14 @@ type BlockItem = {[key in BlockType]?:Block}
 //     return (a[0] === b[0] && a[1] === b[1]) || (a[0] === b[1] && a[1] === b[0])
 // }
 
+
+function floor(val:number){
+    return Math.round(val)
+}
+
+function fixValue(val:number,scale:number){
+    return Math.round(val * scale);
+}
 // function createBlock(type:BlockType,
 //     left:number,
 //     top:number,
@@ -83,6 +92,7 @@ type BlockItem = {[key in BlockType]?:Block}
 //             bottom,
 //         }
 // }
+
 
 function calculateBlock(a:OperationPos,aIndex:number,b:OperationPos,bIndex:number):Block{
     const leftA = a.left,rightA = a.left + a.width,topA = a.top,bottomA = a.top + a.height;
@@ -102,9 +112,9 @@ function calculateBlock(a:OperationPos,aIndex:number,b:OperationPos,bIndex:numbe
                 directionType:BlockDirectionType.HORIZONTAL,
                 top:topA < topB ? topA : topB,
                 bottom:bottomA > bottomB ? bottomA : bottomB,
-                left,
-                right,
-                size:right - left
+                left:left,
+                right:right,
+                size:floor(right - left)
             }
         }
     }else if(vNotOverlapFlag){
@@ -115,16 +125,21 @@ function calculateBlock(a:OperationPos,aIndex:number,b:OperationPos,bIndex:numbe
             directionType:BlockDirectionType.VERTICAL,
             left:leftA < leftB ? leftA : leftB,
             right:rightA > rightB ? rightA : rightB,
-            top,
-            bottom,
-            size:bottom - top
+            top:top,
+            bottom:bottom,
+            size:floor(bottom - top)
         }
     }
     return retBlock
 }
 
+// function fixBlock(blk:Block){
+//     blk.left = Math
+// }
+
 
 function addAlignItem(data:AlignMap,value:number,item:AlignItem,isVertical:boolean = false){
+    value = floor(value);
     let itemList = data[value];
     if(itemList == null){
         itemList = {
@@ -295,7 +310,7 @@ export default class MakerAssist{
             const item = alignMap[val];
             // console.log('in calculateAlignInfo',val,baseValue);
             const curGap =  baseValue - val;
-            if(baseValue === val){ //左边对齐
+            if(floor(baseValue) === val){ //左边对齐
                 minest.item = item;
                 minest.minAbsGap = 0;
                 minest.minVal = 0;
@@ -340,7 +355,7 @@ export default class MakerAssist{
         }
         return moveDistance
     }
-    verticalAlignItem2MarkerData(item:AlignValue,top:number,bottom:number):MakerData{
+    verticalAlignItem2MarkerData(item:AlignValue,top:number,bottom:number,scale:number):MakerData{
         let makerTop = top,makerBottom = bottom;
         const {value} = item;
         for(let i = 0 ; i < item.data.length; i++){
@@ -358,15 +373,15 @@ export default class MakerAssist{
         return {
             type:MarkEntityType.Line,
             data:{
-                x1:value,
-                y1:makerTop,
-                x2:value,
-                y2:makerBottom,
+                x1:fixValue(value,scale),
+                y1:fixValue(makerTop,scale),
+                x2:fixValue(value,scale),
+                y2:fixValue(makerBottom,scale),
                 lineStyle:'red'
             }
         }
     }
-    horizontalAlignItem2MarkerData(item:AlignValue,left:number,right:number):MakerData{
+    horizontalAlignItem2MarkerData(item:AlignValue,left:number,right:number,scale:number):MakerData{
         let makerLeft = left,makerRight = right;
         const {value} = item;
         for(let i = 0 ; i < item.data.length; i++){
@@ -383,10 +398,10 @@ export default class MakerAssist{
         return {
             type:MarkEntityType.Line,
             data:{
-                x1:makerLeft,
-                y1:value,
-                x2:makerRight,
-                y2:value,
+                x1:fixValue(makerLeft,scale),
+                y1:fixValue(value,scale),
+                x2:fixValue(makerRight,scale),
+                y2:fixValue(value,scale),
                 lineStyle:'red'
             }
         }
@@ -476,7 +491,7 @@ export default class MakerAssist{
         const pos = this._options.getRect();
         return curPos.moveLeftAndTop_immutation(pos.left,pos.top)
     }
-    getAlignMakerDataList(pos:OperationPos){
+    getAlignMakerDataList(pos:OperationPos,scale:number){
         const data:AlignValue[] = []
         const {left,right,top,bottom} = pos;
         const {_verticalAlignMap,_verticalMiddleAlignMap,_horizontalAlignMap,_horizontalMiddleAlignMap,
@@ -490,9 +505,9 @@ export default class MakerAssist{
             let makerData:MakerData;
             const item = data[i];
             if(item.isVertical){
-                makerData = this.verticalAlignItem2MarkerData(item,top,bottom)
+                makerData = this.verticalAlignItem2MarkerData(item,top,bottom,scale)
             }else{
-                makerData = this.horizontalAlignItem2MarkerData(item,left,right);
+                makerData = this.horizontalAlignItem2MarkerData(item,left,right,scale);
             }
             if(makerData){
                 makerDataList.push(makerData);
@@ -550,7 +565,7 @@ export default class MakerAssist{
             moveY
         }
     }
-    getBlockMakerDataList(selectedPos:OperationPos){
+    getBlockMakerDataList(selectedPos:OperationPos,scale:number){
         const {_asbPosList,_verticalBlockMap,_verticalBlockKeys,_horizontalBlockMap,_horizontalBlockKeys} = this;
         const hightBlocks:Block[] = []
         const blockTypeMap:BlockTypeMap = {};
@@ -591,26 +606,26 @@ export default class MakerAssist{
             return {
                 type:MarkEntityType.RectMark,
                 data:{
-                    left:blk.left,
-                    right:blk.right,
-                    top:blk.top,
+                    left:fixValue(blk.left,scale),
+                    right:fixValue(blk.right,scale),
+                    top:fixValue(blk.top,scale),
                     isVertical:blk.directionType === BlockDirectionType.VERTICAL,
-                    bottom:blk.bottom,
+                    bottom:fixValue(blk.bottom,scale),
                     val:blk.size + '',
                     // background:'#ff3db156'
                 }
             }
         })
     }
-    maker(pos:OperationPos):MakerData[]{ 
+    maker(pos:OperationPos,scale:number):MakerData[]{ 
         if(pos == null) return;
         // const {updateMakers} = this._options
         if(!this._artBoard.getRect().isOverlap(pos)) return [];
         const makerDataList:MakerData[] = []
-        const alignList = this.getAlignMakerDataList(pos);
+        const alignList = this.getAlignMakerDataList(pos,scale);
         makerDataList.push(...alignList);
 
-        const blockList = this.getBlockMakerDataList(this.transformAbsRect(pos));
+        const blockList = this.getBlockMakerDataList(this.transformAbsRect(pos),scale);
         makerDataList.push(...blockList);
         // Object.keys(this._blockMap).forEach((val:string)=>{
         //     const blockList = this._blockMap[val];

@@ -61,13 +61,15 @@ function calculateRectData(data:MoveEventData,scale:number){
         startY = y;
         height = originY - y;
     }
-    return new OperationPos(fixVal(startX,scale),fixVal(startY,scale),fixVal(width,scale),fixVal(height,scale))
+    const pos = new OperationPos(startX,startY,width,height)
+    return pos.scale(1 / scale);
+    // return new OperationPos(fixVal(startX,scale),fixVal(startY,scale),fixVal(width,scale),fixVal(height,scale))
 }
 
-export class Content implements IEvent{
+export class Content{
     private _options:ContentOptions
-    private _x:number
-    private _y:number
+    // private _x:number
+    // private _y:number
     private _viewModel:IViewModel
     private _keyboard:KeyBoard
     private _store:Store
@@ -83,10 +85,11 @@ export class Content implements IEvent{
     private _contextMenuItem:ContextMenuItem
     private _scale:number
     constructor(private _parent:HTMLElement,_data:Model,private _guideManager:GuideManager,options:ContentOptions){
-        this._options = completeOptions(options,{x:0,y:0});
+        // this._options = completeOptions(options,{x:0,y:0});
+        this._options = completeOptions(options,{});
         this._el = document.createElement('div');
-        this._x = this._options.x;
-        this._y = this._options.y;
+        // this._x = this._options.x;
+        // this._y = this._options.y;
         this._scale = options.scale;
         this.setStyle();
         this._store = new Store({
@@ -314,8 +317,9 @@ export class Content implements IEvent{
         this._store.redo();
     }
     setStyle(){
-        const {_el,_x,_y} = this;
-        _el.setAttribute('style',`outline:none !important;width:100%;height:100%;transform:matrix(1,0,0,1,${_x},${_y})`);
+        const {_el,_scale} = this;
+        // _el.setAttribute('style',`outline:none !important;width:100%;height:100%;transform:matrix(1,0,0,1,${_x},${_y})`);
+        _el.setAttribute('style',`outline:none !important;width:100%;height:100%;transform:matrix(${_scale},0,0,${_scale},0,0)`);
         // _el.setAttribute('style',`outline:none !important;width:100%;height:100%;transform:translate(${_x}px,${_y}px)`);
     }
     getScale(){
@@ -324,28 +328,29 @@ export class Content implements IEvent{
     changeScale(scale:number){
         this._scale = scale;
         this._operation.changeScale(scale);
+        this.setStyle();
         this.update();
     }
-    changeTranslation(x:number,y:number){
-        this._x = x;
-        this._y = y;
-        this.setStyle();
-        // this.initRect();
-        this.update();
-    }
-    onMousewheel(deltaX:number,deltaY:number){
-        // console.log('on mouse!! :',deltaX,deltaY,this._x,this._y);
-        this._x += -deltaX;
-        this._y += -deltaY; 
-        this._rect.moveLeftAndTop(-deltaX,-deltaY);
-        this.setStyle();
-    }
-    fireEvent(name:string,e:MouseWheelEvent,repaint:()=>void):void{
-        switch(name){
-            case CanvasEvent.MOUSEWHEEL:
-                // const {wheelSpeedX,wheelSpeedY} = this._options
-                const {deltaX,deltaY} = e as MouseWheelEvent;
-                this.onMousewheel(deltaX,deltaY)
-        }
-    }
+    // changeTranslation(x:number,y:number){
+    //     this._x = x;
+    //     this._y = y;
+    //     this.setStyle();
+    //     // this.initRect();
+    //     this.update();
+    // }
+    // onMousewheel(deltaX:number,deltaY:number){
+    //     // console.log('on mouse!! :',deltaX,deltaY,this._x,this._y);
+    //     this._x += -deltaX;
+    //     this._y += -deltaY; 
+    //     this._rect.moveLeftAndTop(-deltaX,-deltaY);
+    //     this.setStyle();
+    // }
+    // fireEvent(name:string,e:MouseWheelEvent,repaint:()=>void):void{
+    //     switch(name){
+    //         case CanvasEvent.MOUSEWHEEL:
+    //             const {deltaX,deltaY} = e as MouseWheelEvent;
+    //             this._rect.moveLeftAndTop(-deltaX,-deltaY);
+    //             // this.onMousewheel(deltaX,deltaY)
+    //     }
+    // }
 }

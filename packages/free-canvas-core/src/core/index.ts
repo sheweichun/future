@@ -28,6 +28,14 @@ const {CONTENT} = ThemeVar
 //     wheelSpeedY?:number
 // }
 
+
+function roundScale(scale:number){
+    let ret = Math.round(scale * 1000) / 1000
+    if(ret < 0.6) {ret = 0.6};
+    if(ret > 5) {ret = 5};
+    return ret;
+}
+
 const DEFAULT_OPTIONS:CoreOptions = {
     wheelSpeedX:5,
     wheelSpeedY:8,
@@ -77,7 +85,17 @@ export default class Core extends EventHandler{
     private _selectRect:Rect
     private _translateX:number = 0
     private _translateY:number = 0
+
+
+    // private _originTranslateX:number
+    // private _originTranslateY:number
+    // private _originRect:DOMRect
+    // private _pinchX:number
+    // private _pinchY:number
+
     private _scale:number = 1
+    private _ruleUnit:number = 10
+    // private _ruleUnitPerPX:number = 1
 
     private _refreshEl:HTMLElement
 
@@ -100,11 +118,13 @@ export default class Core extends EventHandler{
         this._rulerGroup = new RulerGroup(this._canvas,{
             length:this.margin,
             baseX:this._translateX,
+            unit:this._ruleUnit,
             baseY:this._translateY,
+            // unitPerPX:this._ruleUnitPerPX,
             rulerBackgroundColor
         });
         this._mouseWheelList.push(this._rulerGroup);
-        this.onMouseWheel = this.onMouseWheel.bind(this);
+        this.onWheel = this.onWheel.bind(this);
         this.draw = this.draw.bind(this);
         this.listen()
         this.draw()
@@ -127,29 +147,34 @@ export default class Core extends EventHandler{
     uninstallPlugin(plugin:IPlugin){
         this._content.uninstallPlugin(plugin);
     }
+    updateTranslate(x:number,y:number){
+        const {_containerEl} = this;
+        this._translateX = x;
+        this._translateY = y;
+        _containerEl.setAttribute('style',`transform:matrix(1,0,0,1,${x},${y})`);
+        this._content.update();  
+    }
     createEventElement(parent:DocumentFragment,children?:HTMLCollection){
-        const {_data,_scale} = this
+        const {_data,_translateX,_translateY} = this
         const div = document.createElement('div');
         const wrapDiv = document.createElement('div');
         div.className = CONTAINER;
         wrapDiv.className = WRAPPER;
         // div.setAttribute('style',`padding:0`);
         // div.setAttribute('style',`padding:${this.margin}px 0 0 ${this.margin}px;background-color:${CONTENT.backgroundColor}`);
-        div.setAttribute('style',`transform:matrix(${_scale},0,0,${_scale},0,0)`);
+        div.setAttribute('style',`transform:matrix(1,0,0,1,${_translateX},${_translateY})`);
         wrapDiv.setAttribute('style',`padding:${this.margin}px 0 0 ${this.margin}px;background-color:${CONTENT.backgroundColor}`);
         // const contentDiv = document.createElement('div');
         initGlobalContextMenu(wrapDiv);
         this._content = new Content(div,_data,this._guideManage,{
             createView:this._options.createView,
             eventEl:wrapDiv,
-            x:this._translateX,
-            y:this._translateY,
             scale:this._scale,
             // margin:this.margin,
             updateMakers:this.updateMakers,
             updateRectSelect:this.updateRectSelect
         })
-        this._mouseWheelList.push(this._content);
+        // this._mouseWheelList.push(this._content);
         const fragment = document.createDocumentFragment();
         if(children){
             for(let i = 0; i < children.length; i++){
@@ -170,23 +195,27 @@ export default class Core extends EventHandler{
         if(pos == null){
             this._selectRect = null
         }else{
+            // const pos = rectPos.scale(this._scale);
             // const pos = calculateRectData(selectData);
             if(this._selectRect == null){
-                this._selectRect = new Rect(pos.left,pos.top,pos.width,pos.height,{
+                this._selectRect = new Rect(pos._left,pos._top,pos._width,pos._height,{
                     background:'#00000011'
                 });
             }else {
-                this._selectRect.update(pos.left,pos.top,pos.width,pos.height);
+                this._selectRect.update(pos._left,pos._top,pos._width,pos._height);
             }
             this._content.triggerSelectList(pos)
         }
         this.draw();
     }
     updateMakers(markerData?:MakerData[]){
+        const {_scale,_content} = this;
         if(markerData == null){
             this._makers = []
         }else{
-            const {left,top} = this._content.getRect()
+            const {left,top} = _content.getRect()
+            const contentLeft = Math.round(left * _scale),
+            contentTop = Math.round(top * _scale)
             this._makers = markerData.map((item)=>{
                 const {type,data} = item;
                 if(type === MarkEntityType.LineMarker){
@@ -196,8 +225,8 @@ export default class Core extends EventHandler{
                         endY,
                         val} = data;
                     return new LineMark(
-                        new Point(startX + left,startY + top),
-                        new Point(endX + left,endY + top),
+                        new Point(startX + contentLeft,startY + contentTop),
+                        new Point(endX + contentLeft,endY + contentTop),
                         {
                             val:Math.floor(val)+''
                         }
@@ -205,8 +234,8 @@ export default class Core extends EventHandler{
                 }else if(type === MarkEntityType.Line){
                     const {x1,y1,x2,y2,lineStyle} = data;
                     return new Line(
-                        new Point(x1 + left,y1 + top),
-                        new Point(x2 + left,y2 + top),
+                        new Point(x1 + contentLeft,y1 + contentTop),
+                        new Point(x2 + contentLeft,y2 + contentTop),
                         {
                             lineStyle
                         }
@@ -275,13 +304,14 @@ export default class Core extends EventHandler{
         this._guideManage.mount();
         this._content.listen();
     }
-    onMouseWheel(e:MouseWheelEvent){
+    onWheel(e:MouseWheelEvent){
         const {wheelSpeedX,wheelSpeedY} = this._options
         const {deltaX,deltaY} = e as WheelEvent;
         const newDeltaX = controlDelta(deltaX,wheelSpeedX)
         const newDeltaY = controlDelta(deltaY,wheelSpeedY)
-        this._translateX += newDeltaX;
-        this._translateY += newDeltaY;
+        // this._translateX += newDeltaX;
+        // this._translateY += newDeltaY;
+        this.updateTranslate(this._translateX-newDeltaX,this._translateY-newDeltaY);
         this._mouseWheelList.forEach((ett)=>{ 
             ett.fireEvent(CanvasEvent.MOUSEWHEEL,{
                 deltaX:newDeltaX,
@@ -292,17 +322,58 @@ export default class Core extends EventHandler{
         });
     }
     changeScale(scale:number){
-        if(scale < 0.3) {scale = 0.3};
+        // if(scale < 0.6) {scale = 0.6};
+        // if(scale > 1.4) {scale = 1.4};
         this._scale = scale;
-        // console.log('event :',this._scale);
-        this._containerEl.style.transform = `matrix(${scale},0,0,${scale},0,0)`
         this._content.changeScale(scale);
     }
     onPinch(e:MouseWheelEvent){
-        const {deltaY} = e;
-        this.changeScale(this._scale - deltaY / 100);
+        const {_content,_translateX,_translateY} = this;
+        const {deltaY,x,y} = e;
+
+        const prevScale = this._scale;
+        const newScale = roundScale(this._scale - (deltaY / (100 * (1 + Math.abs(this._scale - 1)))))
+
+        const {left,top,width,height} = _content.getRoot().getBoundingClientRect();
+        const xMiddle = left + width / 2;
+        const yMiddle = top + height / 2;
+        const diffScale = (newScale - prevScale) / prevScale;
+
+
+        const newX = Math.round((xMiddle - x) * diffScale  + _translateX);
+        const newY = Math.round((yMiddle - y) * diffScale  + _translateY);
+        this.changeScale(newScale);
+        this.updateTranslate(newX,newY);
+
+        this._rulerGroup.setValueAndUnit(newX,newY,Math.round(this._ruleUnit * this._scale));
+        // this._rulerGroup.setValueAndUnit(this._translateX,this._translateY,Math.round(this._ruleUnit * this._scale));
+        this.draw();
         e.stopPropagation();
         e.preventDefault();
+    }
+    onMouseWheel(e:MouseWheelEvent){
+        const {deltaX,ctrlKey} = e;
+        if(deltaX === 0 && ctrlKey){
+            this.onPinch(e)
+        }else{
+            this.onWheel(e);
+        }
+    }
+    onResize(){
+        const {_canvas} = this;
+        _canvas.resize();
+        this._rulerGroup.changeSize(_canvas.width,_canvas.height);
+        this.draw()
+    }
+    onRefreshClick(){
+        const {x,y} = this.getInitTranslate(this._content.getCurrentData());
+        this.changeScale(1);
+        // this._rulerGroup.setNewBaseValue(x,y);
+        // this._ruleUnitPerPX = 1;
+        this._rulerGroup.setValueAndUnit(x,y,this._ruleUnit);
+        this.draw();
+        // this._content.changeTranslation(x,y);
+        this.updateTranslate(x,y)
     }
     listen(){
         // this._mouseWheelList.forEach((ett)=>{ //滚动事件
@@ -313,33 +384,19 @@ export default class Core extends EventHandler{
         //     })
         // })
         // const {wheelSpeedX,wheelSpeedY} = this._options
-        this.addEvent(this._eventEl,CanvasEvent.MOUSEWHEEL,(e)=>{
-            const {deltaX,ctrlKey} = e as MouseWheelEvent;
-            if(deltaX === 0 && ctrlKey){
-                this.onPinch(e as MouseWheelEvent)
-            }else{
-                this.onMouseWheel(e as MouseWheelEvent);
-            }
-        })
+        this.onMouseWheel = this.onMouseWheel.bind(this);
+        this.onResize = debounce(this.onResize.bind(this),100)
+        this.onRefreshClick = this.onRefreshClick.bind(this);
+        this.addEvent(this._eventEl,CanvasEvent.MOUSEWHEEL,this.onMouseWheel)
         //@ts-ignore
-        this.addEvent(window,CanvasEvent.RESIZE,debounce(()=>{
-            const {_canvas} = this;
-            _canvas.resize();
-            this._rulerGroup.changeSize(_canvas.width,_canvas.height);
-            this.draw()
-        },100))
-        this.addEvent(this._refreshEl,CanvasEvent.CLICK,()=>{
-            const {x,y} = this.getInitTranslate(this._content.getCurrentData());
-            this.changeScale(1);
-            this._rulerGroup.setNewBaseValue(x,y);
-            this.draw();
-            this._content.changeTranslation(x,y);
-            this._translateX = x;
-            this._translateY = y;
-        })
+        this.addEvent(window,CanvasEvent.RESIZE,this.onResize)
+        this.addEvent(this._refreshEl,CanvasEvent.CLICK,this.onRefreshClick)
     }
     destroy(){
-
+        this.removeEvent(this._eventEl,CanvasEvent.MOUSEWHEEL,this.onMouseWheel)
+        //@ts-ignore
+        this.removeEvent(window,CanvasEvent.RESIZE,this.onResize)
+        this.removeEvent(this._refreshEl,CanvasEvent.CLICK,this.onRefreshClick)
     }
     createStyle(){
         if(styleCreated) return;

@@ -73,7 +73,7 @@ function getVmsByArtboard(artBoard:IViewModel,viewList:IViewModel[]){
             viewList.splice(i,1);
             const parentVm = vm.getParent();
             if(parentVm == null || parentVm.children == null) return [];
-            const result:IViewModel[] = [];
+            const result:IViewModel[] = [artBoard];
             const vms = parentVm.children.viewModelList
             for(let j = 0; j < vms.length; j++){
                 const retVm = vms[j];
@@ -343,7 +343,7 @@ export class Operation implements IDisposable,IOperation{
                 }
             })
         }
-        this._makerAssistList = null;
+        // this._makerAssistList = null;
         this.hideMakers()
     }
     changePosition(diffx:number,diffy:number){
@@ -491,6 +491,7 @@ export class Operation implements IDisposable,IOperation{
         }
         const pos = calculateIncludeRect(allRects)
         this._pos = new OperationPos(pos.left,pos.top,pos.width,pos.height,this.onOperationUpdate);
+        // console.log('pos :',this._pos);
         this.setStyle();
         if(this._size == null){
             this._size = new Size(this._root,this._pos,{
@@ -527,7 +528,7 @@ export class Operation implements IDisposable,IOperation{
         if(_selectViewModels == null || _selectViewModels.length === 0) return;
         for(let i = 0 ; i < _selectViewModels.length; i++){
             const vm = _selectViewModels[i];
-            const target = vm.getViewModelByXY(x,y);
+            const target = vm.getViewModelByXY(this._fixData(x),this._fixData(y));
             if(target){
                 this._mutation.onSelected({
                     vm:target,
@@ -574,8 +575,11 @@ export class Operation implements IDisposable,IOperation{
         }
         const {updateMakers} = this._options
         let makerDataList:MakerData[] = [];
+        if(this._makerAssistList == null){
+            this.createMakerAssistList();
+        }
         this._makerAssistList.forEach((makerAssist)=>{
-            const result = makerAssist.maker(this._pos);
+            const result = makerAssist.maker(this._pos,this._scale);
             makerDataList = makerDataList.concat(result);
         })
         updateMakers(makerDataList)
@@ -599,6 +603,7 @@ export class Operation implements IDisposable,IOperation{
             clearTimeout(this._showMakerTmId)
             this._showMakerTmId = null;
         }
+        this._makerAssistList = null;
         updateMakers() 
     }
     disableMove(){

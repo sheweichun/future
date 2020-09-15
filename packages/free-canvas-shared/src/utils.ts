@@ -1,3 +1,5 @@
+
+
 const SPLIT = '.'
 
 
@@ -62,4 +64,9 @@ export function isOverLap(left:number,top:number,right:number,bottom:number,
         bottom > top1 &&
         bottom1 > top
     )
+}
+
+export function fixValue(val:number,scale:number){
+    // return Math.floor(val * scale)
+    return val * scale
 }

@@ -225,7 +225,7 @@ export class HGuide extends Guide{
         const {_rootEl} = this
         const {margin} = this._options;
         const hDiv = document.createElement('div');
-        hDiv.setAttribute('style',`cursor:ew-resize;position:absolute;left:${margin}px;right:0;height:${margin}px;`)
+        hDiv.setAttribute('style',`cursor:ew-resize;position:absolute;left:${margin}px;right:0;height:${margin}px;top:0;`)
         this.guideEl = hDiv;
         _rootEl.appendChild(hDiv)
         return this

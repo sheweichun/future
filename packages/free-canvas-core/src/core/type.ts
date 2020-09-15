@@ -93,8 +93,8 @@ export interface ContentOptions{
     createView?:CreateView,
     eventEl:HTMLElement
     scale:number,
-    x?:number,
-    y?:number
+    // x?:number,
+    // y?:number
 }
 
 export interface HanlerItemOption extends OperationSizeOptions{

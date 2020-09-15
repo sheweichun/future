@@ -1,3 +1,4 @@
+import {Utils} from 'free-canvas-shared';
 import {ObjectStyleDeclaration,DOMRect} from './type';
 
 
@@ -32,12 +33,17 @@ export function createStyle(val:string){
 }
 
 
+export function fixValue(val:number,scale:number){
+    return Math.round(val * scale)
+}
+
 export function getBoundingClientRect(el:HTMLElement,scale:number):DOMRect{
     const {left,top,width,height} = el.getBoundingClientRect();
+    const baseScale = 1/ scale;
     return {
-        left:Math.floor(left / scale),
-        top:Math.floor(top / scale),
-        width:Math.floor(width / scale),
-        height:Math.floor(height / scale),
+        left:fixValue(left,baseScale),
+        top:fixValue(top,baseScale),
+        width:fixValue(width,baseScale),
+        height:fixValue(height,baseScale),
     }
 }

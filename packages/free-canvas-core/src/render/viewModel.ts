@@ -203,7 +203,10 @@ export class ViewModel implements IViewModel{
         // const scale = getScale();
         const pos = getRect();
         const cur = this.view.getBoundingClientRect();
-        this._rect = new OperationPos(fixData(cur.left - pos.left),fixData(cur.top - pos.top),fixData(cur.width),fixData(cur.height),(rect)=>{
+        // this._rect = new OperationPos(fixData(cur.left - pos.left),fixData(cur.top - pos.top),fixData(cur.width),fixData(cur.height),(rect)=>{
+        //     this.view.updatePosAndSize(this.getRelativeRect(rect)) //当更新的时候需要还原到父容器下的相对坐标
+        // })
+        this._rect = new OperationPos((cur.left - pos.left),(cur.top - pos.top),(cur.width),(cur.height),(rect)=>{
             this.view.updatePosAndSize(this.getRelativeRect(rect)) //当更新的时候需要还原到父容器下的相对坐标
         })
     }
