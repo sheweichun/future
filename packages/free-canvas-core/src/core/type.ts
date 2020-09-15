@@ -28,6 +28,7 @@ export interface ICanvas{
     width:number;
     height:number;
     resize():void;
+    getRadio():number;
     getLineWidth():number;
     getLineOffset():number;
 }

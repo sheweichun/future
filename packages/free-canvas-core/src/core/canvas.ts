@@ -26,6 +26,9 @@ export default class Canvas implements ICanvas{
         this.resize();
         this.context.lineWidth = this.getLineWidth();
     }
+    getRadio(){
+        return this._radio;
+    }
     getLineWidth(){
         return this.context.lineWidth * this._radio
     }

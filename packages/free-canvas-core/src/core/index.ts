@@ -32,7 +32,7 @@ const {CONTENT} = ThemeVar
 function roundScale(scale:number){
     let ret = Math.round(scale * 1000) / 1000
     if(ret < 0.6) {ret = 0.6};
-    if(ret > 5) {ret = 5};
+    if(ret > 4) {ret = 4};
     return ret;
 }
 
@@ -115,11 +115,15 @@ export default class Core extends EventHandler{
         this.updateRectSelect = this.updateRectSelect.bind(this);
         this.initEl(el)
         this.createStyle();
+        const rect = this.getContentCenterXY();
         this._rulerGroup = new RulerGroup(this._canvas,{
             length:this.margin,
             baseX:this._translateX,
             unit:this._ruleUnit,
             baseY:this._translateY,
+            scale:this._scale,
+            centerX:rect.x,
+            centerY:rect.y,
             // unitPerPX:this._ruleUnitPerPX,
             rulerBackgroundColor
         });
@@ -289,12 +293,8 @@ export default class Core extends EventHandler{
         this._refreshEl = refreshEl;
         this._guideManage = new GuideManager(this._parentEl,{
             margin,
-            getOffsetx:(val:number)=>{
-                return val - this._translateX - this.margin
-            },
-            getOffsety:(val:number)=>{
-                return val - this._translateY - this.margin
-            }
+            getOffsetx:this.getOffsetx.bind(this),
+            getOffsety:this.getOffsety.bind(this)
         })
         this.createEventElement(fragment,this._parentEl.children)
         this._rootEl = createCanvas(fragment); //顺序不能错
@@ -311,7 +311,7 @@ export default class Core extends EventHandler{
         const newDeltaY = controlDelta(deltaY,wheelSpeedY)
         // this._translateX += newDeltaX;
         // this._translateY += newDeltaY;
-        this.updateTranslate(this._translateX-newDeltaX,this._translateY-newDeltaY);
+        this.updateTranslate(this._translateX - newDeltaX,this._translateY - newDeltaY);
         this._mouseWheelList.forEach((ett)=>{ 
             ett.fireEvent(CanvasEvent.MOUSEWHEEL,{
                 deltaX:newDeltaX,
@@ -321,31 +321,54 @@ export default class Core extends EventHandler{
             e.preventDefault();
         });
     }
+    getOffsetx(val:number){
+        // const offset = this._canvas.getRadio() % 2 === 1 ? 1 : 0
+        return this._rulerGroup.getOffsetx(val - this.margin);
+    }
+    getOffsety(val:number){
+        // const offset = this._canvas.getRadio() % 2 === 1 ? 1 : 0
+        return this._rulerGroup.getOffsety(val - this.margin);
+    }
     changeScale(scale:number){
         // if(scale < 0.6) {scale = 0.6};
         // if(scale > 1.4) {scale = 1.4};
         this._scale = scale;
         this._content.changeScale(scale);
     }
+    getContentCenterXY(){
+        const {margin} = this;
+        const {left,top,width,height} = this._content.getRoot().getBoundingClientRect();
+        const xMiddle = (left + width / 2) - margin;
+        const yMiddle = (top + height / 2) - margin;
+        return {
+            x:xMiddle,
+            y:yMiddle
+        }
+    }
     onPinch(e:MouseWheelEvent){
-        const {_content,_translateX,_translateY} = this;
+        const {_content,_translateX,_translateY,margin} = this;
         const {deltaY,x,y} = e;
 
         const prevScale = this._scale;
         const newScale = roundScale(this._scale - (deltaY / (100 * (1 + Math.abs(this._scale - 1)))))
 
-        const {left,top,width,height} = _content.getRoot().getBoundingClientRect();
-        const xMiddle = left + width / 2;
-        const yMiddle = top + height / 2;
+        const rect = this.getContentCenterXY();
+        const xMiddle = rect.x;
+        const yMiddle = rect.y;
         const diffScale = (newScale - prevScale) / prevScale;
 
 
-        const newX = Math.round((xMiddle - x) * diffScale  + _translateX);
-        const newY = Math.round((yMiddle - y) * diffScale  + _translateY);
+        // const newX = Math.round((xMiddle - x + margin) * diffScale  + _translateX);
+        // const newY = Math.round((yMiddle - y + margin) * diffScale  + _translateY);
+
+        const newX = (xMiddle - x + margin) * diffScale  + _translateX; //不需要确保精度
+        const newY = (yMiddle - y + margin) * diffScale  + _translateY;
+
+        const diffX = newX - _translateX;
+        const diffY = newY - _translateY;
         this.changeScale(newScale);
         this.updateTranslate(newX,newY);
-
-        this._rulerGroup.setValueAndUnit(newX,newY,Math.round(this._ruleUnit * this._scale));
+        this._rulerGroup.setValueAndUnit(newX,newY,this._ruleUnit,newScale,xMiddle + diffX,yMiddle + diffY);
         // this._rulerGroup.setValueAndUnit(this._translateX,this._translateY,Math.round(this._ruleUnit * this._scale));
         this.draw();
         e.stopPropagation();
@@ -370,10 +393,14 @@ export default class Core extends EventHandler{
         this.changeScale(1);
         // this._rulerGroup.setNewBaseValue(x,y);
         // this._ruleUnitPerPX = 1;
-        this._rulerGroup.setValueAndUnit(x,y,this._ruleUnit);
+        // const {left,top,width,height} = this._content.getRoot().getBoundingClientRect();
+        // const xMiddle = left + width / 2;
+        // const yMiddle = top + height / 2;
+        this.updateTranslate(x,y)
+        const rect = this.getContentCenterXY();
+        this._rulerGroup.setValueAndUnit(x,y,this._ruleUnit,1,rect.x,rect.y);
         this.draw();
         // this._content.changeTranslation(x,y);
-        this.updateTranslate(x,y)
     }
     listen(){
         // this._mouseWheelList.forEach((ett)=>{ //滚动事件

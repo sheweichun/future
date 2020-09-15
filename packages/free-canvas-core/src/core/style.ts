@@ -71,6 +71,9 @@ export default `
         width:100%;
         height:100%;
     }
+    .${WRAPPER}:focus{
+        outline:none;
+    }
     .${MOVABLE_CLASSNAME}{
         box-sizing:border-box;
     }

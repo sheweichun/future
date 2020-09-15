@@ -103,22 +103,22 @@ function RenderContext(pixelRatio: number, prototype: any) {
   if(pixelRatio % 2 === 1){
     prototype.moveTo = (function (_super) {
       return function (x:numebr,y:number) {
-        _super.call(this, x - 0.5, y - 0.5);
+        _super.call(this, x + 0.5, y + 0.5);
       };
     })(prototype.moveTo);
     prototype.lineTo = (function (_super) {
       return function (x:numebr,y:number) {
-        _super.call(this, x - 0.5, y - 0.5);
+        _super.call(this, x + 0.5, y + 0.5);
       };
     })(prototype.lineTo);
     prototype.strokeRect = (function (_super) {
       return function (x:numebr,y:number,width:number,height:number) {
-        _super.call(this, x - 0.5, y - 0.5,width,height);
+        _super.call(this, x + 0.5, y + 0.5,width,height);
       };
     })(prototype.strokeRect);
     prototype.fillRect = (function (_super) {
       return function (x:numebr,y:number,width:number,height:number) {
-        _super.call(this, x - 0.5, y - 0.5,width,height);
+        _super.call(this, x + 0.5, y + 0.5,width,height);
       };
     })(prototype.fillRect);
   }

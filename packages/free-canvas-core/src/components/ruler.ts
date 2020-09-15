@@ -1,6 +1,7 @@
 import {Entity,Point,Line,Rect} from '../entities/index'
 import {completeOptions} from '../utils/index';
 import {createLabel} from './label';
+import {LabelOptions} from './type'
 import {ICanvas} from '../core/type';
 
 export interface RulerOptions{
@@ -12,6 +13,8 @@ export interface RulerOptions{
     lineStyle:string,
     base?:number, // 起点值
     size?:number,
+    centerValue:number,
+    scale:number,
     unit:number,
     // unitPerPX:number
 }
@@ -23,150 +26,215 @@ const DEFAUL_OPTIONS = {
     unit:10
 }
 
+
+// function getIntervalValue(total:number,num:number = 25){
+//     const divider = total / num;
+//     if(divider > 160){
+//         return 200
+//     }else if(divider > 80){
+//         return 100
+//     }else if(divider > 40){
+//         return 50;
+//     }
+//     return 20;
+// }
+
+function getIntervalValue(scale:number,num:number = 25){
+    if(scale < 0.8){
+        return 200
+    }else if(scale < 1.4){
+        return 100
+    }else if(scale < 3){
+        return 50;
+    }
+    return 20;
+}
+
 abstract class RulerModel{
     protected _unit:number
     protected _baseValue:number
+    protected _scaleBaseValue:number
+    protected _interval:number = 5
+    protected _scale:number
+    protected _isVertical:boolean
+    protected _centerValue:number
     // protected _unitPerPX:number
     constructor(protected _start:Point,
         protected _end:Point,protected _options:RulerOptions){
             this._unit = _options.unit
             this._baseValue = _options.base
+            this._scale = _options.scale
+            this._centerValue = _options.centerValue
+            // this.updateScaleBaseValue();
             // this._unitPerPX = _options.unitPerPX
         }
     entities:Entity[]
-    abstract initEntities():void
+    abstract createEntities():void
     abstract changeSize(width:number,height:number):void
+    abstract createLabel(tickValue:number,value:number):Line
+    abstract createLine(value:number):Line
+    abstract createRect():Rect
     changeValue(val:number){
-        this._options.base += val;
-        this.initEntities();
+        this._baseValue += val;
+        this._centerValue -= val;
+        this.createEntities();
     }
     setValue(val:number){
-        this._options.base = val;
-        this.initEntities();
+        this._baseValue = val;
+        this.createEntities();
     }
-    setValueAndUnit(val:number,unit:number){
-        this._options.base = val;
+    setValueAndUnit(val:number,unit:number,scale:number,centerValue:number){
+        this._baseValue = val;
         this._unit = unit;
-        // this._unitPerPX = unitPerPX;
-        this.initEntities();
+        this._scale = scale;
+        this._centerValue = centerValue;
+        this.createEntities();
+    }
+    getOffset(val:number){
+        const {_scale,_scaleBaseValue} = this;
+        const valuePerPX = 1 / _scale;
+        const retValue = Math.round(val * valuePerPX + _scaleBaseValue)
+        return {
+            value:retValue,
+            offset: (retValue - _scaleBaseValue ) / valuePerPX
+        }
+    }
+    createEntitiesByVal(start:number,end:number){
+        const {_unit:unit,_baseValue,_scale,_centerValue} = this;
+        // const tickTotal = end - start;
+        // const totalValue = tickTotal / _scale;
+        const intervalValue = getIntervalValue(_scale);
+        const unitValue = intervalValue / unit;
+        // console.log('intervalValue :',Math.round(totalValue),intervalValue,unitValue);
+        const valuePerPX = 1 / _scale;
+        const base = _baseValue + (_scale - 1) * (_centerValue) * valuePerPX;
+        this._scaleBaseValue = base;
+    
+        // const totalValue = tickTotal * _scale;
+
+
+        const baseRemain = base % unitValue;
+        const baseDiff = unitValue - baseRemain;
+        const realBase = baseRemain === 0 ? base : (baseRemain > 0 ? base + baseDiff : base - baseRemain);
+        
+
+        this.entities = []
+
+        let pxValue:number
+        for(let value = realBase; ;value += unitValue ){
+            let entity:Entity;
+            pxValue = start + (value - base) / valuePerPX;
+            if(value % intervalValue === 0){
+                entity = this.createLabel(value,pxValue);
+            }else{
+                entity = this.createLine(pxValue);
+            }
+            this.entities.push(entity);
+            if(pxValue > end) break;
+        }
+
     }
 }
 
 class VerticalRulerModel extends RulerModel{
-    private _base:number
 
     entities:Entity[]
     constructor(_options:RulerOptions){
         super(_options.start,_options.end,_options);
-        this.initEntities();
+        this._isVertical = true;
+        this.createEntities();
     }
     changeSize(width:number,height:number){
-        // console.log('height :',height,this._end.y);
         this._end = this._end.changeY(height);
-        this.initEntities();
+        this.createEntities();
     }
-    initEntities(){
-        const {_options,_start:start,_end:end,_unit:unit} = this;
-        const {base,size,backgroundColor,lineOffset} = _options;
-        const baseRemain = base % unit;
-        const baseDiff = unit - baseRemain;
-        // this._base = baseRemain === 0 ? base : (base + diff);
-        this._base = baseRemain === 0 ? base : (baseRemain > 0 ? base + baseDiff : base - baseRemain);
-        const lineOpt = {
-            lineStyle:_options.lineStyle,
-        }
-        this.entities = [
-            // new Line(start.addX(lineOffset),end,lineOpt),
-            // new Line(start.addX(size),end.addX(size),lineOpt)
-        ]
-        const startY = start.y;
-        const baseY = startY + (this._base - base);
-        for(let y = baseY;  y <= end.y; y += unit ){
-            let interval = size - 5, entity:Entity;
-            let curVal  = y - baseY + this._base;
-            if(curVal % 200 === 0){
-                interval = 0;
-                entity = createLabel(
-                    new Point(start.x + size,y),
-                    new Point(start.x + interval,y),
-                    {
-                        isVertical:true,
-                        value:curVal + '',
-                        lineStyle:lineOpt.lineStyle
-                    }
-                )
-            }else{
-                entity = new Line(
-                    new Point(start.x + size,y),
-                    new Point(start.x + interval,y),
-                    lineOpt
-                )
-            }
-            this.entities.push(entity);
-        }
-        this.entities.push(new Rect(start.x + lineOffset,start.y,size - lineOffset,end.y - start.y,{
+    createEntities(){
+        const {_start,_end} = this;
+        this.createEntitiesByVal(_start.y,_end.y);
+    }
+    createRect(){
+        const {_options,_start:start,_end:end} = this;
+        const {backgroundColor,size,lineOffset} = _options;
+        return new Rect(start.x + lineOffset,start.y,size - lineOffset,end.y - start.y,{
             color:backgroundColor
-        }))
+        })
+    }
+    createLine(value:number):Line{
+        const {_options,_start:start,_interval} = this;
+        const {lineStyle} = _options;
+        return new Line(
+            new Point(start.x,value),
+            new Point(start.x + _interval,value),
+            {
+                lineStyle
+            }
+        )
+    }
+    createLabel(tickValue:number,value:number):Line{
+        const {_options,_start:start} = this;
+        const {lineStyle,size} = _options;
+        return createLabel(
+            new Point(start.x + size ,value),
+            new Point(start.x ,value),
+            {
+                isVertical:true,
+                value:tickValue + '',
+                padding:2,
+                lineStyle
+            }
+        )
     }
 }
 
 
 class HorizontalRulerModel extends RulerModel{
-    private _base:number
 
 
     entities:Entity[]
     
     constructor(_options:RulerOptions){
         super(_options.start,_options.end,_options);
-        this.initEntities();
+        this._isVertical = false;
+        this.createEntities();
     }
     changeSize(width:number,height:number){
         this._end = this._end.changeX(width);
-        this.initEntities();
+        this.createEntities();
     }
-    initEntities(){
-        const {_options,_start:start,_end:end,_unit:unit} = this;
-        const {base,size,backgroundColor,lineOffset} = _options; //base是逻辑像素值
-        const baseRemain = base % unit;
-        const baseDiff = unit - baseRemain;
-        this._base = baseRemain === 0 ? base : (baseRemain > 0 ? base + baseDiff : base - baseRemain);
-        const lineOpt = {
-            lineStyle:_options.lineStyle
-        }
-        this.entities = [
-            // new Line(start,end,lineOpt),
-            // new Line(start.addY(size),end.addY(size),lineOpt),
-        ]
-        // console.log('start :',start.x,this._base,base);
-        const startX = start.x;
-        const baseX = startX + (this._base - base); //物理像素值
-        for(let x = baseX;  x <= end.x; x += unit ){
-            let interval = size - 5,entity:Entity;
-            let curVal  = x - baseX + this._base;
-            if(curVal % 100 === 0){
-                interval = 0;
-                entity = createLabel(
-                    new Point(x,start.y + size),
-                    new Point(x,start.y + interval),
-                    {
-                        isVertical:false,
-                        value:curVal+'',
-                        lineStyle:lineOpt.lineStyle
-                    }
-                )
-            }else{ 
-                entity = new Line(
-                    new Point(x,start.y + size),
-                    new Point(x,start.y + interval),
-                    lineOpt
-                )
-            }
-            this.entities.push(entity)
-        }
-        this.entities.push(new Rect(start.x,start.y + lineOffset,end.x - start.x,size - lineOffset,{
+    createEntities(){
+        const {_start,_end} = this;
+        this.createEntitiesByVal(_start.x,_end.x);
+    }
+    createRect(){
+        const {_options,_start:start,_end:end} = this;
+        const {backgroundColor,size,lineOffset} = _options;
+        return new Rect(start.x,start.y + lineOffset,end.x - start.x,size - lineOffset,{
             color:backgroundColor
-        }))
+        })
+    }
+    createLine(value:number):Line{
+        const {_options,_start:start,_interval} = this;
+        const {lineStyle} = _options;
+        return new Line(
+            new Point(value, start.y),
+            new Point(value, start.y + _interval),
+            {
+                lineStyle
+            }
+        )
+    }
+    createLabel(tickValue:number,value:number):Line{
+        const {_options,_start:start} = this;
+        const {lineStyle,size} = _options;
+        return createLabel(
+            new Point(value ,start.y),
+            new Point(value ,start.y + size),
+            {
+                isVertical:false,
+                value:tickValue + '',
+                lineStyle
+            }
+        )
     }
 }
 
@@ -194,9 +262,11 @@ export class Ruler extends Entity{
     setValue(val:number){
         this._rulerModel.setValue(val);
     }
-    setValueAndUnit(val:number,unit:number){
-        // console.log('unit :',unit);
-        this._rulerModel.setValueAndUnit(val,unit);
+    getOffset(val:number){
+        return this._rulerModel.getOffset(val)
+    }
+    setValueAndUnit(val:number,unit:number,scale:number,centerValue:number){
+        this._rulerModel.setValueAndUnit(val,unit,scale,centerValue);
     }
     draw(drawer:ICanvas):void{
         this._rulerModel.entities.forEach((entity)=>{

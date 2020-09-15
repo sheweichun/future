@@ -1,9 +1,14 @@
 
 
+export interface offsetData{
+    value:number
+    offset:number
+}
+
 export interface GuideManagerOptions{
     margin:number,
-    getOffsetx(x:number):number,
-    getOffsety(x:number):number
+    getOffsetx(x:number):offsetData,
+    getOffsety(x:number):offsetData
 }
 
 

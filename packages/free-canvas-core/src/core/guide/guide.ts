@@ -196,11 +196,11 @@ export class VGuide extends Guide{
     onMouseEnter(e:MouseEvent){
         if(super.onMouseEnter(e)) return;
         const {gap,margin,getOffsety} = this._options;
-        const y = getOffsety(e.y);
+        const {offset,value} = getOffsety(e.y);
         const curGuide = this.getNewGuide();
         curGuide.className = this._className;
-        curGuide.setAttribute('style',this.getGuideStyle(`cursor:ns-resize;left:0;width:100vw;top:${e.y - margin}px;padding-left:${margin + gap}px;padding-top:-${gap}px`))
-        curGuide.setAttribute('data-value',y+'');
+        curGuide.setAttribute('style',this.getGuideStyle(`cursor:ns-resize;left:0;width:100vw;top:${offset}px;padding-left:${margin + gap}px;padding-top:-${gap}px`))
+        curGuide.setAttribute('data-value',value+'');
         this.curGuide = curGuide;
         // this._rootEl.appendChild(this.curGuide);
         this.guideEl.appendChild(this.curGuide);
@@ -210,9 +210,9 @@ export class VGuide extends Guide{
         const {curGuide} = this;
         const {getOffsety,margin} = this._options;
         if(curGuide == null) return
-        const y = getOffsety(e.y);
-        curGuide.style.top = `${e.y - margin}px`;
-        curGuide.setAttribute('data-value',y+'');
+        const {offset,value} = getOffsety(e.y);
+        curGuide.style.top = `${offset}px`;
+        curGuide.setAttribute('data-value',value+'');
     }
 }
 
@@ -233,11 +233,11 @@ export class HGuide extends Guide{
     onMouseEnter(e:MouseEvent){
         if(super.onMouseEnter(e)) return;
         const {gap,margin,getOffsetx} = this._options;
-        const x = getOffsetx(e.x);
+        const {offset,value} = getOffsetx(e.x);
         const curGuide = this.getNewGuide();
         curGuide.className = this._className;
-        curGuide.setAttribute('style',this.getGuideStyle(`cursor:ew-resize;pointer-events:none;top:0;height:100vh;left:${e.x - margin}px;padding-top:${margin + gap}px;padding-left:${gap}px`))
-        curGuide.setAttribute('data-value',x+'');
+        curGuide.setAttribute('style',this.getGuideStyle(`cursor:ew-resize;pointer-events:none;top:0;height:100vh;left:${offset}px;padding-top:${margin + gap}px;padding-left:${gap}px`))
+        curGuide.setAttribute('data-value',value+'');
         this.curGuide = curGuide
         // this._rootEl.appendChild(this.curGuide);
         this.guideEl.appendChild(this.curGuide);
@@ -247,9 +247,9 @@ export class HGuide extends Guide{
         const {curGuide} = this;
         if(curGuide == null) return
         const {getOffsetx,margin} = this._options;
-        const x = getOffsetx(e.x);
-        curGuide.style.left = `${e.x - margin}px`;
-        curGuide.setAttribute('data-value',x+'');
+        const {offset,value} = getOffsetx(e.x);
+        curGuide.style.left = `${offset}px`;
+        curGuide.setAttribute('data-value',value+'');
     }
     
 }
