@@ -33,9 +33,18 @@
 }
 
 .@{prefix}tree-item-active{
-    & > .@{prefix}tree-item-wrap{
-        color:var(--HIGHTLIGHT_COLOR);
-        background-color:var(--BACKGROUND_4);
+    position: relative;
+    & > .@{prefix}tree-item-wrap:after{
+        // color:var(--HIGHTLIGHT_COLOR);
+        // background-color:var(--BACKGROUND_4);
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        border: 1px solid var(--HIGHLIGHT_BORDER_COLOR);
+        pointer-events: none;
     }
 }
 
@@ -46,7 +55,10 @@
 
 .@{prefix}tree-item-selected{
     & > .@{prefix}tree-item-wrap{
-        color:var(--ACTIVE_TEXT_COLOR);
+        // color:var(--ACTIVE_TEXT_COLOR);
         background-color:var(--HIGHLIGHT_BACKGROUND);
+        &:after{
+            display: none;
+        }
     }
 }

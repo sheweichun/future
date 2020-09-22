@@ -101,7 +101,7 @@ const previewEl = createPreviewEle();
 export function Editor(props:EditorProps){
     const {runTask,components} = props;
     const HeaderComponent = components.header || Header
-    const PanelComponent = components.panel || Panel;
+    const PanelComponent = Hoc<PanelProps,Panel>(components.panel || Panel);
     const MarketComponent = Hoc<MarketProps,Market>(components.market || Market);
     const TreeComponent = Hoc<TreeProps,Tree>(components.tree || Tree);
     const AsideComponent = components.aside || Aside;
@@ -133,7 +133,7 @@ export function Editor(props:EditorProps){
             <div className={`${CLASS_PREFIX}canvas`} ref={canvasContainerRef} onDragEnter={onDragEnter} onDragLeave={onDragLeave}>
                 <iframe ref={iframeRef} src="./canvas.html"></iframe>
             </div>
-            <PanelComponent >
+            <PanelComponent runTask={runTask}>
                 panel
             </PanelComponent>
         </div>

@@ -1,6 +1,6 @@
 
 // import {ViewAttribute} from './type';
-import {baseModel2Model,ModelType,modelIsRoot, modelIsArtboard} from 'free-canvas-shared'
+import {baseModel2Model,ModelType,modelIsRoot, modelIsArtboard,IPos} from 'free-canvas-shared'
 import {BaseModel,WrapData,isEqual} from './index'
 // import {Model} from './model';
 
@@ -210,32 +210,35 @@ export class ViewModel implements IViewModel{
             this.view.updatePosAndSize(this.getRelativeRect(rect)) //当更新的时候需要还原到父容器下的相对坐标
         })
     }
-    changeRect(target:string,diffx:number,diffy:number){
+    updateRect(pos:IPos){
+        this._rect.changeValue(pos)
+    }
+    changeRect(target:string,diffx:number,diffy:number,onlyPos:boolean=false){
         // const curRect = this._rect;
         // const hPercent = fixPercent((diffx + curRect._width) / curRect._width),vPercent = fixPercent((diffy + curRect._height) / curRect._height);
         // console.log('hPercent :',hPercent,diffx);
         // const curWidth = curRect.width,curHeight = curRect.height;
         //@ts-ignore
-        this._rect[target](diffx,diffy);
+        this._rect[target](diffx,diffy,onlyPos);
         this.children && this.children.viewModelList.forEach((child)=>{
-            ViewModel.changeRectByPercent(`${target}Percent`,child,this._rect)
+            ViewModel.changeRectByPercent(`${target}Percent`,child,this._rect,onlyPos)
         })
     }
     // setRect(rect:OperationPos){
     //     this._rect = rect;
     // }
-    static changeRectByPercent(target:string,vm:IViewModel,rootPos:OperationPos):void{
+    static changeRectByPercent(target:string,vm:IViewModel,rootPos:OperationPos,onlyPos:boolean=false):void{
         const vmRect = vm.getRect();
         const parentPos = vm.getParentRect();
         // const pos = vm.getRelativeRect(vmRect,parentPos);
         // const curWidth = vmRect.width,curHeight = vmRect.height;
         //@ts-ignore
         // vmRect[target](parentPos,diffX,diffY)
-        vmRect[target](parentPos,rootPos)
+        vmRect[target](parentPos,rootPos,onlyPos)
         //需要重新计算 
         // const childHPercent = fixPercent(newRect.width / vmRect.width),childVPercent = fixPercent(newRect.height / vmRect.height);
         vm.children && vm.children.viewModelList.forEach((child)=>{
-            ViewModel.changeRectByPercent(target,child,rootPos);
+            ViewModel.changeRectByPercent(target,child,rootPos,onlyPos);
         })
         // vm.setRect(newRect);
     }
@@ -252,11 +255,11 @@ export class ViewModel implements IViewModel{
         if(artboardId == null) return null;
         return getViewModel(artboardId)
     }
-    changePosition(diffx:number,diffy:number):boolean{ //todo 由于在实际拖动以及最终释放之后是分别计算转换逻辑的，需要确保最终行为一致性
+    changePosition(diffx:number,diffy:number,onlyPos:boolean=false):boolean{ //todo 由于在实际拖动以及最终释放之后是分别计算转换逻辑的，需要确保最终行为一致性
         // console.log('parent :',this._parent.modelType,this._initialParent.modelType,this._parent === this._initialParent);
         const {artboardId,getViewModel,getArtboards,getRootViewModel} = this._options
-        this._rect.changeLeftAndTop(diffx,diffy);
-        if(modelIsArtboard(this.modelType)) return; //如果是画板就不需要走下面的逻辑
+        this._rect.changeLeftAndTop(diffx,diffy,onlyPos);
+        if(modelIsArtboard(this.modelType) || onlyPos) return; //如果是画板就不需要走下面的逻辑
         if(artboardId != null){
             const artboard = getViewModel(artboardId);
             if(artboard == null) return
@@ -304,7 +307,7 @@ export class ViewModel implements IViewModel{
         }
         return curRect;
     }
-    getRelativeRect(rect:OperationPos,parentRect?:OperationPos){
+    getRelativeRect(rect:IPos,parentRect?:OperationPos){
         if(!parentRect){
             parentRect = this.getParentRect();
         }

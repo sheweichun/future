@@ -3,9 +3,6 @@ export default [
         type:2,
         id:'110',
         name:'div',
-        style:{
-            backgroundColor:'#ffffff'
-        },
         extra:{
             label:'我的第一块画布',
             position:{
@@ -15,13 +12,17 @@ export default [
                 height:812
             }
         },
+        props:{
+            style:{
+                value:{
+                    backgroundColor:'#ffffff'
+                }
+            }
+        },
         children:[
         {
             id:'111',
             name:'div',
-            style:{
-                backgroundColor:'#ff000055'
-            },
             extra:{
                 position:{
                     left:0,
@@ -30,12 +31,23 @@ export default [
                     height:300,
                 }
             },
+            props:{
+                style:{
+                    value:{
+                        backgroundColor:'#ff000055'
+                    }
+                }
+            },
             children:[
                 {
                     id:'1111',
                     name:'div',
-                    style:{
-                        backgroundColor:'#00ff0055'
+                    props:{
+                        style:{
+                            value:{
+                                backgroundColor:'#00ff0055'
+                            }
+                        }
                     },
                     extra:{
                         position:{
@@ -49,8 +61,12 @@ export default [
                         {
                             id:'11111',
                             name:'div',
-                            style:{
-                                backgroundColor:'#00ff3355'
+                            props:{
+                                style:{
+                                    value:{
+                                        backgroundColor:'#00ff3355'
+                                    }
+                                }
                             },
                             extra:{
                                 position:{
@@ -65,8 +81,12 @@ export default [
                 } ,{
                     id:'1112',
                     name:'div',
-                    style:{
-                        backgroundColor:'#ffff0055'
+                    props:{
+                        style:{
+                            value:{
+                                backgroundColor:'#ffff0055'
+                            }
+                        }
                     },
                     extra:{
                         position:{
@@ -82,8 +102,12 @@ export default [
         {
             id:'112',
             name:'div',
-            style:{
-                backgroundColor:'#00000055'
+            props:{
+                style:{
+                    value:{
+                        backgroundColor:'#00000055'
+                    }
+                }
             },
             extra:{
                 position:{
@@ -96,8 +120,12 @@ export default [
         },{
             id:'113',
             name:'div',
-            style:{
-                backgroundColor:'#00000055'
+            props:{
+                style:{
+                    value:{
+                        backgroundColor:'#00000055'
+                    }
+                }
             },
             extra:{
                 position:{
@@ -113,8 +141,12 @@ export default [
         type:2,
         id:'120',
         name:'div',
-        style:{
-            backgroundColor:'#ffffff'
+        props:{
+            style:{
+                value:{
+                    backgroundColor:'#ffffff'
+                }
+            }
         },
         extra:{
             label:'我的第二块画布',
@@ -129,7 +161,10 @@ export default [
             id:'121',
             name:'div',
             type:1,
-            style:{
+            props:{
+                style:{
+                    value:{}
+                }
             },
             extra:{
                 position:{
@@ -143,8 +178,12 @@ export default [
                 {
                     id:'1211',
                     name:'div',
-                    style:{
-                        backgroundColor:'#ff000055'
+                    props:{
+                        style:{
+                            value:{
+                                backgroundColor:'#ff000055'
+                            }
+                        }
                     },
                     extra:{
                         position:{
@@ -157,8 +196,12 @@ export default [
                 },{
                     id:'1212',
                     name:'div',
-                    style:{
-                        backgroundColor:'#00ff0055'
+                    props:{
+                        style:{
+                            value:{
+                                backgroundColor:'#00ff0055'
+                            }
+                        }
                     },
                     extra:{
                         position:{

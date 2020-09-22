@@ -1,9 +1,3 @@
-.fc-editor-aside {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
 .fc-editor-button {
   display: inline-block;
   cursor: pointer;
@@ -15,19 +9,10 @@
   color: var(--ACTIVE_TEXT_COLOR);
 }
 
-.fc-editor-header {
+.fc-editor-aside {
   display: flex;
-}
-.fc-editor-header-middle {
-  display: flex;
-  flex: 1;
-  align-items: center;
-}
-.fc-editor-header-middlem {
-  flex: 1;
-}
-.fc-editor-header-middler {
-  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 ::-webkit-scrollbar {
@@ -68,6 +53,21 @@
   border: 0;
 }
 
+.fc-editor-header {
+  display: flex;
+}
+.fc-editor-header-middle {
+  display: flex;
+  flex: 1;
+  align-items: center;
+}
+.fc-editor-header-middlem {
+  flex: 1;
+}
+.fc-editor-header-middler {
+  flex: 1;
+}
+
 
 .fc-editor-tree {
   height: 100%;
@@ -92,16 +92,27 @@
 .fc-editor-tree-item-content-arrow.expand:before {
   transform: rotate(90deg);
 }
-.fc-editor-tree-item-active > .fc-editor-tree-item-wrap {
-  color: var(--HIGHTLIGHT_COLOR);
-  background-color: var(--BACKGROUND_4);
+.fc-editor-tree-item-active {
+  position: relative;
+}
+.fc-editor-tree-item-active > .fc-editor-tree-item-wrap:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border: 1px solid var(--HIGHLIGHT_BORDER_COLOR);
+  pointer-events: none;
 }
 .fc-editor-tree-item-artboard {
   background-color: var(--BACKGROUND_0);
 }
 .fc-editor-tree-item-selected > .fc-editor-tree-item-wrap {
-  color: var(--ACTIVE_TEXT_COLOR);
   background-color: var(--HIGHLIGHT_BACKGROUND);
+}
+.fc-editor-tree-item-selected > .fc-editor-tree-item-wrap:after {
+  display: none;
 }
 
 @font-face {
@@ -127,3 +138,103 @@
   content: '\E79C';
 }
 
+
+.fc-editor-editItem {
+  border-bottom: 1px solid var(--BOARDER_COLOR);
+  padding: 8px 0;
+}
+.fc-editor-editItem-head {
+  display: grid;
+  grid-template-rows: 32px;
+  grid-template-columns: repeat(28, 8px);
+  padding: 0 8px;
+  align-items: center;
+}
+.fc-editor-editItem-title {
+  font-weight: bold;
+  white-space: nowrap;
+}
+.fc-editor-editItem-content {
+  padding: 0px 8px;
+}
+
+.fc-editor-tab ul {
+  display: flex;
+  flex-direction: row;
+  cursor: pointer;
+}
+.fc-editor-tab-item {
+  height: 40px;
+  line-height: 40px;
+  padding: 0px 12px;
+  flex: 1;
+  text-align: center;
+  color: var(--DISABLED_COLOR);
+}
+.fc-editor-tab-active-item {
+  color: var(--TEXT-COLOR);
+}
+
+.fc-editor-attribute .next-before {
+  border: 0;
+  width: 28px;
+  background: none;
+}
+.fc-editor-attribute .next-input {
+  border-color: transparent;
+}
+.fc-editor-attribute .next-input.next-focus {
+  border-color: var(--HIGHLIGHT_BORDER_COLOR);
+}
+.fc-editor-attribute .next-checkbox {
+  transform: scale(0.7);
+}
+.fc-editor-attribute-grid {
+  display: grid;
+  grid-template-rows: 32px;
+  grid-template-columns: repeat(2, 33%);
+  padding: 0 8px;
+  align-items: center;
+}
+
+
+.fc-editor-color {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.fc-editor-color-trigger {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  cursor: pointer;
+}
+.fc-editor-color-rect {
+  display: flex;
+  flex-direction: row;
+  width: 16px;
+  height: 16px;
+}
+.fc-editor-color-label {
+  width: 60px;
+  margin-left: 4px;
+}
+.fc-editor-color-label .next-input {
+  width: 60px;
+  text-align: center;
+}
+.fc-editor-color-alpha {
+  width: 48px;
+}
+.fc-editor-color-alpha .next-input {
+  width: 48px;
+  text-align: center;
+}
+
+.fc-editor-measure {
+  display: grid;
+  grid-template-rows: 32px;
+  grid-template-columns: repeat(2, 40%);
+  padding: 0 8px;
+  align-items: center;
+}

@@ -63,11 +63,12 @@ function findMiniestMoveDistance(...nums:number[]){
 }
 
 
-function getVmsByArtboard(artBoard:IViewModel,viewList:IViewModel[]){
+function getVmsByArtboard(artBoard:IViewModel,viewList:IViewModel[]){  //todo 多选情况下如何确保不重复计算
     if(artBoard == null) return [];
     for(let i = 0;i < viewList.length; i++){
         const vm = viewList[i]
         const curVmArtboard = vm.getArtboard();
+        if(vm === artBoard) return null
         if(curVmArtboard == null) continue;
         if(curVmArtboard === artBoard){
             viewList.splice(i,1);
@@ -217,12 +218,13 @@ export class Operation implements IDisposable,IOperation{
                 // })
                 const vmList = getVmsByArtboard(vm,selectedViewModels);  //如果画板中包含了当前选中节点，则返回当前节点的所有兄弟节点，否则返回画板的所有子节点
                 // const artboardId = vm.getModel().get('id',null)
-                result.push(new MakerAssist(vm,vmList,this._guideManager,{
-                    updateMakers,
-                    getRect,
-                    // artboardId
-                }))
-                // result[artBoardId] = 
+                if(vmList && vmList.length > 0){
+                    result.push(new MakerAssist(vm,vmList,this._guideManager,{
+                        updateMakers,
+                        getRect,
+                        // artboardId
+                    }))
+                }
             }
         })
         this._makerAssistList = result;
@@ -318,19 +320,10 @@ export class Operation implements IDisposable,IOperation{
         this._pos.changeLeftAndTop(oriDiffx,oriDiffy);
         // this.setStyle();
 
-        this._selectViewModels.forEach((vm)=>{
-            vm.changePosition(oriDiffx,oriDiffy);
+        this.eachChangeSelectVms((vm:IViewModel,onlyPos:boolean)=>{
+            vm.changePosition(oriDiffx,oriDiffy,onlyPos); //todo 如果超出了当前artboard 需要考虑移除掉
         })
-
         this.showMakers();
-        // if(this._showMakerTmId){
-        //     clearTimeout(this._showMakerTmId);
-        //     this.showMakers();
-        // }else{
-        //     this._showMakerTmId = setTimeout(()=>{ //为了防止点击触发标注展示
-        //         this.showMakers();
-        //     },50)
-        // }
     }
     _onUnSelect(data:{x:number,y:number}){
         if(this._changed){
@@ -373,9 +366,14 @@ export class Operation implements IDisposable,IOperation{
         const {moveX,moveY} = this.calculateAbsorb(calPos)
         diffX += moveX
         diffY += moveY
-        this.eachSelect((vm:IViewModel)=>{
-            vm.changeRect(target,diffX,diffY);
+        // this.eachSelect((vm:IViewModel)=>{
+        //     vm.changeRect(target,diffX,diffY);
+        // })
+        this.eachChangeSelectVms((vm:IViewModel,onlyPos:boolean)=>{
+            // vm.changePosition(oriDiffx,oriDiffy,onlyPos);
+            vm.changeRect(target,diffX,diffY,onlyPos);
         })
+
         //@ts-ignore
         this._pos[target](diffX,diffY);
         this.showMakers();
@@ -508,6 +506,33 @@ export class Operation implements IDisposable,IOperation{
     }
     eachSelect(fn:(vm:IViewModel)=>void){
         this._selectViewModels.forEach(fn);
+    }
+    eachChangeSelectVms(fn:(vm:IViewModel,onlyPos:boolean)=>void){
+        const vmMap:{[key:string]:IViewModel} = {}
+        this._selectViewModels.forEach((vm)=>{
+            const parentVm = vm.getParent();
+            if(modelIsGroup(parentVm.modelType)){
+            // if(!modelIsRoot(parentVm.modelType) && !modelIsArtboard(parentVm.modelType)){
+                const pid = parentVm.getModel().get('id',null)
+                vmMap[pid] = parentVm;
+                fn(vm,true);
+                return;
+            }
+            fn(vm,false);
+        })
+
+        Object.keys(vmMap).forEach((pid)=>{
+            const vm = vmMap[pid];
+            const vmList = vm.children.viewModelList
+            const poses = vmList.map((childvm)=>{
+                return childvm.getRect()
+            })
+            const newPos = calculateIncludeRect(poses);
+            vm.updateRect(newPos);
+            vmList.forEach((childvm)=>{
+                childvm.getRect().update();
+            })
+        })
     }
     _getScale(){
         return this._scale

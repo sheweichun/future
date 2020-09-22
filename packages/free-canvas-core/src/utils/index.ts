@@ -1,5 +1,5 @@
 
-
+import {Utils} from 'free-canvas-shared'
 
 export function controlDelta(val:number,speed:number = 5){
     return Math.floor(val / speed);
@@ -29,29 +29,18 @@ export function getPropertyValue(key:string){
 // let debounceId:any;
 // let curDebounceFn:()=>void;
 
-export function throttle(fn:(...args:any[])=>void,tm:number){
-    let throttleId:any;
-    let curFn:(...args:any[])=>void;
-    return function(...args:any[]){
-        curFn = fn;
-        if(throttleId != null) return;
-        throttleId = setTimeout(function(){
-            curFn && curFn(...args);
-            throttleId = null;
-        },tm)
-        return throttleId
-    }
-}
+export const throttle = Utils.throttle
+export const debounce = Utils.debounce
 
-export function debounce(fn:()=>void,tm:number){
-    let debounceId:any;
-    return function(){
-        if(debounceId != null){
-            clearTimeout(debounceId)
-        }
-        debounceId = setTimeout(function(){
-            fn();
-            debounceId = null;
-        },tm)
-    }
-}
+// export function debounce(fn:(...args:any[])=>void,tm:number){
+//     let debounceId:any;
+//     return function(...args:any[]){
+//         if(debounceId != null){
+//             clearTimeout(debounceId)
+//         }
+//         debounceId = setTimeout(function(){
+//             fn(...args);
+//             debounceId = null;
+//         },tm)
+//     }
+// }

@@ -1,0 +1,24 @@
+@import '../../styles/common/_variable.less';
+
+
+
+.@{prefix}tab{
+    ul{
+        display: flex;
+        flex-direction: row;
+        cursor: pointer;
+    }
+}
+
+.@{prefix}tab-item{
+    height: 40px;
+    line-height: 40px;
+    padding: 0px 12px;
+    flex:1;
+    text-align: center;
+    color:var(--DISABLED_COLOR)
+}   
+
+.@{prefix}tab-active-item{
+    color: var(--TEXT-COLOR);
+}

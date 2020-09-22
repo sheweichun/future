@@ -5,7 +5,7 @@ export default [
         name:'Button',
         style:{
         },
-        propSchemas:{
+        props:{
             type:{
                 value:'primary'
             },
@@ -29,7 +29,7 @@ export default [
         name:'Progress',
         style:{
         },
-        propSchemas:{
+        props:{
             percent:{
                 value:50
             }
@@ -49,7 +49,7 @@ export default [
         name:'Card',
         style:{
         },
-        propSchemas:{
+        props:{
             subTitle:{
                 value:'Subtitle'
             },

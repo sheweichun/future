@@ -13,10 +13,13 @@ function preventDefault(e:DragEvent){
 }
 
 
-// function preventWheel(e:MouseEvent){
-//     e.preventDefault()
-//     e.stopPropagation();
-// }
+function preventPinch(e:MouseWheelEvent){
+    const {deltaX,ctrlKey} = e;
+    if(deltaX === 0 && ctrlKey){
+        e.preventDefault()
+        e.stopPropagation();
+    }
+}
 
 export interface SetupOptions{
     runTask(plugin:IPlugin):void
@@ -33,7 +36,7 @@ export * from './tree/index'
 export * from './aside/index'
 export function setup(mountNode:HTMLElement,components:EditorComponents,opt:SetupOptions){
     document.body.addEventListener(CanvasEvent.DRAGOVER,preventDefault)
-    mountNode.addEventListener(CanvasEvent.MOUSEWHEEL,preventDefault)
+    mountNode.addEventListener(CanvasEvent.MOUSEWHEEL,preventPinch)
     ReactDOM.render(
         <GlobalContext.Provider value={GlobalContextValue}>
             <Editor
@@ -44,7 +47,7 @@ export function setup(mountNode:HTMLElement,components:EditorComponents,opt:Setu
     ,mountNode)
     return function(){
         document.body.removeEventListener(CanvasEvent.DRAGOVER,preventDefault)
-        mountNode.removeEventListener(CanvasEvent.MOUSEWHEEL,preventDefault)
+        mountNode.removeEventListener(CanvasEvent.MOUSEWHEEL,preventPinch)
         ReactDOM.unmountComponentAtNode(mountNode);
     }
 }

@@ -16,10 +16,14 @@
   "devDependencies": {
     "@alife/next": "^1.19.31",
     "@types/react": "16.9.43",
-    "@types/react-dom": "16.9.8"
+    "@types/react-dom": "16.9.8",
+    "@types/reactcss": "^1.2.3",
+    "@types/tinycolor2": "^1.4.2"
   },
   "dependencies": {
     "free-canvas-shared": "0.0.1",
-    "free-canvas-theme": "0.0.1"
+    "free-canvas-theme": "0.0.1",
+    "reactcss": "^1.2.3",
+    "tinycolor2": "^1.4.1"
   }
 }

@@ -29,7 +29,7 @@ function getRelativeRect(rect:OperationPos,parentRect?:PosRect){
 }
 
 
-export function calculateIncludeRect(poses:OperationPos[]){
+export function calculateIncludeRect(poses:{left:number,top:number,width:number,height:number}[]){
     const item = poses[0];
     const left = item.left;
     const top = item.top;
@@ -61,6 +61,13 @@ export function calculateIncludeRect(poses:OperationPos[]){
         }
     }
     return pos;
+}
+
+export interface IPos{
+    left:number,
+    top:number,
+    width:number,
+    height:number
 }
 
 export class OperationPos{
@@ -98,6 +105,13 @@ export class OperationPos{
     //     pos._bottom = fixValue(this._bottom,scale);
     //     return pos;
     // }
+    changeValue(pos:IPos,noUpdate:boolean = false){
+        this.left = pos.left;
+        this.right = pos.left + pos.width;
+        this.top = pos.top;
+        this.bottom = pos.top + pos.height;
+        (this._updater && !noUpdate) && this._updater(this)
+    }
     scaleClone(scale:number){
         const left = fixValue(this.left,scale),
         right = fixValue(this.right,scale),
@@ -158,7 +172,7 @@ export class OperationPos{
     // getDiffY(){
     //     return this.height - this._height
     // }
-    update(noUpdate:boolean){
+    update(noUpdate?:boolean){
         (this._updater && !noUpdate) && this._updater(this)
         return this;
     }

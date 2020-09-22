@@ -1,7 +1,7 @@
 import {ObjectStyleDeclaration} from '../utils/type'
 import { BaseModel } from './dsl/store';
 import { OperationPos } from '../core/operation/pos';
-import {ICommander,ViewOptions,CreateView,ModelType, IView, Model} from 'free-canvas-shared'
+import {ICommander,ViewOptions,CreateView,ModelType, IView, Model,IPos} from 'free-canvas-shared'
 
 export interface ViewAttribute{
     style?:ObjectStyleDeclaration
@@ -50,11 +50,12 @@ export interface IViewModel{
     getParent():IViewModel
     getInitialParent():IViewModel
     getTypeParent(type:ModelType):IViewModel
-    changeRect(target:string,diffx:number,diffy:number):void
+    changeRect(target:string,diffx:number,diffy:number,onlyPos?:boolean):void
     didMount():void
     update(model:BaseModel):void
     isChildren(vm:IViewModel):boolean
     getRect():OperationPos
+    updateRect(pos:IPos):void
     recalculateRect():void
     changeArtboardId(artboardId:string):void
     // setRect(pos:OperationPos):void
@@ -65,7 +66,7 @@ export interface IViewModel{
     removeChildViewModel(vm:IViewModel):void
     getParentRect():{left:number,top:number}
     getViewModelByXY(x:number,y:number):IViewModel
-    getRelativeRect(rect:OperationPos,parentRect?:{left:number,top:number}):{left:number,top:number,width:number,height:number}
+    getRelativeRect(rect:IPos,parentRect?:{left:number,top:number}):IPos
     // updateRectByWheel(scrollX:number,scrollY:number):void
     // isInside(vm:IViewModel):boolean
     // moveLeft(diffx:number):void
@@ -77,7 +78,7 @@ export interface IViewModel{
     onDidUpdate():void
     onDidMount():void
     appendChild(vm:IViewModel):void
-    changePosition(diffx:number,diffy:number):void
+    changePosition(diffx:number,diffy:number,onlyPos?:boolean):void
 }
 
 export interface IMovable{

@@ -70,3 +70,38 @@ export function fixValue(val:number,scale:number){
     // return Math.floor(val * scale)
     return val * scale
 }
+
+
+export function throttle(fn:(...args:any[])=>void,tm:number){
+    let throttleId:any;
+    let curFn:(...args:any[])=>void;
+    const ret = function(...args:any[]){
+        curFn = fn;
+        if(throttleId != null) return;
+        throttleId = setTimeout(function(){
+            curFn && curFn(...args);
+            throttleId = null;
+        },tm)
+        return throttleId
+    }
+    ret.cancel = function(){
+        if(throttleId != null){
+            clearTimeout(throttleId)
+            throttleId = null
+        }
+    }
+    return ret;
+}
+
+export function debounce(fn:(...args:any[])=>void,tm:number){
+    let debounceId:any;
+    return function(...args:any[]){
+        if(debounceId != null){
+            clearTimeout(debounceId)
+        }
+        debounceId = setTimeout(function(){
+            fn(...args);
+            debounceId = null;
+        },tm)
+    }
+}

@@ -20,6 +20,42 @@ type BaseModelAndPos = {
     keyPath:string[],
     model:BaseModel
 }
+
+
+// function sortBaseModelAndPos(data:BaseModelAndPos[]){
+//     return data.sort((a:BaseModelAndPos,b:BaseModelAndPos)=>{
+//         const aKeyPath = a.keyPath;
+//         const bKeyPath = b.keyPath;
+//         const alen = aKeyPath.length;
+//         const blen = bKeyPath.length;
+//         const compareLen = Math.min(alen,blen);
+//         const compareResult = parseInt(aKeyPath[compareLen - 1]) - parseInt(bKeyPath[compareLen - 1]);
+//         return compareResult === 0 ? alen - blen : compareResult
+//     })
+// }
+function sortViewModel(data:IViewModel[]){ //保证编组的顺序合理
+    return data.sort((a:IViewModel,b:IViewModel)=>{
+        const aKeyPath = a.getModel()._keyPath;
+        const bKeyPath = b.getModel()._keyPath;
+        const alen = aKeyPath.length;
+        const blen = bKeyPath.length;
+        const compareLen = Math.min(alen,blen);
+        const compareResult = parseInt(aKeyPath[compareLen - 1]) - parseInt(bKeyPath[compareLen - 1]);
+        return compareResult === 0 ? alen - blen : compareResult
+    })
+}
+
+function sortBaseModel(data:BaseModel[]){ //保证编组的顺序合理
+    return data.sort((a:BaseModel,b:BaseModel)=>{
+        const aKeyPath = a._keyPath;
+        const bKeyPath = b._keyPath;
+        const alen = aKeyPath.length;
+        const blen = bKeyPath.length;
+        const compareLen = Math.min(alen,blen);
+        const compareResult = parseInt(aKeyPath[compareLen - 1]) - parseInt(bKeyPath[compareLen - 1]);
+        return compareResult === 0 ? alen - blen : compareResult
+    })
+}
 // function extractAllModel(model:BaseModel,ret:BaseModel[]=[]){
 //     const children = model.get('children',null);
 //     if(children == null || children.size === 0) return ret;
@@ -85,7 +121,7 @@ export class Mutation extends EventHandler implements IMutation{
     private _isDragOver:boolean = false
     private _viewModelMap:Map<string,IViewModel> = new Map()
     private _operation:IOperation
-    private _copyTarget:IViewModel[]
+    private _copyTarget:IViewModel[] 
     // private _lastEnter:EventTarget;
     constructor(private _el:HTMLElement,private _store:Store,private _commander:Commander,private _options:MutationOptions){
         super()
@@ -117,7 +153,7 @@ export class Mutation extends EventHandler implements IMutation{
                 artboards.push(value)
             }
         })
-        return artboards;
+        return sortViewModel(artboards);
     }
     removeViewModel(viewModel:IViewModel){
         const vmId = viewModel.getModel().get('id',null)
@@ -172,7 +208,7 @@ export class Mutation extends EventHandler implements IMutation{
                 arr.push(item)
             }
         })
-        return arr;
+        return sortViewModel(arr);
     }
     getAllSelectedViewModels(){
         const arr:IViewModel[] = [];
@@ -182,7 +218,7 @@ export class Mutation extends EventHandler implements IMutation{
                 arr.push(item)
             }
         })
-        return arr;
+        return sortViewModel(arr);
     }
     // getAllSelectedBaseModels(){
     //     const arr:BaseModel[] = [];
@@ -514,6 +550,7 @@ export class Mutation extends EventHandler implements IMutation{
             })
             this.removeModel(parentModel,model);
         })
+        // sortBaseModelAndPos(childs); //保证编组的顺序合理
         const targetParent = this._store.getRealFromPath(deepKeyPath,null);
         if(targetParent == null) return;
 
@@ -584,13 +621,30 @@ export class Mutation extends EventHandler implements IMutation{
         this.addKeyPath(target.get('id',null));
         // return encode2ShortId(target._keyPath)
     }
+    updateGroupVm(needChangePosVMMap:{[key:string]:IViewModel},noChild:boolean=false){
+        Object.keys(needChangePosVMMap).forEach((pid:string)=>{
+            const parent = needChangePosVMMap[pid];
+            const parentChild = parent.children
+            // if(parentChild == null) return;
+            // const poses = parentChild.viewModelList.map((child)=>{
+            //     return child.getRect();
+            // })
+            // const newPos = calculateIncludeRect(poses);
+            // const updatePos = parent.getRelativeRect(newPos);
+            
+            noChild && parentChild.viewModelList.forEach((vm:IViewModel)=>{
+                this._changeVmPosAndSize(vm,noChild);
+            })
+            this._changeVmPosAndSize(parent,noChild);
+        })
+    }
     onPostionChanges(val:{vms:IViewModel[],data:{left:number,top:number}}){
         const {vms,data:posData} = val
         const artboards = this.getAllArtboardVms();
         const dslData = this.getDSLData();
         const _this = this;
         const needRemoveVms:IViewModel[] = [];
-        const needAddItems:{parentModel:BaseModel,target:BaseModel}[] = []
+        const needAddItems:{[key:string]:{parentModel:BaseModel,target:BaseModel[]}} = {}
         function getOverlapArtboard(vm:IViewModel){
             const vmRect = vm.getRect();
             for(let i = 0 ; i < artboards.length ; i++){
@@ -600,8 +654,17 @@ export class Mutation extends EventHandler implements IMutation{
                 }
             }
         }
+        const needChangePosVMMap:{[key:string]:IViewModel} = {}
+
 
         function changeVmPos(vm:IViewModel,data:{left:number,top:number}){
+            const parentVm = vm.getParent();
+            if(parentVm && modelIsGroup(parentVm.modelType)){
+            // if(parentVm && (!modelIsRoot(parentVm.modelType) && !modelIsArtboard(parentVm.modelType))){
+                const pid = parentVm.getModel().get('id',null);
+                needChangePosVMMap[pid] = parentVm;
+                return;
+            }
             vm.getModel().updateIn(['extra','position'],null,(pos:any)=>{
                 return WrapData({
                     left:pos.get('left') + data.left,
@@ -613,9 +676,9 @@ export class Mutation extends EventHandler implements IMutation{
         }
 
 
-        function changePosByArtboard(diffx:number,diffy:number,vm:IViewModel,data:{left:number,top:number},newParentModel:BaseModel,){
+        function changePosByArtboard(diffx:number,diffy:number,vm:IViewModel,data:{left:number,top:number},newParentModel:BaseModel){
             const vmModel = vm.getModel();
-            const newVmModel = vmModel.updateIn(['extra','position'],null,(pos:any)=>{
+            const newVmModel:BaseModel = vmModel.updateIn(['extra','position'],null,(pos:any)=>{
                 return WrapData({
                     left:pos.get('left') + data.left + diffx,
                     top:pos.get('top') + data.top + diffy,
@@ -624,15 +687,13 @@ export class Mutation extends EventHandler implements IMutation{
                 })
             }).deref(null)
             needRemoveVms.push(vm);
-            needAddItems.push({
-                parentModel:newParentModel,
-                target:newVmModel
-            })
-            // _this._removeModelsFromEachModel([vm],dslData);
-            // newParentModel.updateIn(['children'],null,(childs:BaseModel)=>{
-            //     //@ts-ignore
-            //     return childs.push(newVmModel);
-            // })
+            const pid = newParentModel.get('id',null);
+            let addItem = needAddItems[pid]
+            if(addItem == null){
+                addItem = {parentModel:newParentModel,target:[]}
+                needAddItems[pid] = addItem
+            }
+            addItem.target.push(newVmModel);
         }
 
         function vmOutArtboard(overlapArtboard:IViewModel,vm:IViewModel,data:{left:number,top:number}){
@@ -687,28 +748,35 @@ export class Mutation extends EventHandler implements IMutation{
                     }
                 }
             })
+            this.updateGroupVm(needChangePosVMMap,true)
 
             this._removeModelsFromEachModel(needRemoveVms,dslData); //先删除待删除的节点
-            needAddItems.forEach((item)=>{ //然后添加待添加的节点
-                const {parentModel,target} = item;
+            Object.keys(needAddItems).forEach((pid:string)=>{
+                const {parentModel,target} = needAddItems[pid]
                 parentModel.updateIn(['children'],null,(childs:BaseModel)=>{
                     //@ts-ignore
-                    return childs.push(target);
+                    return childs.push(...target);
                 })
             })
         })
     }
-    _changeVmPosAndSize(vm:IViewModel,pos:{left:number,top:number,width:number,height:number}){
+    _changeVmPosAndSize(vm:IViewModel,noChild:boolean = false){
         const oldVm = vm.getModel();
         // const {left,top,width,height} = vm.getRelativeRect(vm.getRect());
         // const newPos = {left,top,width,height}
-        oldVm.withMutations((md:any)=>{
-            return md.setIn(['extra','position'],WrapData(pos))
+
+        // oldVm.withMutations((md:any)=>{
+        //     return md.setIn(['extra','position'],WrapData(vm.getRelativeRect(vm.getRect())))
+        // })
+        // console.log('oldVm :',oldVm);
+        oldVm.updateIn(['extra','position'],null,(pos:any)=>{
+            return WrapData(vm.getRelativeRect(vm.getRect()))
         })
-        if(vm.children){
+
+        if(vm.children && !noChild){
             vm.children.viewModelList.forEach((child)=>{
 
-                this._changeVmPosAndSize(child,child.getRelativeRect(child.getRect()))
+                this._changeVmPosAndSize(child)
             })
         }
     }
@@ -716,14 +784,19 @@ export class Mutation extends EventHandler implements IMutation{
     changePosAndSize(vms:IViewModel[]){
         // const artboards = this.getAllArtboardVms();
         this.transition(()=>{
+            const needChangePosVMMap:{[key:string]:IViewModel} = {}
             vms.forEach((vm)=>{
-                // const vmRect = vm.getRect();
-                // artboards.forEach((artboard)=>{
-                //     console.log('artboard :',artboard.getRect().isOverlap(vmRect));
-                // })
-                const pos = vm.getRelativeRect(vm.getRect());
-                this._changeVmPosAndSize(vm,pos);
+                // const pos = vm.getRelativeRect(vm.getRect());
+                const parentVm = vm.getParent();
+                if(parentVm && modelIsGroup(parentVm.modelType)){
+                // if(parentVm && (!modelIsRoot(parentVm.modelType) && !modelIsArtboard(parentVm.modelType))){
+                    const pid = parentVm.getModel().get('id',null);
+                    needChangePosVMMap[pid] = parentVm;
+                    return;
+                }
+                this._changeVmPosAndSize(vm);
             })
+            this.updateGroupVm(needChangePosVMMap,false);
         })
     }
     _onUnSelected(){ //取消组件选中

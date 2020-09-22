@@ -1,0 +1,32 @@
+@import '../../styles/common/_variable.less';
+
+
+
+.@{prefix}attribute{
+    .next-before{
+        border: 0;
+        width: 28px;
+        background: none;
+    }
+    .next-input{
+        border-color: transparent;
+        &.next-focus{
+            border-color: var(--HIGHLIGHT_BORDER_COLOR);
+        }
+    }
+    .next-checkbox{
+        transform: scale(0.7);
+    }
+}
+
+
+.@{prefix}attribute-grid{
+    display: grid;
+    grid-template-rows: 32px;
+    grid-template-columns: repeat(2,33%);
+    padding: 0 8px;
+    align-items: center;
+}
+
+
+

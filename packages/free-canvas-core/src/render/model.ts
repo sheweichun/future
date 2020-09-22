@@ -65,7 +65,13 @@ export function completeData(data:Model){
     if(!data.extra.position){
         data.extra.position = {}
     }
-    data.style = data.style || {}
+    if(!data.props){
+        data.props = {
+            style:{value:{}}
+        }
+    }else if(!data.props.style){
+        data.props.style = {value:{}}
+    }
     data.children && data.children.forEach((child)=>{
         completeData(child)
     })
@@ -78,7 +84,10 @@ export function createGroupModel(left:number,top:number,width:number,height:numb
         id:nextId(),
         name:'div',
         type:ModelType.isGroup,
-        style:{
+        props:{
+            style:{
+                value:{}
+            },
         },
         extra:{
             position:{

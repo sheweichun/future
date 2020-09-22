@@ -1,5 +1,5 @@
 
-import {Model,ModelType,ModelPropSchemas,ImgCookDsl,ImgCookNodeType, ImgCookItem} from 'free-canvas-shared'
+import {Model,ModelType,ModelProps,ImgCookDsl,ImgCookNodeType, ImgCookItem} from 'free-canvas-shared'
 
 let curId = 1;
 
@@ -23,7 +23,11 @@ export function transformImgCookDsl(data:ImgCookDsl){
                 height:scale(parseInt(style.height))
             }
         },
-        style:data.props.style,
+        props:{
+            style:{
+                value:data.props.style
+            },
+        },
         children:children ? children.map((child)=>{
             return transformImgCookItem(child)
         }) : []
@@ -61,7 +65,7 @@ function transformImgCookItem(data:ImgCookItem):Model{
     const {props,children,type} = data;
     const {style,attrs} = props;
     let name:string;
-    let propsSchemas:ModelPropSchemas = {};
+    let propsVal:ModelProps = {};
     switch(type){
         case ImgCookNodeType.BLOCK:
         case ImgCookNodeType.SHAPE:
@@ -69,13 +73,13 @@ function transformImgCookItem(data:ImgCookItem):Model{
             break;
         case ImgCookNodeType.IMAGE:
             name = 'img'
-            propsSchemas.src = {
+            propsVal.src = {
                 value:attrs.source
             }
             break;
         case ImgCookNodeType.TEXT:
             name = 'span'
-            propsSchemas.children = {
+            propsVal.children = {
                 value:attrs.text
             }
             break;
@@ -92,8 +96,12 @@ function transformImgCookItem(data:ImgCookItem):Model{
                 height:scale(parseInt(style.height))
             }
         },
-        propSchemas:propsSchemas,
-        style:fixStyle(style),
+        props:{
+            ...propsVal,
+            style:{
+                value:fixStyle(style)
+            },
+        },
         children:children ? children.map((child)=>{
             return transformImgCookItem(child)
         }) : []

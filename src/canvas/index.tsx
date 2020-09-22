@@ -22,6 +22,8 @@ const canvas = FreeCanvas('canvas',{
         type:0
         // data:[imgCookData,imgCookData1,imgCookData2],
         // type:1
+        // data:[imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2],
+        // type:1
     }
 });
 // @ts-ignore

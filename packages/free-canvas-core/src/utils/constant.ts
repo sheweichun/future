@@ -25,4 +25,4 @@ export const DRAG_OVER = `${STYLE_PREFIX}drag-over`
 
 export const styleSizeSize = 8
 export const styleSizeColor = '#ccc'
-export const styleSizeHoverColor = '#3D7FFF'
+export const styleSizeHoverColor = 'var(--HIGHLIGHT_BORDER_COLOR)'

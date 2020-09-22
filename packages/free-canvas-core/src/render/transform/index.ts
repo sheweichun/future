@@ -7,6 +7,7 @@ export function transformDsl(data:(Model | ImgCookDsl)[],type:DSLType):Model{
     return {
         type:0,
         extra:{},
+        props:{style:{value:{}}},
         // isGroup:false,
         children:data.map((item)=>{
             if(type === DSLType.IMGCOOK){

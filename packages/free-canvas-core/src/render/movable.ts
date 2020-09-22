@@ -94,9 +94,10 @@ export class Movable implements IMovable{
     // }
     fixData(data:Model){
         const {position} = data.extra
-        const {style} = data;
-        style.width = position.width == null  ? 'auto': `${position.width}px`
-        style.height = position.height == null ? 'auto': `${position.height}px`
+        const {style} = data.props;
+        const styleValue = style.value
+        styleValue.width = position.width == null  ? 'auto': `${position.width}px`
+        styleValue.height = position.height == null ? 'auto': `${position.height}px`
         return data;
     }
     render(){

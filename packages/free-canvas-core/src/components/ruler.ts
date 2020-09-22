@@ -120,14 +120,15 @@ abstract class RulerModel{
 
         this.entities = []
 
-        let pxValue:number
+        let pxValue:number,displayValue:number
         for(let value = realBase; ;value += unitValue ){
             let entity:Entity;
             pxValue = start + (value - base) / valuePerPX;
+            displayValue = Math.round(pxValue);
             if(value % intervalValue === 0){
-                entity = this.createLabel(value,pxValue);
+                entity = this.createLabel(value,displayValue);
             }else{
-                entity = this.createLine(pxValue);
+                entity = this.createLine(displayValue);
             }
             this.entities.push(entity);
             if(pxValue > end) break;

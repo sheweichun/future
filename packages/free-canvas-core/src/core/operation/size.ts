@@ -272,12 +272,12 @@ export class Size{
         this.initHanlder(_pos);
     }
     initHanlder(_pos:OperationPos){
-        const {_options,_parentEl,_noNeedOperation} = this;
-        if(_noNeedOperation){
-            this._handlerList = []
-        }else{
+        const {_options,_parentEl} = this;
+        // if(_noNeedOperation){
+            // this._handlerList = []
+        // }else{
             const fragment = document.createDocumentFragment();
-            this._handlerList = this._noNeedOperation ? [] :[
+            this._handlerList = [
                 new LeftHandlerItem(_pos,_options).appendTo(fragment),
                 new TopHandlerItem(_pos,_options).appendTo(fragment),
                 new RightHandlerItem(_pos,_options).appendTo(fragment),
@@ -288,7 +288,7 @@ export class Size{
                 new RightTopHandlerItem(_pos,_options).appendTo(fragment),
             ]
             _parentEl.appendChild(fragment)
-        }
+        // }
     }
     clearHandler(){
         const {_parentEl} = this;
@@ -309,13 +309,13 @@ export class Size{
         })
     }
     update(pos:OperationPos,noNeedOperation:boolean){
-        const curNoNeedOperation = this._noNeedOperation;  //是否显示handler的状态切换
-        this._noNeedOperation = noNeedOperation;
-        if(curNoNeedOperation && !noNeedOperation){
-            this.initHanlder(pos);
-        }else if(!curNoNeedOperation && noNeedOperation){
-            this.clearHandler();
-        }
+        // const curNoNeedOperation = this._noNeedOperation;  //是否显示handler的状态切换
+        // this._noNeedOperation = noNeedOperation;
+        // if(curNoNeedOperation && !noNeedOperation){
+        //     this.initHanlder(pos);
+        // }else if(!curNoNeedOperation && noNeedOperation){
+        //     this.clearHandler();
+        // }
         this._handlerList.forEach((item)=>{
             item.update(pos)
         })

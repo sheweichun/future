@@ -163,12 +163,20 @@ export function modelIsArtboard(type:ModelType){
     return type === ModelType.isArtBoard
 }
 
+export interface ModelProps{
+    [key:string]:{
+        value:any,
+        expression?:string
+    }
+}
+
 export interface Model {
     id?:string
     name?:string
     type?:ModelType
-    style?:ObjectStyleDeclaration
-    propSchemas?:ModelPropSchemas
+    // style?:ObjectStyleDeclaration
+    props:ModelProps
+    // propSchemas?:ModelPropSchemas
     children?:Model[]
     extra:{
         import?:{
@@ -206,7 +214,7 @@ export function baseModel2Model(data:ImutBase){
         // isGroup:getValFromBaseModel('isGroup',data),
         type:getValFromBaseModel('type',data),
         style:getJSValFromBaseModel('style',data),
-        propSchemas:getJSValFromBaseModel('propSchemas',data),
+        props:getJSValFromBaseModel('props',data),
         extra:getJSValFromBaseModel('extra',data)
     }
     return ret;
