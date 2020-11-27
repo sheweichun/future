@@ -20,22 +20,28 @@
     flex-direction: row; 
     width: 16px;
     height: 16px;
+    border:1px solid var(--BOARDER_COLOR)
 }
 
 .@{prefix}color-label{
     width: 60px;
     margin-left: 4px;
-    .next-input{
+    .next-input-group{
         width: 60px;
-        text-align: center;
+        input{
+            text-align: center;
+        }
+        
     }
 }
 
 .@{prefix}color-alpha{
-    width: 48px;
-    .next-input{
-        width: 48px;
-        text-align: center;
+    width: 38px;
+    .next-input-group{
+        width: 38px;
+        input{
+            text-align: right;
+        }
     }
 }
 

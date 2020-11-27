@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import * as Next from '@alife/next'
-import {Model,IView,ViewOptions,ModelPropSchemas} from 'free-canvas-shared'
+import {Model,IView,ViewOptions,ModelProps} from 'free-canvas-shared'
 
 type WrapCompoenntProps = {
     data:Model,
@@ -20,9 +20,9 @@ type UniversalProps = {
 
 const assign = Object.assign
 
-function calculatePropSchemas(propSchemas:ModelPropSchemas){
-    return Object.keys(propSchemas).reduce((ret:UniversalProps,name)=>{
-        const item = propSchemas[name];
+function calculatePropSchemas(props:ModelProps){
+    return Object.keys(props).reduce((ret:UniversalProps,name)=>{
+        const item = props[name];
         ret[name] = item.value;
         return ret;
     },{})
@@ -44,14 +44,15 @@ class WrapComponent extends React.Component<WrapCompoenntProps,WrapCompoenntStat
     }
     render(){
         const {data,componentProps} = this.state;
-        const {name,style} = data
+        const {name} = data
+        const {style,...otherProps} = componentProps
         
         const applyStyle = Object.assign({},style,{
             transition:'none'
         })
         //@ts-ignore
         const RenderComponent = Next[name]
-        return <RenderComponent ref={this.initRef} {...componentProps} style={applyStyle}>
+        return <RenderComponent ref={this.initRef} {...otherProps} style={applyStyle}>
           
         </RenderComponent>;
     }
@@ -62,7 +63,7 @@ export class FusionView implements IView<Model>{
         private _el:HTMLElement
         private _componentProps:UniversalProps
         constructor(private _data:Model,option:ViewOptions){
-            this._componentProps = calculatePropSchemas(_data.propSchemas)
+            this._componentProps = calculatePropSchemas(_data.props)
             this.render();
         }
         initRef=(node:WrapComponent)=>{
@@ -80,16 +81,17 @@ export class FusionView implements IView<Model>{
         }
         update(model:Model){
             this._data = model;
-            this._componentProps = calculatePropSchemas(model.propSchemas)
+            this._componentProps = calculatePropSchemas(model.props)
             this._instance.setState({
                 data:model,
                 componentProps:this._componentProps
             })
         }
         updateStyle(width:number,height:number){
+            const {_componentProps} = this
             this._instance.setState({
-                data:assign({},this._data,{
-                    style:assign({},this._data.style,{
+                componentProps:assign({},_componentProps,{
+                    style:assign({},_componentProps.style,{
                         width:`${width}px`,
                         height:`${height}px`
                     })

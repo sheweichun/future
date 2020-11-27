@@ -1,6 +1,6 @@
 import { ModelType,Model } from 'free-canvas-shared'
 
-export {ModelPropSchema,ModelPropSchemas,Model} from 'free-canvas-shared'
+export {ModelPropSchema,Model} from 'free-canvas-shared'
 
 // export class Model{
 //     static EmptyModel = new Model(null,null,null)
@@ -24,22 +24,7 @@ export interface UniversalObject{
     [name:string]:any
 }
 
-// export interface Model {
-//     id?:string
-//     name?:string
-//     isRoot?:boolean
-//     isGroup?:boolean
-//     style?:ObjectStyleDeclaration
-//     propSchemas?:ModelPropSchemas
-//     children?:Model[]
-//     extra:{
-//         position?:{
-//             left?:number,
-//             top?:number
-//         },
-//         isSelect?:boolean
-//     }
-// }
+
 let maxId = -Infinity;
 
 function nextId(){
@@ -49,10 +34,16 @@ function nextId(){
 
 export function updateAllId(data:Model){
     if(data == null) return
-    data.id = nextId();
-    data.children && data.children.forEach((child)=>{
-        updateAllId(child);
-    })
+    let newData = Object.assign({},data);
+    newData.proto = {}
+    newData.pid = data.id;
+    newData.id = nextId();
+    if(data.children){
+        newData.children = data.children.map((child)=>{
+            return updateAllId(child);
+        })  
+    }
+    return newData
 }
 
 export function completeData(data:Model){
@@ -62,6 +53,9 @@ export function completeData(data:Model){
         maxId = dId;   
     }
     data.extra = data.extra || {isSelect:false}
+    if(!data.proto){
+        data.proto = {}
+    }
     if(!data.extra.position){
         data.extra.position = {}
     }

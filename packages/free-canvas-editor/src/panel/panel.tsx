@@ -1,18 +1,35 @@
 import React from 'react'
 import {ThemeVar} from 'free-canvas-theme'
 import {IPlugin,ICommander,IMutation,Model,IPluginOptions} from 'free-canvas-shared'
-import {PanelProps,PanelState} from './type'
+import {PanelProps,PanelState,ModelIdMap} from './type'
 import {Tab, TabDataItem} from '../components/index'
 import {Attribute} from './attribute/index'
 
 
 const {backgroundColor,width,color} = ThemeVar.PANEL
 export {PanelProps,PanelState} from './type'
+
+
+function props2State(props:PanelProps,prevState:PanelState):PanelState{
+    const {componentData} = props;
+    let modelIdMap:ModelIdMap
+    if(componentData == null){
+        modelIdMap = {}
+    }else{
+        modelIdMap = componentData.reduce((ret,md)=>{
+            //@ts-ignore
+            ret[md.id] = md;
+            return ret;
+        },{})
+    }
+    return Object.assign({},prevState,{modelIdMap})
+}
+
 export class Panel extends React.Component<PanelProps,PanelState> implements IPlugin{
     private _mutation:IMutation
     constructor(props:PanelProps){
         super(props);
-        this.state = {
+        this.state = props2State(props,{
             activeTab:0,
             tabData:[
                 {
@@ -21,9 +38,13 @@ export class Panel extends React.Component<PanelProps,PanelState> implements IPl
                     label:'原型'
                 }
             ],
-            modelData:[]
-        }
+            modelData:[],
+            modelIdMap:{}
+        })
         this.onTabChange = this.onTabChange.bind(this)
+    }
+    static getDerivedStateFromProps(nextProps:PanelProps,prevState:PanelState){
+        return props2State(nextProps,prevState)
     }
     install(commander:ICommander,mutation:IMutation,options:IPluginOptions){
         this._mutation = mutation;
@@ -42,9 +63,9 @@ export class Panel extends React.Component<PanelProps,PanelState> implements IPl
         })
     }
     renderTabContent(tabIndex:number,data:TabDataItem){
-        const {modelData} = this.state;
+        const {modelData,modelIdMap} = this.state;
         if(tabIndex === 0){
-            return <Attribute tabData={data} modelData={modelData}></Attribute>
+            return <Attribute modelIdMap={modelIdMap} tabData={data} modelData={modelData} mutation={this._mutation}></Attribute>
         }
     }
     render(){

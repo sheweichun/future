@@ -22,6 +22,14 @@ export class GuideManager{
         this.hGuide = new HGuide(_rootEl,_options).mount().listen()
         this.vGuide = new VGuide(_rootEl,_options).mount().listen()
     }
+    refresh(){
+        this.hGuide.refresh()
+        this.vGuide.refresh()
+    }
+    // refresh(offsetX:number,offsetY:number){
+    //     this.hGuide.refresh(offsetX)
+    //     this.vGuide.refresh(offsetY)
+    // }
     listen(){
 
     }

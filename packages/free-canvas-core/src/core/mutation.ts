@@ -2,7 +2,7 @@
 import {Store,WrapData, BaseModel,isEqual,createList,createMap} from '../render/index'
 import {Commander} from './commander'
 import { IViewModel } from "../render/type";
-import {COMMANDERS,Utils, modelIsGroup, modelIsRoot, modelIsArtboard,IMutation, ModelType} from 'free-canvas-shared';
+import {COMMANDERS,Utils, modelIsGroup, modelIsRoot, modelIsArtboard,IMutation, IPos} from 'free-canvas-shared';
 import {createGroupModel} from '../render/index'
 import {CanvasEvent,EventHandler} from '../events/event'
 import {Model, updateAllId} from '../render/model';
@@ -261,28 +261,32 @@ export class Mutation extends EventHandler implements IMutation{
         this.transition(()=>{
             this._onUnSelected();
             const dslData = this.getDSLData();
-            const originPath = dslData._keyPath;
-            let newId:string;
+            // const originPath = dslData._keyPath;
+            let selectIds:string[] = [];
             dslData.update('children',(old:BaseModel)=>{
                 // const oldSize = old.size;
                 //@ts-ignore
                 return old.push(...this._copyTarget.map((vm:IViewModel,index:number)=>{
                     const item = vm.getModel();
                     const itemRect = vm.getRect();
-                    const cloneData = item.searialize();
-                    updateAllId(cloneData)
+                    const searilizeData = item.searialize();
+                    const cloneData = updateAllId(searilizeData);
+                    cloneData.pid = searilizeData.id;
                     const {position} = cloneData.extra;
                     cloneData.extra.position = Object.assign({},position,{
                         left : itemRect.left + 20,
                         top: itemRect.top + 20
                     })
                     cloneData.extra.isSelect = true;
-                    newId = cloneData.id;
+                    // newId = cloneData.id;
                     // addKeyPaths.push([].concat(originPath,['children',oldSize + index]));
+                    // console.log('id :',cloneData.id);
+                    selectIds.push(cloneData.id);
                     return WrapData(cloneData);
                 }));
             })
-            this.addKeyPath(newId);
+            this.addKeyPath(...selectIds)
+            // this.addKeyPath(newId);
         })
         // console.log('addKeyPaths :',addKeyPaths);
         
@@ -606,7 +610,8 @@ export class Mutation extends EventHandler implements IMutation{
         if(data == null) return;
         let target:BaseModel;
         data.extra.isSelect = true;
-        updateAllId(data);
+        data = updateAllId(data);
+        console.log('data!! :',data);
         this.transition(()=>{
             this._onUnSelected();
             const dslData = this.getDSLData();
@@ -998,6 +1003,41 @@ export class Mutation extends EventHandler implements IMutation{
                 }
                 parentModel.updateIn(['children'],null,()=>{
                     return createList(newModelList);
+                })
+            })
+        })
+    }
+
+
+    updateModelPosition(data:IPos):void{
+        const vms = this.getAllSelectedViewModels();
+        this.transition(()=>{
+            vms.forEach((vm)=>{
+                vm.getModel().updateIn(['extra','position'],null,(oldPos:BaseModel)=>{
+                    //@ts-ignore
+                    return oldPos.merge(WrapData(data))
+                })
+            })
+        })
+    }
+    updateModelStyle(data:Partial<CSSStyleDeclaration>):void{
+        const vms = this.getAllSelectedViewModels();
+        this.transition(()=>{
+            vms.forEach((vm)=>{
+                vm.getModel().updateIn(['props','style','value'],null,(oldVal:BaseModel)=>{
+                    //@ts-ignore
+                    return oldVal.merge(WrapData(data))
+                })
+            })
+        })
+    }
+    updateModelProps(key:string,data:any):void{
+        const vms = this.getAllSelectedViewModels();
+        this.transition(()=>{
+            vms.forEach((vm)=>{
+                vm.getModel().updateIn(['props',key],null,(oldVal:BaseModel)=>{
+                    //@ts-ignore
+                    return oldVal.merge(WrapData(data))
                 })
             })
         })

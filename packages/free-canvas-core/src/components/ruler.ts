@@ -99,6 +99,15 @@ abstract class RulerModel{
             offset: (retValue - _scaleBaseValue ) / valuePerPX
         }
     }
+    getOffsetByValue(val:number){
+        const {_scale,_scaleBaseValue} = this;
+        const valuePerPX = 1 / _scale;
+        // const retValue = Math.round(val * valuePerPX + _scaleBaseValue)
+        return {
+            value:val,
+            offset: (val - _scaleBaseValue ) / valuePerPX
+        }
+    }
     createEntitiesByVal(start:number,end:number){
         const {_unit:unit,_baseValue,_scale,_centerValue} = this;
         // const tickTotal = end - start;
@@ -265,6 +274,9 @@ export class Ruler extends Entity{
     }
     getOffset(val:number){
         return this._rulerModel.getOffset(val)
+    }
+    getOffsetByValue(val:number){
+        return this._rulerModel.getOffsetByValue(val)
     }
     setValueAndUnit(val:number,unit:number,scale:number,centerValue:number){
         this._rulerModel.setValueAndUnit(val,unit,scale,centerValue);

@@ -1,5 +1,5 @@
 
-import {ColorSource} from './type'
+import {ColorSource,RGBData} from './type'
 export class ColorData{
     r:number
     g:number
@@ -10,6 +10,7 @@ export class ColorData{
     l:number
     v:number
     hex:string
+    rgb:RGBData
     source:ColorSource
     constructor(){
 

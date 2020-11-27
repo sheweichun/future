@@ -105,3 +105,24 @@ export function debounce(fn:(...args:any[])=>void,tm:number){
         },tm)
     }
 }
+
+const HEX_CHAR = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
+function num2Str(val:number):string{
+    return HEX_CHAR[val]
+}
+
+export function data2BackgroundColor(data:any){
+    const {hex,rgb} = data;
+    return hexAlpha2BackgroundColor(hex,rgb.a)
+    // const renderHex = hex === 'transparent' ? '#000000':hex
+    // if(rgb.a ===  1) return renderHex
+    // const alpha = Math.round(rgb.a * 255)
+    // return `${renderHex}${num2Str(Math.floor(alpha / 16))}${num2Str(alpha % 16)}`
+}
+
+export function hexAlpha2BackgroundColor(hex:string,alphaVal:number){
+    const renderHex = hex === 'transparent' ? '#000000':hex
+    if(alphaVal ===  1) return renderHex
+    const alpha = Math.round(alphaVal * 255)
+    return `${renderHex}${num2Str(Math.floor(alpha / 16))}${num2Str(alpha % 16)}`
+}

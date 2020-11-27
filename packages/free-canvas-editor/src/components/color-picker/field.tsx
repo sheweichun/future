@@ -91,14 +91,14 @@ export function SketchFields({ onChange, rgb, hsl, hex, disableAlpha }:SketchFie
       }, e)
     }
   }
-
+  const renderHex = hex.replace('#', '')
   return (
     <div style={ styles.fields } className="flexbox-fix">
       <div style={ styles.double }>
         <EditableInput
           style={{ input: styles.input, label: styles.label }}
           label="hex"
-          value={ hex.replace('#', '') }
+          value={ renderHex === 'transparent' ? '#000000' : renderHex }
           onChange={ handleChange }
         />
       </div>

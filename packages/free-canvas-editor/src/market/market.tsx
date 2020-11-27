@@ -21,6 +21,7 @@ export interface MarketProps{
     maskEl:HTMLElement
     previewEl:HTMLElement
     children?: React.ReactNode;
+    componentData:Model[]
 }
 
 export interface MarketState{
@@ -94,30 +95,20 @@ export class Market extends React.Component<MarketProps> implements IPlugin{
         _canvasEl.removeChild(maskEl);
     }
     render(){
-        const {previewEl} = this.props;
+        const {previewEl,componentData} = this.props;
         return (<div>
-            in react aside
-            <Drag onDragStart={this.onDragStart} 
-            onDragMove={this.onDragMove}
-            previewEle={previewEl}
-            onDragEnd={this.onDragEnd}
-            data={MockData[0]}>
-                add Button
-            </Drag>
-            <Drag onDragStart={this.onDragStart} 
-            onDragMove={this.onDragMove}
-            previewEle={previewEl}
-            onDragEnd={this.onDragEnd}
-            data={MockData[1]}>
-                add Progess
-            </Drag>
-            <Drag onDragStart={this.onDragStart} 
-            onDragMove={this.onDragMove}
-            previewEle={previewEl}
-            onDragEnd={this.onDragEnd}
-            data={MockData[2]}>
-                add Card
-            </Drag>
+            <div>in react aside</div>
+            {
+                componentData && componentData.map((cdata,index)=>{
+                    return  <Drag key={index} onDragStart={this.onDragStart} 
+                    onDragMove={this.onDragMove}
+                    previewEle={previewEl}
+                    onDragEnd={this.onDragEnd}
+                    data={cdata}>
+                        {cdata.name}
+                    </Drag>
+                })
+            }
         </div>);
     }
 }

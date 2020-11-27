@@ -19,19 +19,18 @@ function runTask(...plugins:IPlugin[]){
 
 export function init(){
     initTheme(); 
-    setup(mountNode,{ //components
-            
-    },{
-        runTask
-    })
     //@ts-ignore
-    window.$$onCanvasLoaded = function(_freeCanvas){
+    window.$$onCanvasLoaded = function(_freeCanvas:any){
         freeCanvas = _freeCanvas;
         taskList.forEach((item)=>{
             freeCanvas.installPlugin(item);
         })
     }
-    //@ts-ignore
+    return setup(mountNode,{ //components
+            
+    },{
+        runTask
+    })
 }
 
 

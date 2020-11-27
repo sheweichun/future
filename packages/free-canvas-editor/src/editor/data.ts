@@ -1,4 +1,4 @@
-import {ModelFromType} from 'free-canvas-shared' 
+import {ModelFromType,ModelPropComponentType,Model,IMutation} from 'free-canvas-shared' 
 export default [
     {
         id:'114',
@@ -12,6 +12,27 @@ export default [
             children:{
                 value:'Click Me!'
             }
+        },
+        proto:{
+            attrs:[
+                {
+                    type:ModelPropComponentType.select,
+                    title:'按钮类型',
+                    sortIndex:50,
+                    props:{
+                        dataSource:[ 'primary' , 'secondary' , 'normal' ]
+                    },
+                    get(model:Model){
+                        if(model.props.type && model.props.type.value){
+                            return model.props.type.value
+                        }
+                        return ''
+                    },
+                    update(mutation:IMutation,data:any){
+                        mutation.updateModelProps('type',{value:data});
+                    }
+                }
+            ]
         },
         extra:{
             import:{

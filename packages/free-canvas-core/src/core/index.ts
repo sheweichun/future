@@ -294,7 +294,9 @@ export default class Core extends EventHandler{
         this._guideManage = new GuideManager(this._parentEl,{
             margin,
             getOffsetx:this.getOffsetx.bind(this),
-            getOffsety:this.getOffsety.bind(this)
+            getOffsety:this.getOffsety.bind(this),
+            getOffsetByValuex:this.getOffsetByValuex.bind(this),
+            getOffsetByValuey:this.getOffsetByValuey.bind(this)
         })
         this.createEventElement(fragment,this._parentEl.children)
         this._rootEl = createCanvas(fragment); //顺序不能错
@@ -320,6 +322,9 @@ export default class Core extends EventHandler{
             e.stopPropagation();
             e.preventDefault();
         });
+        // this._guideManage.refresh(-newDeltaX,-newDeltaY);
+
+        this._guideManage.refresh();
     }
     getOffsetx(val:number){
         // const offset = this._canvas.getRadio() % 2 === 1 ? 1 : 0
@@ -328,6 +333,14 @@ export default class Core extends EventHandler{
     getOffsety(val:number){
         // const offset = this._canvas.getRadio() % 2 === 1 ? 1 : 0
         return this._rulerGroup.getOffsety(val - this.margin);
+    }
+    getOffsetByValuex(val:number){
+        // const offset = this._canvas.getRadio() % 2 === 1 ? 1 : 0
+        return this._rulerGroup.getOffsetByValueX(val);
+    }
+    getOffsetByValuey(val:number){
+        // const offset = this._canvas.getRadio() % 2 === 1 ? 1 : 0
+        return this._rulerGroup.getOffsetByValueY(val);
     }
     changeScale(scale:number){
         // if(scale < 0.6) {scale = 0.6};
@@ -369,9 +382,10 @@ export default class Core extends EventHandler{
         this.changeScale(newScale);
         this.updateTranslate(newX,newY);
         this._rulerGroup.setValueAndUnit(newX,newY,this._ruleUnit,newScale,xMiddle + diffX,yMiddle + diffY);
+        this._guideManage.refresh()
         // this._rulerGroup.setValueAndUnit(this._translateX,this._translateY,Math.round(this._ruleUnit * this._scale));
         this.draw();
-        e.stopPropagation();
+        e.stopPropagation(); 
         e.preventDefault();
     }
     onMouseWheel(e:MouseWheelEvent){
@@ -389,6 +403,7 @@ export default class Core extends EventHandler{
         this.draw()
     }
     onRefreshClick(){
+        const {_translateX,_translateY} = this
         const {x,y} = this.getInitTranslate(this._content.getCurrentData());
         this.changeScale(1);
         // this._rulerGroup.setNewBaseValue(x,y);
@@ -399,6 +414,7 @@ export default class Core extends EventHandler{
         this.updateTranslate(x,y)
         const rect = this.getContentCenterXY();
         this._rulerGroup.setValueAndUnit(x,y,this._ruleUnit,1,rect.x,rect.y);
+        this._guideManage.refresh()
         this.draw();
         // this._content.changeTranslation(x,y);
     }

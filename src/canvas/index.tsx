@@ -13,7 +13,6 @@ const imgCookData2 = require('./schema2');
     
 //     cb(canvas)
 // }
-console.log('in freeCanvas');
 initTheme();
 const canvas = FreeCanvas('canvas',{
     createView,

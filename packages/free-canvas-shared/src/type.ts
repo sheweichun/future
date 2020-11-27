@@ -1,5 +1,5 @@
 
-import {OperationPos} from './pos'
+import {OperationPos,IPos} from './pos'
 import { ImgCookDsl } from './imgcook'
 // export interface Market{
     
@@ -112,15 +112,7 @@ export interface IPlugin{
     destroy():void
 }
 
-export interface ModelPropSchema{
-    // name:string
-    value:any,
-    expression?:any
-}
 
-export interface ModelPropSchemas{
-    [key:string]:ModelPropSchema
-}
 
 export interface UniversalObject{
     [name:string]:any
@@ -163,6 +155,36 @@ export function modelIsArtboard(type:ModelType){
     return type === ModelType.isArtBoard
 }
 
+
+export enum ModelPropComponentType{
+    backgroundColor,
+    text,
+    xywh,
+    select
+}
+
+export interface ModelPropSchema{
+    type:ModelPropComponentType,
+    identity?:string,
+    title?:string
+    sortIndex:number
+    props?:{[key:string]:any}
+    get?:(val:Model)=>any
+    update?:(mutation:IMutation,target:any)=>void
+}
+
+export interface ModelPropSchemaMap{
+    [key:string]:ModelPropSchema[]
+}
+
+
+
+// export interface ModelPropSchemas{
+//     [key:string]:ModelPropSchema
+// }
+/*
+*  style中的backgroundColor可能是个object 需要特殊处理
+*/
 export interface ModelProps{
     [key:string]:{
         value:any,
@@ -170,20 +192,33 @@ export interface ModelProps{
     }
 }
 
+export interface ModelAttrProto{
+    type:ModelPropComponentType,
+    title:string,
+    sortIndex:number,
+    props:{
+        [key:string]:any
+    },
+    get?(model:Model):void,
+    update?(mutation:IMutation,data:any):void
+}
+
 export interface Model {
     id?:string
+    pid?:string
     name?:string
     type?:ModelType
-    // style?:ObjectStyleDeclaration
     props:ModelProps
-    // propSchemas?:ModelPropSchemas
     children?:Model[]
-    extra:{
+    proto?:{
         import?:{
             from :string,
             version:string,
             type:ModelFromType
         },
+        attrs?:ModelAttrProto[]
+    }
+    extra:{
         label?:string,
         position?:{
             left?:number,
@@ -229,4 +264,8 @@ export interface IMutation{
     getDSLData():ImutBase
     getViewModelBaseModel(id:string):ImutBase
     onModelSelected(target:ImutBase,data:{needKeep:boolean,x:number,y:number,noTrigger?:boolean}):void
+
+    updateModelPosition(data:IPos):void
+    updateModelStyle(data:Partial<CSSStyleDeclaration>):void
+    updateModelProps(key:string,data:any):void
 }

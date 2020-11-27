@@ -43,7 +43,19 @@ export abstract class Guide{
     }
     // abstract onMouseEnter(e:MouseEvent):void
     // abstract onMouseMove(e:MouseEvent):void
-
+    
+    // abstract refreshGuide(guide:HTMLElement,newOffset:number):void
+    abstract refreshGuide(guide:HTMLElement):void
+    // refresh(offset:number):void{
+    //     this.guideList.forEach((guide)=>{
+    //         this.refreshGuide(guide,offset)
+    //     })
+    // }
+    refresh():void{
+        this.guideList.forEach((guide)=>{
+            this.refreshGuide(guide)
+        })
+    }
     getOffsetList(){
         return this.guideList.map((el)=>{
             return parseFloat(el.dataset.value);
@@ -193,12 +205,35 @@ export class VGuide extends Guide{
         _rootEl.appendChild(vDiv)
         return this
     }
+    // scaleGuide(guide:HTMLElement,value:number,scale:number):void{
+    //     const {margin} = this._options;
+    //     const top = parseInt(guide.style.top);
+    //     const offset = (top - value + margin) * scale
+    //     this.refreshGuide(guide,offset);
+    // }
+    refreshGuide(guide:HTMLElement):void{
+        const {margin,getOffsetByValuey,gap} = this._options;
+        const originValue = parseInt(guide.getAttribute('data-value'));
+        const { offset , value} = getOffsetByValuey(originValue);
+        guide.setAttribute('data-offset',offset + '');
+        guide.setAttribute('style',this.getGuideStyle(`cursor:ew-resize;pointer-events:none;top:0;height:100vh;left:${offset}px;padding-top:${margin + gap}px;padding-left:${gap}px`))
+        // guide.setAttribute('data-value',value+'');
+    }
+    // refreshGuide(guide:HTMLElement,newOffset:number){
+    //     const {getOffsety,margin,gap} = this._options;
+    //     const originValue = parseInt(guide.getAttribute('data-offset')) + newOffset;
+    //     guide.setAttribute('data-offset',originValue + '');
+    //     const {offset,value} = getOffsety(originValue);
+    //     guide.setAttribute('style',this.getGuideStyle(`cursor:ns-resize;left:0;width:100vw;top:${offset}px;padding-left:${margin + gap}px;padding-top:-${gap}px`))
+    //     guide.setAttribute('data-value',value+'');
+    // }
     onMouseEnter(e:MouseEvent){
         if(super.onMouseEnter(e)) return;
         const {gap,margin,getOffsety} = this._options;
         const {offset,value} = getOffsety(e.y);
         const curGuide = this.getNewGuide();
         curGuide.className = this._className;
+        curGuide.setAttribute('data-offset',e.y+'');
         curGuide.setAttribute('style',this.getGuideStyle(`cursor:ns-resize;left:0;width:100vw;top:${offset}px;padding-left:${margin + gap}px;padding-top:-${gap}px`))
         curGuide.setAttribute('data-value',value+'');
         this.curGuide = curGuide;
@@ -212,6 +247,7 @@ export class VGuide extends Guide{
         if(curGuide == null) return
         const {offset,value} = getOffsety(e.y);
         curGuide.style.top = `${offset}px`;
+        curGuide.setAttribute('data-offset',e.y+'');
         curGuide.setAttribute('data-value',value+'');
     }
 }
@@ -230,6 +266,22 @@ export class HGuide extends Guide{
         _rootEl.appendChild(hDiv)
         return this
     }
+    refreshGuide(guide:HTMLElement):void{
+        const {margin,getOffsetByValuex,gap} = this._options;
+        const originValue = parseInt(guide.getAttribute('data-value'));
+        const { offset , value} = getOffsetByValuex(originValue);
+        guide.setAttribute('data-offset',offset + '');
+        guide.setAttribute('style',this.getGuideStyle(`cursor:ew-resize;pointer-events:none;top:0;height:100vh;left:${offset}px;padding-top:${margin + gap}px;padding-left:${gap}px`))
+        // guide.setAttribute('data-value',value+'');
+    }
+    // refreshGuide(guide:HTMLElement,newOffset:number){
+    //     const {getOffsetx,margin,gap} = this._options;
+    //     const originValue = parseInt(guide.getAttribute('data-offset')) + newOffset;
+    //     guide.setAttribute('data-offset',originValue + '');
+    //     const {offset,value} = getOffsetx(originValue);
+    //     guide.setAttribute('style',this.getGuideStyle(`cursor:ew-resize;pointer-events:none;top:0;height:100vh;left:${offset}px;padding-top:${margin + gap}px;padding-left:${gap}px`))
+    //     guide.setAttribute('data-value',value+'');
+    // }
     onMouseEnter(e:MouseEvent){
         if(super.onMouseEnter(e)) return;
         const {gap,margin,getOffsetx} = this._options;
@@ -238,6 +290,7 @@ export class HGuide extends Guide{
         curGuide.className = this._className;
         curGuide.setAttribute('style',this.getGuideStyle(`cursor:ew-resize;pointer-events:none;top:0;height:100vh;left:${offset}px;padding-top:${margin + gap}px;padding-left:${gap}px`))
         curGuide.setAttribute('data-value',value+'');
+        curGuide.setAttribute('data-offset',e.x+'');
         this.curGuide = curGuide
         // this._rootEl.appendChild(this.curGuide);
         this.guideEl.appendChild(this.curGuide);
@@ -250,6 +303,7 @@ export class HGuide extends Guide{
         const {offset,value} = getOffsetx(e.x);
         curGuide.style.left = `${offset}px`;
         curGuide.setAttribute('data-value',value+'');
+        curGuide.setAttribute('data-offset',e.x+'');
     }
     
 }

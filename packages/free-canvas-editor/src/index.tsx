@@ -2,7 +2,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import {CanvasEvent,IPlugin} from 'free-canvas-shared'
-import {GlobalContext,GlobalContextValue} from './context'
+// import {createGlobalContext} from './context'
+import {Provider} from './provider'
 import {Editor,EditorComponents} from './editor/index'
 // import React from 'react';
 // import {Market} from './market/index'
@@ -13,7 +14,7 @@ function preventDefault(e:DragEvent){
 }
 
 
-function preventPinch(e:MouseWheelEvent){
+function preventPinch(e:WheelEvent){
     const {deltaX,ctrlKey} = e;
     if(deltaX === 0 && ctrlKey){
         e.preventDefault()
@@ -35,15 +36,17 @@ export * from './panel/index'
 export * from './tree/index'
 export * from './aside/index'
 export function setup(mountNode:HTMLElement,components:EditorComponents,opt:SetupOptions){
+    const {runTask} = opt
+    // const {GlobalContext,GlobalContextValue} = createGlobalContext({propSchemaMap})
     document.body.addEventListener(CanvasEvent.DRAGOVER,preventDefault)
     mountNode.addEventListener(CanvasEvent.MOUSEWHEEL,preventPinch)
     ReactDOM.render(
-        <GlobalContext.Provider value={GlobalContextValue}>
+        <Provider >
             <Editor
             components={components}
-            runTask={opt.runTask}
+            runTask={runTask}
             ></Editor>
-        </GlobalContext.Provider>
+        </Provider>
     ,mountNode)
     return function(){
         document.body.removeEventListener(CanvasEvent.DRAGOVER,preventDefault)

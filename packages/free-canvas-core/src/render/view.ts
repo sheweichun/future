@@ -1,9 +1,9 @@
 // import {Model} from '../render/index'
-import {Model,ModelPropSchemas} from './model';
-import {ObjectStyleDeclaration} from '../utils/type'
+import {Model} from './model';
+// import {ObjectStyleDeclaration} from '../utils/type'
 import {IView,View,ViewOptions} from 'free-canvas-shared'
 // import {Movable} from './movable';
-import { completeOptions } from '../utils';
+// import { completeOptions } from '../utils';
 
 
 const DEFAULT_OPTIONS = {

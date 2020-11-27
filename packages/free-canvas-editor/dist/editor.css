@@ -1,3 +1,9 @@
+.fc-editor-aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .fc-editor-button {
   display: inline-block;
   cursor: pointer;
@@ -7,12 +13,6 @@
 .fc-editor-button:hover {
   background-color: var(--BACKGROUND_1);
   color: var(--ACTIVE_TEXT_COLOR);
-}
-
-.fc-editor-aside {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
 }
 
 ::-webkit-scrollbar {
@@ -30,6 +30,7 @@
   width: 100%;
   height: 100%;
   display: flex;
+  overflow-x: hidden;
   flex-direction: column;
 }
 .fc-editor * {
@@ -67,7 +68,6 @@
 .fc-editor-header-middler {
   flex: 1;
 }
-
 
 .fc-editor-tree {
   height: 100%;
@@ -139,6 +139,23 @@
 }
 
 
+.fc-editor-tab ul {
+  display: flex;
+  flex-direction: row;
+  cursor: pointer;
+}
+.fc-editor-tab-item {
+  height: 40px;
+  line-height: 40px;
+  padding: 0px 12px;
+  flex: 1;
+  text-align: center;
+  color: var(--DISABLED_COLOR);
+}
+.fc-editor-tab-active-item {
+  color: var(--TEXT-COLOR);
+}
+
 .fc-editor-editItem {
   border-bottom: 1px solid var(--BOARDER_COLOR);
   padding: 8px 0;
@@ -158,26 +175,10 @@
   padding: 0px 8px;
 }
 
-.fc-editor-tab ul {
-  display: flex;
-  flex-direction: row;
-  cursor: pointer;
-}
-.fc-editor-tab-item {
-  height: 40px;
-  line-height: 40px;
-  padding: 0px 12px;
-  flex: 1;
-  text-align: center;
-  color: var(--DISABLED_COLOR);
-}
-.fc-editor-tab-active-item {
-  color: var(--TEXT-COLOR);
-}
+
 
 .fc-editor-attribute .next-before {
   border: 0;
-  width: 28px;
   background: none;
 }
 .fc-editor-attribute .next-input {
@@ -197,7 +198,6 @@
   align-items: center;
 }
 
-
 .fc-editor-color {
   display: flex;
   flex-direction: row;
@@ -214,21 +214,26 @@
   flex-direction: row;
   width: 16px;
   height: 16px;
+  border: 1px solid var(--BOARDER_COLOR);
 }
 .fc-editor-color-label {
   width: 60px;
   margin-left: 4px;
 }
-.fc-editor-color-label .next-input {
+.fc-editor-color-label .next-input-group {
   width: 60px;
+}
+.fc-editor-color-label .next-input-group input {
   text-align: center;
 }
 .fc-editor-color-alpha {
-  width: 48px;
+  width: 38px;
 }
-.fc-editor-color-alpha .next-input {
-  width: 48px;
-  text-align: center;
+.fc-editor-color-alpha .next-input-group {
+  width: 38px;
+}
+.fc-editor-color-alpha .next-input-group input {
+  text-align: right;
 }
 
 .fc-editor-measure {
@@ -237,4 +242,11 @@
   grid-template-columns: repeat(2, 40%);
   padding: 0 8px;
   align-items: center;
+}
+.fc-editor-measure .next-before {
+  width: 28px;
+}
+
+.fc-editor-select {
+  width: 100%;
 }

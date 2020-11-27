@@ -12,6 +12,8 @@ type OnMouseMoveCallback = (e:MouseEvent)=>void
 const DEFAULT_OPTIONS = {
 
 }
+
+const {hexAlpha2BackgroundColor} = Utils
 // const CLASSNAME = `${STYLE_PREFIX}movable`
 // const style = `
 //     .${CLASSNAME}{
@@ -94,8 +96,20 @@ export class Movable implements IMovable{
     // }
     fixData(data:Model){
         const {position} = data.extra
-        const {style} = data.props;
+        let style = data.props.style;
+        if(style == null){
+            style = {value:{}}
+            data.props.style = style;
+        }
         const styleValue = style.value
+        const {backgroundColor} = styleValue
+        if(backgroundColor && typeof backgroundColor === 'object'){
+            if(backgroundColor.disabled){
+                styleValue.backgroundColor = ''
+            }else{
+                styleValue.backgroundColor = backgroundColor.value
+            }
+        }
         styleValue.width = position.width == null  ? 'auto': `${position.width}px`
         styleValue.height = position.height == null ? 'auto': `${position.height}px`
         return data;
@@ -339,27 +353,6 @@ export class Movable implements IMovable{
         this.onFocus(e);
         e.stopPropagation()
     }
-    // onMouseMove(e:MouseEvent){
-    //     if(!this.canMove) return;
-    //     this.changed = true;
-    //     const {x,y} = e;
-    //     this.left += x - this.startX;
-    //     this.top += y - this.startY;
-    //     this.startX = x;
-    //     this.startY = y;
-    //     this.setStyle();
-        
-    // }
-    // onMouseUp(e:MouseEvent){
-    //     if(this.canMove === false) return;
-    //     this.canMove = false;
-    //     if(this.changed){
-    //         const {excute} = this._options
-    //         excute(COMMANDERS.POSITIONCHANGE,{left:this.left,top:this.top})
-    //         this.changed = false;
-    //     }
-        
-    // }
 }
 
 

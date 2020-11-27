@@ -8,7 +8,9 @@ export interface offsetData{
 export interface GuideManagerOptions{
     margin:number,
     getOffsetx(x:number):offsetData,
-    getOffsety(x:number):offsetData
+    getOffsety(x:number):offsetData,
+    getOffsetByValuex(x:number):offsetData,
+    getOffsetByValuey(x:number):offsetData
 }
 
 

@@ -60,6 +60,12 @@ export class RulerGroup extends DrawEntity{
     getOffsety(val:number){
         return this._leftRuler.getOffset(val);
     }
+    getOffsetByValueX(val:number){
+        return this._topRuler.getOffsetByValue(val);
+    }
+    getOffsetByValueY(val:number){
+        return this._topRuler.getOffsetByValue(val);
+    }
     changeSize(width:number,height:number){
         this._topRuler.changeSize(width,height)
         this._leftRuler.changeSize(width,height)

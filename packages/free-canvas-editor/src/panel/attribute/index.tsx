@@ -1,18 +1,22 @@
 import React from 'react'
-import {Overlay} from '@alife/next'
-import {Model} from 'free-canvas-shared'
+// import {Overlay} from '@alife/next'
+import {IMutation, Model,ModelPropComponentType,ModelPropSchema} from 'free-canvas-shared'
 import {TabDataItem} from '../../components/tab/type'
 import {EdiItem} from '../../components/index'
 import {CLASS_PREFIX} from '../../util/contant'
-import {Measure} from './components/index'
-import {Color} from './components/color/index'
+import {Measure,Color,SelectAttr} from './components/index'
+import {extractSchemaList} from './schemaMap'
+import {ModelIdMap} from '../type'
 export interface AttrbuteProps{
     tabData:TabDataItem
+    mutation:IMutation
     modelData:Model[]
+    modelIdMap:ModelIdMap
 }
 
 export interface AttrbuteState{
-    selectModel:Model
+    selectModel:Model,
+    propsSchemas:ModelPropSchema[]
 }
 
 
@@ -20,10 +24,11 @@ const ATTRIBUTE_CLZ = `${CLASS_PREFIX}attribute`
 
 
 function props2State(props:AttrbuteProps,defaultValue?:any):AttrbuteState{
-    const {modelData} = props;
+    const {modelData,modelIdMap} = props;
     if(modelData.length === 1){
         return {
-            selectModel:modelData[0]
+            selectModel:modelData[0],
+            propsSchemas:extractSchemaList(modelData,modelIdMap)
         }
     }
     return defaultValue
@@ -37,20 +42,34 @@ export class Attribute extends React.Component<AttrbuteProps,AttrbuteState>{
     static getDerivedStateFromProps(nextProps:AttrbuteProps,prevState:AttrbuteState){
         return props2State(nextProps)
     }
+    renderByPropSchema(propSchema:ModelPropSchema){
+        const {modelData,mutation} = this.props;
+        const {selectModel} = this.state;
+        const {type} = propSchema;
+        if(type === ModelPropComponentType.xywh){
+            return <Measure modelData={modelData} selectModel={selectModel} schema={propSchema} mutation={mutation}></Measure>
+        }else if(type === ModelPropComponentType.backgroundColor){
+            return <Color modelData={modelData} selectModel={selectModel} schema={propSchema} mutation={mutation}></Color>
+        }else if(type === ModelPropComponentType.select){
+            return <SelectAttr modelData={modelData} selectModel={selectModel} schema={propSchema} mutation={mutation}></SelectAttr>
+        }
+        return 'nothing'
+    }
     render(){
         const {modelData} = this.props;
-        const {selectModel} = this.state;
+        const {propsSchemas} = this.state;
         const hasSelected = modelData && modelData.length > 0
         return <div className={ATTRIBUTE_CLZ}>
-            <EdiItem>
-                {hasSelected && <Measure modelData={modelData} selectModel={selectModel}></Measure>}
-            </EdiItem>
-            <EdiItem>
-                2
-            </EdiItem>
-            <EdiItem title="背景色">
-                {<Color modelData={modelData} selectModel={selectModel}></Color>}
-            </EdiItem>
+            {
+                (hasSelected && propsSchemas) && propsSchemas.map((propSchema:ModelPropSchema,key:number)=>{
+                    return <EdiItem key={key} title={propSchema.title}>
+                        {
+                            this.renderByPropSchema(propSchema)
+                        }
+                    </EdiItem>
+                    
+                })
+            }
 
         </div>
     }

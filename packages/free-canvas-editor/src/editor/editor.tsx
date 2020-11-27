@@ -7,6 +7,7 @@ import {Tree,TreeProps} from '../tree/index'
 import {IPlugin} from 'free-canvas-shared'
 import {ThemeVar} from 'free-canvas-theme'
 import {CLASS_PREFIX,ROOT_CLASS} from '../util/contant'
+import ComponentData from './data';
 
 
 type a = Market extends ComponentType<MarketProps> ? string : number
@@ -127,13 +128,13 @@ export function Editor(props:EditorProps){
         <HeaderComponent></HeaderComponent>
         <div className={`${CLASS_PREFIX}content`}>
             <AsideComponent>
-                <MarketComponent ref={marketRef}  previewEl={previewEl} maskEl={maskEl} runTask={runTask}/>
+                <MarketComponent componentData={ComponentData} ref={marketRef}  previewEl={previewEl} maskEl={maskEl} runTask={runTask}/>
                 <TreeComponent style={{height:'500px'}} runTask={runTask}></TreeComponent>
             </AsideComponent>
             <div className={`${CLASS_PREFIX}canvas`} ref={canvasContainerRef} onDragEnter={onDragEnter} onDragLeave={onDragLeave}>
                 <iframe ref={iframeRef} src="./canvas.html"></iframe>
             </div>
-            <PanelComponent runTask={runTask}>
+            <PanelComponent componentData={ComponentData} runTask={runTask}>
                 panel
             </PanelComponent>
         </div>

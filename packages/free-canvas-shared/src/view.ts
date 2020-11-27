@@ -86,9 +86,7 @@ export class View implements IView<Model>{
         if(beforeStyle && beforeStyle.value){
             Object.keys(beforeStyle.value).forEach((key:any)=>{
                 if(!style[key]){
-                    style[key] = {
-                        value:''
-                    }
+                    style[key] = null
                 }
             })
         }
