@@ -132,6 +132,7 @@ export class Content{
         this._keyboard.listen();
         this._operation = new Operation(this._el,this._mutation,this._guideManager,this._keyboard.createNameSpace('operation'),{
             // margin:this._options.margin,
+            showTagName:this._options.showTagName,
             getRect:this.getRect,
             scale:this._scale,
             updateMakers:this._options.updateMakers
@@ -163,6 +164,12 @@ export class Content{
         this.registerCommands();
         // this.test();
     }
+    getStore(){
+        return this._store
+    }
+    // getMutation(){
+    //     return this
+    // }
     getMenuData(e:MouseEvent):ContextMenuData[]{
         const {_operation} = this
         const selectedVms = _operation.getSelectViewModels();

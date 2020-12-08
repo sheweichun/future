@@ -2,6 +2,10 @@
 
 
 function RenderContext(pixelRatio: number, prototype: any) {
+  prototype._moveTo = prototype.moveTo
+  prototype._lineTo = prototype.lineTo
+  prototype._strokeRect = prototype.strokeRect
+  prototype._fillRect = prototype.fillRect
   const forEach = function (obj: any, func: any) {
     for (var p in obj) {
       if (obj.hasOwnProperty(p)) {

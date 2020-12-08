@@ -1,7 +1,7 @@
 import { MakerData } from "./operation/type"
 import {MoveEventData} from '../events/type'
 import { OperationPos } from "./operation/pos"
-import {DSL,CreateView} from 'free-canvas-shared' 
+import {DSL,CreateView,ShowTagName} from 'free-canvas-shared' 
 
 export interface CanvasOption {
     onMouseEvent?:(eventName:string,e:MouseEvent)=>void
@@ -63,6 +63,7 @@ export interface IDisposable{
 }
 
 export interface OperationSizeOptions{
+    name?:string
     onMove:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
     onChange:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
     onStartMove:(diffx:number,diffy:number,pos:HANDLER_ITEM_DIRECTION)=>void
@@ -91,6 +92,7 @@ export interface ContentOptions{
     // wheelSpeedX:number,
     // wheelSpeedY:number,
     // margin:number,
+    showTagName?:ShowTagName
     createView?:CreateView,
     eventEl:HTMLElement
     scale:number,
@@ -99,7 +101,7 @@ export interface ContentOptions{
 }
 
 export interface HanlerItemOption extends OperationSizeOptions{
-  
+    
 }
 
 export interface MutationOptions{
@@ -110,6 +112,7 @@ export interface CoreOptions  {
     canvas?:CanvasOption
     data:DSL
     createView?:CreateView
+    showTagName?:ShowTagName
     rulerBackgroundColor?:string
     wheelSpeedX?:number
     wheelSpeedY?:number

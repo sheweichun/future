@@ -56,9 +56,10 @@ export class SelectAttr extends React.Component<SelectProps,SelectState>{
         return value
     }
     render(){
-        const {schema} = this.props
+        const {schema,modelData} = this.props
         const {props} = schema
-        return <Select className={Select_CLZ} {...props} placeholder="多个值" value={this.getRenderValue()} onChange={this.onChangeValue}>
+        const hasMore = modelData.length > 1
+        return <Select className={Select_CLZ} {...props} placeholder={hasMore ? '多个值': ''} value={this.getRenderValue()} onChange={this.onChangeValue}>
 
         </Select>
     }

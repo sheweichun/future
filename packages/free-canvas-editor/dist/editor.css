@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  overflow: hidden;
 }
 
 .fc-editor-button {
@@ -39,6 +40,7 @@
 .fc-editor-content {
   flex: 1;
   display: flex;
+  min-height: 1px;
 }
 /* .footer{
 
@@ -67,6 +69,93 @@
 }
 .fc-editor-header-middler {
   flex: 1;
+}
+
+.fc-editor-market {
+  flex: 1;
+  min-height: 100px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.fc-editor-market-head {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--BOARDER_COLOR);
+}
+.fc-editor-market-head-search {
+  flex: 1;
+  width: 1px;
+}
+.fc-editor-market-head-search .next-input-group {
+  border-radius: 0;
+  border: 0;
+}
+.fc-editor-market-head-tab {
+  width: 125px;
+  display: flex;
+  flex-direction: row;
+  cursor: pointer;
+}
+.fc-editor-market-content {
+  flex: 1;
+  min-height: 1px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.fc-editor-market-head-tabitem {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.fc-editor-market-head-tabitem.active {
+  color: var(--HIGHLIGHT_BORDER_COLOR);
+}
+.fc-editor-market-dragitem {
+  width: 33.33%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  cursor: pointer;
+  align-items: center;
+  border: 1px solid transparent;
+  padding-bottom: 8px;
+}
+.fc-editor-market-dragitem:hover {
+  border-color: var(--HIGHLIGHT_BORDER_COLOR);
+}
+.fc-editor-market-dragitem img {
+  width: 45px;
+  height: 45px;
+}
+
+@font-face {
+  font-family: 'iconfont';
+  /* project id 1991465 */
+  src: url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.eot');
+  src: url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.eot?#iefix') format('embedded-opentype'), url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.woff2') format('woff2'), url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.woff') format('woff'), url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.ttf') format('truetype'), url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.svg#iconfont') format('svg');
+}
+.fc-editor-icon {
+  font-family: 'iconfont';
+  font-style: normal;
+}
+.fc-editor-icon-upoad:before {
+  content: '\E612';
+}
+.fc-editor-icon-folder:before {
+  content: '\E958';
+}
+.fc-editor-icon-arrow:before {
+  content: '\E63d';
+}
+.fc-editor-icon-folder-open:before {
+  content: '\E79C';
+}
+
+.fc-editor-panel {
+  overflow: hidden;
 }
 
 .fc-editor-tree {
@@ -115,47 +204,6 @@
   display: none;
 }
 
-@font-face {
-  font-family: 'iconfont';
-  /* project id 1991465 */
-  src: url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.eot');
-  src: url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.eot?#iefix') format('embedded-opentype'), url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.woff2') format('woff2'), url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.woff') format('woff'), url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.ttf') format('truetype'), url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.svg#iconfont') format('svg');
-}
-.fc-editor-icon {
-  font-family: 'iconfont';
-  font-style: normal;
-}
-.fc-editor-icon-upoad:before {
-  content: '\E612';
-}
-.fc-editor-icon-folder:before {
-  content: '\E958';
-}
-.fc-editor-icon-arrow:before {
-  content: '\E63d';
-}
-.fc-editor-icon-folder-open:before {
-  content: '\E79C';
-}
-
-
-.fc-editor-tab ul {
-  display: flex;
-  flex-direction: row;
-  cursor: pointer;
-}
-.fc-editor-tab-item {
-  height: 40px;
-  line-height: 40px;
-  padding: 0px 12px;
-  flex: 1;
-  text-align: center;
-  color: var(--DISABLED_COLOR);
-}
-.fc-editor-tab-active-item {
-  color: var(--TEXT-COLOR);
-}
-
 .fc-editor-editItem {
   border-bottom: 1px solid var(--BOARDER_COLOR);
   padding: 8px 0;
@@ -175,6 +223,23 @@
   padding: 0px 8px;
 }
 
+
+.fc-editor-tab ul {
+  display: flex;
+  flex-direction: row;
+  cursor: pointer;
+}
+.fc-editor-tab-item {
+  height: 40px;
+  line-height: 40px;
+  padding: 0px 12px;
+  flex: 1;
+  text-align: center;
+  color: var(--DISABLED_COLOR);
+}
+.fc-editor-tab-active-item {
+  color: var(--TEXT-COLOR);
+}
 
 
 .fc-editor-attribute .next-before {
@@ -248,5 +313,9 @@
 }
 
 .fc-editor-select {
+  width: 100%;
+}
+
+.fc-editor-text {
   width: 100%;
 }

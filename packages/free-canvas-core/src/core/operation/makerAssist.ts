@@ -37,6 +37,7 @@ type BlockIndex = [number,number]
 
 interface Block{
     indexs:BlockIndex,
+    isHost?:boolean
     directionType:BlockDirectionType,
     type:BlockType,
     left:number,
@@ -599,7 +600,7 @@ export default class MakerAssist{
                 blockList = MakerAssist.getBlockListByValue(_verticalBlockKeys,_verticalBlockMap,target)
             }
             if(blockList.length > 0){
-                hightBlocks.push(target,...blockList);
+                hightBlocks.push(Object.assign({},target,{isHost:true}),...blockList);
             }
         })
         return hightBlocks.map((blk:Block)=>{
@@ -608,6 +609,7 @@ export default class MakerAssist{
                 data:{
                     left:fixValue(blk.left,scale),
                     right:fixValue(blk.right,scale),
+                    showMarker:blk.isHost,
                     top:fixValue(blk.top,scale),
                     isVertical:blk.directionType === BlockDirectionType.VERTICAL,
                     bottom:fixValue(blk.bottom,scale),

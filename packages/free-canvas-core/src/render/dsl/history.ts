@@ -1,10 +1,10 @@
-
-import {CallbackFunction} from './type';
-export interface HistoryApi {
-    undo(): any;
-    redo(): any;
-    subscribe(callback: CallbackFunction): () => void;
-}
+import {CallbackFunction,HistoryApi} from 'free-canvas-shared'
+// import {CallbackFunction} from './type';
+// export interface HistoryApi {
+//     undo(): any;
+//     redo(): any;
+//     subscribe(callback: CallbackFunction): () => void;
+// }
 
 export interface HistoryOptions {
     limit?: number;

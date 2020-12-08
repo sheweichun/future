@@ -1,4 +1,4 @@
-import React,{useRef,useLayoutEffect, ComponentType}  from 'react';
+import React,{useRef,useLayoutEffect, useEffect, useState}  from 'react';
 import {Market,MarketProps} from '../market/index'
 import {Header,HeadProps} from '../header/index'
 import {Panel,PanelProps} from '../panel/index'
@@ -7,59 +7,41 @@ import {Tree,TreeProps} from '../tree/index'
 import {IPlugin} from 'free-canvas-shared'
 import {ThemeVar} from 'free-canvas-theme'
 import {CLASS_PREFIX,ROOT_CLASS} from '../util/contant'
-import ComponentData from './data';
+
+import {EditorComponents,HocProps,EditorProps,EditorState,InstanceType} from './type'
 
 
-type a = Market extends ComponentType<MarketProps> ? string : number
+// type a = Market extends ComponentType<MarketProps> ? string : number
 
-export interface EditorComponents{
-    header?:typeof Header
-    panel?:typeof Panel
-    aside?:typeof Aside
-    // market?:typeof Market
-    market?:typeof Market
-    tree?:typeof Tree
-}
-
-
-interface HocProps {
-    runTask(plugin:IPlugin):void
-}
-
-interface EditorProps extends HocProps{
-    components:EditorComponents
-}
-
-interface EditorState{  
-
-}
-
-
-
-// function Hoc<T,V extends React.ComponentType<T> & IPlugin>(Component:V){
-//     return class HocComponent<U extends T  & {runTask(plugin:IPlugin):void}> extends React.Component<U>{
-//         private _ins:V 
-//         initRef(instance:V){
-//             if(this._ins == null && instance){
-//                 this._ins = instance;
-//                 const {runTask} = this.props;
-//                 runTask(instance);
-//             }
-            
-//         }
-//         render(){
-//             const {props} = this
-//             // return <Component></Component>
-//             return <Component ref={this.initRef} {...props}></Component>
-//         }
-//     }
+// export interface EditorComponents{
+//     header?:typeof Header
+//     panel?:typeof Panel
+//     aside?:typeof Aside
+//     // market?:typeof Market
+//     market?:typeof Market
+//     tree?:typeof Tree
 // }
 
-type InstanceType<T extends new (...args: any[]) => any> = T extends new (...args: any[]) => infer R ? R : any;
+
+// interface HocProps {
+//     runTask(plugin:IPlugin):void
+// }
+
+// interface EditorProps extends HocProps{
+//     components:EditorComponents
+//     headerProps?:HeadProps
+// }
+
+// interface EditorState{  
+
+// }
+
+
+// type InstanceType<T extends new (...args: any[]) => any> = T extends new (...args: any[]) => infer R ? R : any;
 function Hoc<T,V extends IPlugin>(Component:React.ComponentType<T>) {
     // type V = React.ComponentType<T> & IPlugin;
     type U =  T & {runTask(plugin:IPlugin):void};
-    return class HocComponent extends React.Component<U>{
+    class HocComponent extends React.Component<U>{
         public ins:V
         constructor(props:U){
             super(props);
@@ -79,6 +61,7 @@ function Hoc<T,V extends IPlugin>(Component:React.ComponentType<T>) {
             return <Component ref={this.initRef} {...newProps}></Component>
         }
     }
+    return HocComponent;
 }
 function createMask(){
     const div = document.createElement('div');
@@ -99,45 +82,57 @@ function createPreviewEle(){
 
 const previewEl = createPreviewEle();
 
-export function Editor(props:EditorProps){
-    const {runTask,components} = props;
+
+type HocCom = ReturnType<typeof Hoc>
+
+
+export function createEditor(props:EditorProps){
+    const {runTask,components,head,showTagName,getComponentData} = props;
     const HeaderComponent = components.header || Header
     const PanelComponent = Hoc<PanelProps,Panel>(components.panel || Panel);
     const MarketComponent = Hoc<MarketProps,Market>(components.market || Market);
     const TreeComponent = Hoc<TreeProps,Tree>(components.tree || Tree);
     const AsideComponent = components.aside || Aside;
-    const maskEl = createMask();
-    const iframeRef = useRef();
-    const canvasContainerRef = useRef();
-
-    const marketRef = useRef<InstanceType<typeof MarketComponent>>()
-
-    function onDragEnter(){
-        const marketCom = marketRef.current;
-        marketCom.ins.onCanvasDragEnter();
-    }
-    function onDragLeave(){
-        const marketCom = marketRef.current
-        marketCom.ins.onCanvasDragLeave();
-    }
-    useLayoutEffect(()=>{
-        const marketCom = marketRef.current;
-        marketCom.ins.initCanvas(canvasContainerRef.current);
-    },[]);
-    return <div className={`${ROOT_CLASS}`}>
-        <HeaderComponent></HeaderComponent>
-        <div className={`${CLASS_PREFIX}content`}>
-            <AsideComponent>
-                <MarketComponent componentData={ComponentData} ref={marketRef}  previewEl={previewEl} maskEl={maskEl} runTask={runTask}/>
-                <TreeComponent style={{height:'500px'}} runTask={runTask}></TreeComponent>
-            </AsideComponent>
-            <div className={`${CLASS_PREFIX}canvas`} ref={canvasContainerRef} onDragEnter={onDragEnter} onDragLeave={onDragLeave}>
-                <iframe ref={iframeRef} src="./canvas.html"></iframe>
+    return function Editor(){
+        const [comStore,setComStore] = useState({data:[],list:[]})
+        const maskEl = createMask();
+        const iframeRef = useRef();
+        const canvasContainerRef = useRef();
+    
+        const marketRef = useRef<InstanceType<typeof MarketComponent>>()
+    
+        function onDragEnter(){
+            const marketCom = marketRef.current;
+            marketCom.ins.onCanvasDragEnter();
+        }
+        function onDragLeave(){
+            const marketCom = marketRef.current
+            marketCom.ins.onCanvasDragLeave();
+        }
+        useLayoutEffect(()=>{
+            const marketCom = marketRef.current;
+            marketCom.ins.initCanvas(canvasContainerRef.current);
+        },[]);
+        useEffect(()=>{
+            getComponentData().then((result)=>{
+                setComStore(result)
+            })
+        },[])
+        return <div className={`${ROOT_CLASS}`}>
+            <HeaderComponent headView={head}></HeaderComponent>
+            <div className={`${CLASS_PREFIX}content`}>
+                <AsideComponent>
+                    <MarketComponent componentData={comStore.data} ref={marketRef}  previewEl={previewEl} maskEl={maskEl} runTask={runTask}/>
+                    <TreeComponent style={{height:'500px'}} runTask={runTask} showTagName={showTagName}></TreeComponent>
+                </AsideComponent>
+                <div className={`${CLASS_PREFIX}canvas`} ref={canvasContainerRef} onDragEnter={onDragEnter} onDragLeave={onDragLeave}>
+                    <iframe ref={iframeRef} src="./canvas.html"></iframe>
+                </div>
+                <PanelComponent componentData={comStore.list} runTask={runTask}>
+                    panel
+                </PanelComponent>
             </div>
-            <PanelComponent componentData={ComponentData} runTask={runTask}>
-                panel
-            </PanelComponent>
         </div>
-    </div>
+    }
 }
 

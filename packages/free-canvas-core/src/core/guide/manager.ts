@@ -26,14 +26,7 @@ export class GuideManager{
         this.hGuide.refresh()
         this.vGuide.refresh()
     }
-    // refresh(offsetX:number,offsetY:number){
-    //     this.hGuide.refresh(offsetX)
-    //     this.vGuide.refresh(offsetY)
-    // }
     listen(){
-
-    }
-    addGuide(){
 
     }
     destroy(){

@@ -1,6 +1,6 @@
 
 
-import {BACKGROUND_3_VAR,HEAD_HEIGHT} from './constant'
+import {BACKGROUND_3_VAR,HEAD_HEIGHT,NEGTIVE_TEXT_COLOR_VAR} from './constant'
 import {ThemeAttr} from './type'
 // export default {
 //     BACKGROUND:{
@@ -12,5 +12,6 @@ import {ThemeAttr} from './type'
 
 export default {
     backgroundColor:BACKGROUND_3_VAR,
-    height:HEAD_HEIGHT
+    height:HEAD_HEIGHT,
+    color:NEGTIVE_TEXT_COLOR_VAR
 } as ThemeAttr

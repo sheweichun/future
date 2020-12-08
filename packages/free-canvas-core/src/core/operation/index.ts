@@ -3,7 +3,7 @@ import {Mutation} from '../mutation'
 import { IViewModel } from '../../render/type';
 import {IOperation,OperationOptions, MakerData} from './type';
 import {IDisposable, HANDLER_ITEM_DIRECTION,KeyBoardKeys} from '../type';
-import {Utils, modelIsRoot, modelIsGroup, modelIsArtboard} from 'free-canvas-shared'
+import {Utils, modelIsRoot, modelIsGroup, modelIsArtboard,baseModel2Model} from 'free-canvas-shared'
 import { completeOptions } from '../../utils';
 import { CanvasEvent } from '../../events/event';
 import {OPERATION_CLASSNAME} from '../../utils/constant'
@@ -471,6 +471,7 @@ export class Operation implements IDisposable,IOperation{
         this.calculate(this._selectViewModels,isArtboard);
     }
     calculate(viewModels:IViewModel[],isArtboard:boolean){
+        const {showTagName} = this._options
         if(viewModels == null || viewModels.length === 0){
             this._root.style.display = 'none'
             this._pos = null
@@ -487,6 +488,16 @@ export class Operation implements IDisposable,IOperation{
                 allRects.push(vm.getRect())
             // }
         }
+        let tagName:string;
+        if(viewModels.length === 1){
+            const curMd = viewModels[0].getModel();
+            const mdName = curMd.get('name','');
+            if(showTagName){
+                tagName = showTagName(baseModel2Model(curMd))
+            }else{
+                tagName = mdName
+            }
+        }
         const pos = calculateIncludeRect(allRects)
         this._pos = new OperationPos(pos.left,pos.top,pos.width,pos.height,this.onOperationUpdate);
         // console.log('pos :',this._pos);
@@ -497,11 +508,12 @@ export class Operation implements IDisposable,IOperation{
                 onChange:this.onSizeChange,
                 onStartMove:this.onSizeStartMove,
                 getScale:this._getScale,
-                noNeedOperation:isArtboard
+                noNeedOperation:isArtboard,
+                name:tagName
                 // onStart:this.onSizeStart
             });
         }else{
-            this._size.update(this._pos,isArtboard)
+            this._size.update(this._pos,tagName)
         }
     }
     eachSelect(fn:(vm:IViewModel)=>void){

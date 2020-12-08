@@ -4,12 +4,13 @@ import {IPlugin,ICommander,IMutation,Model,IPluginOptions} from 'free-canvas-sha
 import {PanelProps,PanelState,ModelIdMap} from './type'
 import {Tab, TabDataItem} from '../components/index'
 import {Attribute} from './attribute/index'
+import {CLASS_PREFIX} from '../util/contant'
 
 
 const {backgroundColor,width,color} = ThemeVar.PANEL
 export {PanelProps,PanelState} from './type'
 
-
+const PANEL_CLASS = `${CLASS_PREFIX}panel`
 function props2State(props:PanelProps,prevState:PanelState):PanelState{
     const {componentData} = props;
     let modelIdMap:ModelIdMap
@@ -18,7 +19,7 @@ function props2State(props:PanelProps,prevState:PanelState):PanelState{
     }else{
         modelIdMap = componentData.reduce((ret,md)=>{
             //@ts-ignore
-            ret[md.id] = md;
+            ret[md.protoId] = md;
             return ret;
         },{})
     }
@@ -71,7 +72,7 @@ export class Panel extends React.Component<PanelProps,PanelState> implements IPl
     render(){
         const {className} = this.props;
         const {activeTab,tabData} = this.state;
-        return <div className={className} style={{
+        return <div className={`${PANEL_CLASS} ${className || ''}`} style={{
             backgroundColor:backgroundColor,
             width,
             color

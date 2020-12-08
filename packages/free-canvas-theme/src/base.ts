@@ -3,6 +3,7 @@
 
 import {
     TEXT_COLOR_VAR,
+    NEGTIVE_TEXT_COLOR_VAR,
     ACTIVE_TEXT_COLOR_VAR,
     DISABLED_COLOR_VAR,
     HIGHTLIGHT_COLOR_VAR,
@@ -76,6 +77,7 @@ import {
 // }object_row--hovered--3-taR
 export default {
     [TEXT_COLOR_VAR]:'#333333',
+    [NEGTIVE_TEXT_COLOR_VAR]:'#FFFFFF',
     [ACTIVE_TEXT_COLOR_VAR]:'#EFEFF0',
     [DISABLED_COLOR_VAR]:'#B3B3B3',
     [HIGHTLIGHT_COLOR_VAR]:'#ffb364',

@@ -1,5 +1,5 @@
 
-import {ModelPropSchema,ModelPropComponentType,Model,IMutation, IPos} from 'free-canvas-shared'
+import {ModelPropSchema,ModelPropComponentType,Model,IMutation, IPos, ModelAttrProto} from 'free-canvas-shared'
 import {ModelIdMap} from '../type'
 
 
@@ -101,15 +101,29 @@ export const SchemaMap:{[key:string]:ModelPropSchema[]} = {
     // ]
 }
 
+function fixProtoAttrs(attrs:ModelAttrProto[]){
+    if(attrs == null) attrs;
+    attrs.forEach((attr)=>{
+        const {type,get,update} = attr
+        const schemaItem = ALL_SCHEMA[type];
+        if(schemaItem){
+            attr.get = get || schemaItem.get
+            attr.update = update || schemaItem.update
+        }
+    })
+    return attrs
+}
+
 export function extractSchemaList(models:Model[],idMap:ModelIdMap):ModelPropSchema[]{
+    // console.log('models => :',models,idMap);
     if(models == null || models.length === 0) return []
     const modelLen = models.length;
     if(modelLen === 1){
         const curModel = models[0];
-        if(curModel.pid != null){
-            const protoModel = idMap[curModel.pid];
+        if(curModel.protoId != null){
+            const protoModel = idMap[curModel.protoId];
             if(protoModel && protoModel.proto && protoModel.proto.attrs){
-                return protoModel.proto.attrs
+                return fixProtoAttrs(protoModel.proto.attrs)
             }
         }
         return SchemaMap[curModel.name] || []
@@ -120,10 +134,10 @@ export function extractSchemaList(models:Model[],idMap:ModelIdMap):ModelPropSche
     }} = {}
     models.forEach((md)=>{
         let schemas:ModelPropSchema[] = SchemaMap[md.name]
-        if(md.pid != null){
-            const protoModel = idMap[md.pid];
+        if(md.protoId != null){
+            const protoModel = idMap[md.protoId];
             if(protoModel && protoModel.proto && protoModel.proto.attrs){
-                schemas = protoModel.proto.attrs
+                schemas = fixProtoAttrs(protoModel.proto.attrs)
             }
         }
         if(schemas){

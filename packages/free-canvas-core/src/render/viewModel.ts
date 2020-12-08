@@ -218,11 +218,14 @@ export class ViewModel implements IViewModel{
         // const hPercent = fixPercent((diffx + curRect._width) / curRect._width),vPercent = fixPercent((diffy + curRect._height) / curRect._height);
         // console.log('hPercent :',hPercent,diffx);
         // const curWidth = curRect.width,curHeight = curRect.height;
+        const {modelType,children} = this;
         //@ts-ignore
         this._rect[target](diffx,diffy,onlyPos);
-        this.children && this.children.viewModelList.forEach((child)=>{
-            ViewModel.changeRectByPercent(`${target}Percent`,child,this._rect,onlyPos)
-        })
+        if(modelType !== ModelType.isArtBoard && children){
+            this.children.viewModelList.forEach((child)=>{
+                ViewModel.changeRectByPercent(`${target}Percent`,child,this._rect,onlyPos)
+            })
+        }
     }
     // setRect(rect:OperationPos){
     //     this._rect = rect;

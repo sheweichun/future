@@ -1,10 +1,13 @@
 
-import {IPlugin} from '@pkg/free-canvas-shared'
-import {setup} from '@pkg/free-canvas-editor'
+import {IPlugin,IEditorHook,IHookCore, IHeadView, ComponentMarketStore} from '@pkg/free-canvas-shared'
+import {showTagName} from '@pkg/free-canvas-dx'
+import {setup,HookManager} from '@pkg/free-canvas-editor'
 import {initTheme} from '@pkg/free-canvas-theme'
 
+
+
 const taskList:IPlugin[] = []
-let freeCanvas:any
+let freeCanvas:IHookCore
 const mountNode = document.querySelector('.root') as HTMLElement
 
 function runTask(...plugins:IPlugin[]){
@@ -17,18 +20,30 @@ function runTask(...plugins:IPlugin[]){
     }
 }
 
-export function init(){
+export type InitOption = {
+    head?:IHeadView
+    getComponentData():Promise<ComponentMarketStore>
+}
+
+export function init(hooks:IEditorHook[],opt:InitOption){
+    const { head,getComponentData } = opt || {}
+    const hookManager = new HookManager(hooks);
     initTheme(); 
     //@ts-ignore
-    window.$$onCanvasLoaded = function(_freeCanvas:any){
+    window.$$onCanvasLoaded = function(_freeCanvas:IHookCore){
         freeCanvas = _freeCanvas;
         taskList.forEach((item)=>{
             freeCanvas.installPlugin(item);
         })
+        freeCanvas.registerHookManager(hookManager)
+        hookManager.onInit(freeCanvas);
+        head && head.setCore(freeCanvas)
     }
-    return setup(mountNode,{ //components
-            
-    },{
+    return setup(mountNode,{
+        head:head,
+        components:{},//components
+        showTagName,
+        getComponentData,
         runTask
     })
 }

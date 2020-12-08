@@ -44,6 +44,10 @@ export class Store extends History{
         const val = newRootData.getIn(keyPath,NOT_SET)
         return val === NOT_SET ? notSetValue : wrappedValue(curState, keyPath, val);
     }
+    updateData(data:any){
+        const {_opt} = this
+        this.push(from(fromJS(data),null,_opt.prototype,this.onStateChange))
+    }
     // addKeyPath(keyPath:any[]){
     //     this._selectedKeyPaths.push(keyPath.join(SPLIT));
     // }

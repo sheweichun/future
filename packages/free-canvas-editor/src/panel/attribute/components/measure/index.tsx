@@ -90,7 +90,8 @@ export class Measure extends React.Component<MeasureProps,MeasureState>{
         }
     }
     render(){
-        const placeholder = '多个值'
+        const {modelData} = this.props;
+        const placeholder = modelData.length > 1 ? '多个值' : ''
         const {x,y,width,height} = this.getRenderValue()
         return <div className={MEASURE_CLZ}>
             <Input addonTextBefore="X" htmlType="number" placeholder={placeholder} value={x} onChange={this.onChangeX}></Input>

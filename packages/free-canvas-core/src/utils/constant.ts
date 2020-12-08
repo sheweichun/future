@@ -15,6 +15,8 @@ export const CONTEXT_MEUNU_ITEM = `${STYLE_PREFIX}context-menu-item`
 export const CONTEXT_MEUNU_ITEM_SECTION = `${STYLE_PREFIX}context-menu-item-section`
 export const REFRESH_BUTTON_CLASSNAME = `${STYLE_PREFIX}refresh-button`
 
+export const OPERATION_TAGNAME_CLASSNAME = `${STYLE_PREFIX}operation-tagname`
+
 export const MOVABLE_HANDLER_CLASSNAME = `${STYLE_PREFIX}movable-handler`
 
 export const DRAG_OVER = `${STYLE_PREFIX}drag-over`

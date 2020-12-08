@@ -1,4 +1,4 @@
-import {OPERATION_SIZE_CLASSNAME,styleSizeSize} from '../../utils/constant'
+import {OPERATION_SIZE_CLASSNAME,styleSizeSize,OPERATION_TAGNAME_CLASSNAME} from '../../utils/constant'
 import { CanvasEvent } from '../../events/event'
 import {HanlerItemOption,OperationSizeOptions,HANDLER_ITEM_DIRECTION} from '../type';
 import {throttle} from '../../utils'
@@ -266,10 +266,21 @@ class LeftBottomHandlerItem extends HanlerItem{
 
 export class Size{
     private _handlerList:HanlerItem[];
+    private _tagName:string;
+    private _tagEl:HTMLElement
     private _noNeedOperation:boolean
     constructor(private _parentEl:HTMLElement, _pos:OperationPos,private _options:OperationSizeOptions){
         this._noNeedOperation = _options.noNeedOperation
+        this._tagName = _options.name;
+        this._tagEl = document.createElement('div');
+        this._tagEl.className = OPERATION_TAGNAME_CLASSNAME
+        _parentEl.appendChild(this._tagEl)
+        this.showTagName()
         this.initHanlder(_pos);
+    }
+    showTagName(){
+        const {_tagName} = this
+        this._tagEl.innerHTML = _tagName
     }
     initHanlder(_pos:OperationPos){
         const {_options,_parentEl} = this;
@@ -308,7 +319,7 @@ export class Size{
             item.show();
         })
     }
-    update(pos:OperationPos,noNeedOperation:boolean){
+    update(pos:OperationPos,name?:string){
         // const curNoNeedOperation = this._noNeedOperation;  //是否显示handler的状态切换
         // this._noNeedOperation = noNeedOperation;
         // if(curNoNeedOperation && !noNeedOperation){
@@ -316,9 +327,11 @@ export class Size{
         // }else if(!curNoNeedOperation && noNeedOperation){
         //     this.clearHandler();
         // }
+        this._tagName = name;
         this._handlerList.forEach((item)=>{
             item.update(pos)
         })
+        this.showTagName()
     }
     setStyle(pos:OperationPos){
         this._handlerList.forEach((item)=>item.update(pos))

@@ -135,6 +135,27 @@ export default [
                     height:100,
                 }
             }
+        },{
+            id:'114',
+            name:'span',
+            props:{
+                style:{
+                    value:{
+                        lineHeight:1
+                    }
+                },
+                children:{
+                    value:'你大爷'
+                }
+            },
+            extra:{
+                position:{
+                    left:50,
+                    top:560,
+                    width:80,
+                    height:80,
+                }
+            }
         }]
     }
     ,{

@@ -5,7 +5,8 @@
       { "path": "packages/free-canvas-core" },
       { "path": "packages/free-canvas-shared" },
       { "path": "packages/free-canvas-fusion-render" },
-      { "path": "packages/free-canvas-theme" }
+      { "path": "packages/free-canvas-theme" },
+      { "path": "packages/free-canvas-dx" }
     ],
     "compilerOptions": {
       "outDir": "lib",

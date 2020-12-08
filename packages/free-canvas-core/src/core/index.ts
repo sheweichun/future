@@ -1,4 +1,4 @@
-import {IPlugin, IView,Model, modelIsArtboard} from 'free-canvas-shared'
+import {IPlugin, IView,Model, modelIsArtboard,DSLModel,DSLType,IHookCore,IHookManager} from 'free-canvas-shared'
 import {ThemeVar,themeConst} from 'free-canvas-theme'
 import Canvas from './canvas'
 import {CanvasOption,CoreOptions} from './type';
@@ -68,7 +68,7 @@ let styleCreated = false;
 
 
 
-export default class Core extends EventHandler{
+export default class Core extends EventHandler implements IHookCore{
     private _rootEl:HTMLCanvasElement
     private _canvas:Canvas
     private _options:CoreOptions
@@ -95,6 +95,7 @@ export default class Core extends EventHandler{
 
     private _scale:number = 1
     private _ruleUnit:number = 10
+    private _hookManager:IHookManager
     // private _ruleUnitPerPX:number = 1
 
     private _refreshEl:HTMLElement
@@ -132,6 +133,9 @@ export default class Core extends EventHandler{
         this.draw = this.draw.bind(this);
         this.listen()
         this.draw()
+    }
+    registerHookManager(hookManager:IHookManager){
+        this._hookManager = hookManager
     }
     draw(){
         if(this._drawTimeId != null) return;
@@ -172,6 +176,7 @@ export default class Core extends EventHandler{
         initGlobalContextMenu(wrapDiv);
         this._content = new Content(div,_data,this._guideManage,{
             createView:this._options.createView,
+            showTagName:this._options.showTagName,
             eventEl:wrapDiv,
             scale:this._scale,
             // margin:this.margin,
@@ -245,14 +250,27 @@ export default class Core extends EventHandler{
                         }
                     )
                 }else if(type === MarkEntityType.RectMark){
-                    const {left,top,right,bottom,val,isVertical} = data;
+                    const {left,top,right,bottom,val,isVertical,showMarker} = data;
                     return new RectMark(left,top,right - left,bottom - top,val,{
-                        isVertical
+                        isVertical,
+                        showMarker
                     })
                 }
             })
         }
         this.draw()
+    }
+    update(data:Model){
+        // update(data:Model):void
+        this._onRefreshClick(data);
+        this._content.getStore().updateData({
+            data,
+            selectedKeyPaths:[]
+        })
+        
+    }
+    getStore(){
+        return this._content.getStore()
     }
     // getRect(){
     //     // debugger;
@@ -403,8 +421,12 @@ export default class Core extends EventHandler{
         this.draw()
     }
     onRefreshClick(){
+        this._onRefreshClick(this._content.getCurrentData())
+        // this._content.changeTranslation(x,y);
+    }
+    _onRefreshClick(data:Model){
         const {_translateX,_translateY} = this
-        const {x,y} = this.getInitTranslate(this._content.getCurrentData());
+        const {x,y} = this.getInitTranslate(data);
         this.changeScale(1);
         // this._rulerGroup.setNewBaseValue(x,y);
         // this._ruleUnitPerPX = 1;

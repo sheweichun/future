@@ -4,6 +4,7 @@ import {
     OPERATION_SIZE_CLASSNAME,
     styleSizeSize,
     styleSizeColor,
+    OPERATION_TAGNAME_CLASSNAME,
     CONTAINER,
     WRAPPER,
     DRAG_OVER,
@@ -76,6 +77,7 @@ export default `
     }
     .${MOVABLE_CLASSNAME}{
         box-sizing:border-box;
+ 
     }
     .${OPERATION_CLASSNAME}{
         z-index:10000;
@@ -139,6 +141,13 @@ export default `
         align-items: center;
         justify-content: space-between;
         padding: 6px 12px;
+    }
+    .${OPERATION_TAGNAME_CLASSNAME}{
+        position:absolute;
+        transform:translate3d(0,-100%,0);
+        color:var(--NEGTIVE_TEXT_COLOR);
+        padding:1px 4px;
+        background-color:var(--HIGHLIGHT_BORDER_COLOR);
     }
     .${CONTEXT_MEUNU_ITEM}:hover{
         cursor: pointer;

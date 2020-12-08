@@ -1,8 +1,10 @@
-import {Model} from 'free-canvas-shared'
+import {Model,MarketDataItem} from 'free-canvas-shared'
+import React from 'react'
 
 export interface DragProp{
     className?:string,
-    data:Model,
+    style?:React.CSSProperties,
+    data:MarketDataItem,
     onDragStart:(data:Model,x:number,y:number)=>void
     onDragMove:(x:number,y:number)=>void
     onDragEnd:()=>void

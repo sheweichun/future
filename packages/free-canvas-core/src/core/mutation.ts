@@ -611,7 +611,6 @@ export class Mutation extends EventHandler implements IMutation{
         let target:BaseModel;
         data.extra.isSelect = true;
         data = updateAllId(data);
-        console.log('data!! :',data);
         this.transition(()=>{
             this._onUnSelected();
             const dslData = this.getDSLData();
@@ -1032,10 +1031,13 @@ export class Mutation extends EventHandler implements IMutation{
         })
     }
     updateModelProps(key:string,data:any):void{
+        this.updateModelPropsByKeyPath([key],data);
+    }
+    updateModelPropsByKeyPath(keys:string[],data:any):void{
         const vms = this.getAllSelectedViewModels();
         this.transition(()=>{
             vms.forEach((vm)=>{
-                vm.getModel().updateIn(['props',key],null,(oldVal:BaseModel)=>{
+                vm.getModel().updateIn(['props',...keys],null,(oldVal:BaseModel)=>{
                     //@ts-ignore
                     return oldVal.merge(WrapData(data))
                 })

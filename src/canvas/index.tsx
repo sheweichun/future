@@ -1,5 +1,6 @@
 import FreeCanvas from '@pkg/free-canvas-core';
-import {createView} from '@pkg/free-canvas-fusion-render';
+// import {createView} from '@pkg/free-canvas-fusion-render';
+import {createView,showTagName} from '@pkg/free-canvas-dx';
 import {initTheme} from '@pkg/free-canvas-theme'
 
 import ModelData from './data'
@@ -16,6 +17,7 @@ const imgCookData2 = require('./schema2');
 initTheme();
 const canvas = FreeCanvas('canvas',{
     createView,
+    showTagName,
     data:{
         data:ModelData,
         type:0

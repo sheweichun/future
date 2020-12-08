@@ -127,8 +127,10 @@ export enum ModelFromType {
     ITEM
 }
 
+export type DSLModel = (Model | ImgCookDsl)[]
+
 export interface DSL{
-    data:(Model | ImgCookDsl)[]
+    data:DSLModel
     type:DSLType
 }
 
@@ -203,9 +205,20 @@ export interface ModelAttrProto{
     update?(mutation:IMutation,data:any):void
 }
 
+
+export interface ModelPos{
+    left?:number,
+    top?:number,
+    width?:number,
+    height?:number
+}
+
+export type ModelPosKeys = keyof ModelPos
+
 export interface Model {
     id?:string
     pid?:string
+    protoId?:string
     name?:string
     type?:ModelType
     props:ModelProps
@@ -220,12 +233,7 @@ export interface Model {
     }
     extra:{
         label?:string,
-        position?:{
-            left?:number,
-            top?:number,
-            width?:number,
-            height?:number
-        },
+        position?:ModelPos,
         isSelect?:boolean
     }
 }
@@ -268,4 +276,39 @@ export interface IMutation{
     updateModelPosition(data:IPos):void
     updateModelStyle(data:Partial<CSSStyleDeclaration>):void
     updateModelProps(key:string,data:any):void
+    updateModelPropsByKeyPath(key:string[],data:any):void
+}
+
+
+
+
+export interface MarketDataItemEvent{
+    name:string,
+    desc:string,
+    version?:string
+}
+
+export interface MarketDataItem{
+    id?:string
+    codeTemplate?:any
+    protoId?:string
+    demo?:string
+    doc?:string
+    proto?:any
+    eventList?:MarketDataItemEvent[]
+    name:string,
+    preview:string
+}
+
+export interface MarketData{
+    name:string,
+    children:{
+        name:string,
+        children:MarketDataItem[]
+    }[]
+}
+
+export type ComponentMarketStore = {
+    data:MarketData[]
+    list:MarketDataItem[]
 }

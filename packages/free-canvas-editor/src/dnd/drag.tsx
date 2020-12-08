@@ -22,7 +22,9 @@ export class Drag extends React.Component<DragProp,DragState>{
         this._prevY = clientY;
         if(!this._isDragging){
             const {onDragStart,data,previewEle} = this.props;
-            onDragStart(data,clientX,clientY);
+            onDragStart(Object.assign({},data.codeTemplate,{
+                protoId:data.protoId
+            }),clientX,clientY);
             const dataTransfer = e.dataTransfer;
             dataTransfer.effectAllowed = 'move'
             dataTransfer.dropEffect = 'move'
@@ -50,8 +52,8 @@ export class Drag extends React.Component<DragProp,DragState>{
         // e.preventDefault();
     }
     render(){
-        const {className,children} = this.props;
-        return <div className={className} draggable 
+        const {className,style,children} = this.props;
+        return <div className={className} style={style} draggable 
         onDragStart={this.onDragStart}
         onDragEnd={this.onDragEnd}
         onDrag={this.onDragMove}

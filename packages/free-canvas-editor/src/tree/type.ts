@@ -1,9 +1,10 @@
 
-import {Model} from 'free-canvas-shared'
+import {Model,ShowTagName} from 'free-canvas-shared'
 import { CSSProperties } from 'react';
 export interface TreeProps{
     className?:string
     style?:CSSProperties
+    showTagName?:ShowTagName
 }
 
 export interface FlagMap{

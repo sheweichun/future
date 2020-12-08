@@ -90,6 +90,7 @@ export class Tree extends React.Component<TreeProps,TreeState> implements IPlugi
     }
     renderItem(models:Model[],depth=1){
         if(models == null) return
+        const {showTagName} = this.props;
         const {hoverMap,expandMap} = this.state;
         return models.map((item)=>{
             const itemId = item.id;
@@ -110,7 +111,7 @@ export class Tree extends React.Component<TreeProps,TreeState> implements IPlugi
                         >   
                             {(hasChildren && !isArtboard)  && <Icon className={`${TreeItemContentArrowClz} ${needRenderChild ? 'expand' : ''}`} type="arrow" onClick={this.onClickArrow.bind(this,item)}></Icon>} 
                             {isGroup && <Icon type={needRenderChild ? 'folder-open':'folder'} style={{paddingRight:'4px'}}></Icon>}
-                            {item.extra.label ? item.extra.label : `${item.name}-${item.id}`} 
+                            {item.extra.label ? item.extra.label : `${showTagName ? showTagName(item) : item.name}-${item.id}`} 
                         </div>
                     </div>
                     {needRenderChild && this.renderItem(item.children,depth + 1)}

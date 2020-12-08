@@ -15,6 +15,7 @@ export interface IView<T>{
     destroy():void
 } 
 export type CreateView = (data:Model,options?:ViewOptions)=>IView<Model>
+export type ShowTagName = (md:Model)=>string
 
 export class View implements IView<Model>{
     el:HTMLElement

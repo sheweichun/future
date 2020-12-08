@@ -4,7 +4,7 @@ import {IMutation, Model,ModelPropComponentType,ModelPropSchema} from 'free-canv
 import {TabDataItem} from '../../components/tab/type'
 import {EdiItem} from '../../components/index'
 import {CLASS_PREFIX} from '../../util/contant'
-import {Measure,Color,SelectAttr} from './components/index'
+import {Measure,Color,SelectAttr,TextAttr} from './components/index'
 import {extractSchemaList} from './schemaMap'
 import {ModelIdMap} from '../type'
 export interface AttrbuteProps{
@@ -52,6 +52,8 @@ export class Attribute extends React.Component<AttrbuteProps,AttrbuteState>{
             return <Color modelData={modelData} selectModel={selectModel} schema={propSchema} mutation={mutation}></Color>
         }else if(type === ModelPropComponentType.select){
             return <SelectAttr modelData={modelData} selectModel={selectModel} schema={propSchema} mutation={mutation}></SelectAttr>
+        }else if(type === ModelPropComponentType.text){
+            return <TextAttr modelData={modelData} selectModel={selectModel} schema={propSchema} mutation={mutation}></TextAttr>
         }
         return 'nothing'
     }

@@ -7,7 +7,7 @@ import {HeadProps,HeadState} from './type'
 
 export {HeadProps,HeadState} from './type'
 const {HEAD,ASIDE,PANEL} = ThemeVar
-const {backgroundColor,height} = HEAD
+const {backgroundColor,height,color} = HEAD
 
 const HEADER_CLZ = `${CLASS_PREFIX}header`
 const HEADER_LEFT_CLZ = `${CLASS_PREFIX}header-left`
@@ -23,26 +23,23 @@ export class Header extends React.Component<HeadProps,HeadState>{
         super(props);
     }
     render(){
-        const {className} = this.props;
+        console.log('props =====>',this.props);
+        const {className,headView} = this.props;
         return <header className={`${HEADER_CLZ} ${className || ''}`} style={{
             backgroundColor:backgroundColor,
+            color,
             height:height}}>
             <div className={HEADER_LEFT_CLZ} style={{width:ASIDE.width}}>
-                left
+                { headView && headView.renderLeftView ? headView.renderLeftView() : 'left'}
             </div>
             <div className={HEADER_MIDDLE_CLZ}>
-                <div className={HEADER_MIDDLEL_CLZ}>
+                {headView && headView.renderMiddleView ? headView.renderMiddleView() : <div className={HEADER_MIDDLEL_CLZ}>
                     <Button>test</Button>
-                </div>
-                <div className={HEADER_MIDDLEM_CLZ}>
-                    center
-                </div>
-                <div className={HEADER_MIDDLER_CLZ}>
-                    right
-                </div>
+                </div>}
+                
             </div>
             <div className={HEADER_RIGHT_CLZ} style={{width:PANEL.width}}>
-                right
+                {headView && headView.renderRightView ? headView.renderRightView() : 'right'}
             </div>
         </header>
     }

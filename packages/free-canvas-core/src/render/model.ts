@@ -36,7 +36,8 @@ export function updateAllId(data:Model){
     if(data == null) return
     let newData = Object.assign({},data);
     newData.proto = {}
-    newData.pid = data.id;
+    // newData.protoId = data.protoId
+    // newData.pid = data.id;
     newData.id = nextId();
     if(data.children){
         newData.children = data.children.map((child)=>{

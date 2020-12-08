@@ -63,12 +63,12 @@ export class Movable implements IMovable{
         const div = document.createElement('div');
         div.id = _data.id;
         div.className = MOVABLE_CLASSNAME
-        
         this.style = {
             position:'absolute',
             lineHeight:'0px'
         }
         this.el = div;
+        this.updateElOverFlow();
         this.createIdSpan();
         // div.appendChild(this.view.getRoot());
         // if(isRoot){
@@ -77,6 +77,10 @@ export class Movable implements IMovable{
         //     didMount && didMount();
         // }
         
+    }
+    updateElOverFlow(){
+        const {_data,el} = this
+        el.style.overflow = _data.type === ModelType.isArtBoard ? 'none' : 'hidden'
     }
     createIdSpan(){
         // const span = document.createElement('div')
@@ -273,6 +277,7 @@ export class Movable implements IMovable{
         this.parsePosition();
         this.setStyle();
         this.updateIdSpan();
+        this.updateElOverFlow();
         this.view.update(newModel);
     }
     updateIsChild(isChild:boolean){
