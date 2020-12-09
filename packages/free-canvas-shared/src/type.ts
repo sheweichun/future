@@ -169,6 +169,7 @@ export interface ModelPropSchema{
     type:ModelPropComponentType,
     identity?:string,
     title?:string
+    key:string
     sortIndex:number
     props?:{[key:string]:any}
     get?:(val:Model)=>any
@@ -197,6 +198,7 @@ export interface ModelProps{
 export interface ModelAttrProto{
     type:ModelPropComponentType,
     title:string,
+    key:string
     sortIndex:number,
     props:{
         [key:string]:any

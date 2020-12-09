@@ -766,13 +766,6 @@ export class Mutation extends EventHandler implements IMutation{
     }
     _changeVmPosAndSize(vm:IViewModel,noChild:boolean = false){
         const oldVm = vm.getModel();
-        // const {left,top,width,height} = vm.getRelativeRect(vm.getRect());
-        // const newPos = {left,top,width,height}
-
-        // oldVm.withMutations((md:any)=>{
-        //     return md.setIn(['extra','position'],WrapData(vm.getRelativeRect(vm.getRect())))
-        // })
-        // console.log('oldVm :',oldVm);
         oldVm.updateIn(['extra','position'],null,(pos:any)=>{
             return WrapData(vm.getRelativeRect(vm.getRect()))
         })
@@ -822,6 +815,20 @@ export class Mutation extends EventHandler implements IMutation{
     // registerOnSelect(fn:OnSelected){
     //     this._onSelected = fn;
     // }
+    _clearVmsSelect(data:BaseModel){
+        const children = data.get('children',null);
+        if(children){
+            for(let i = 0 ; i < children.size; i++){
+                const childModel = children.get(i);
+                const curSelect = childModel.getIn(['extra','isSelect'],false);
+                if(curSelect){
+                    this.removeKeyPath(childModel.get('id',null));
+                    childModel.updateIn(['extra','isSelect'],null,()=> false);
+                }
+                this._clearVmsSelect(childModel)
+            }
+        }
+    }
     updateSelectVmsByPos(data:BaseModel,target:IViewModel,pos:OperationPos){  //选择框框选选中组件
         this.notRecord(()=>{
             this.eachModelAndVm(data,target,(curModel:BaseModel,vm:IViewModel)=>{ //深度优先遍历，当前节点跟选择框重叠时，不用再想子节点去检索
@@ -829,10 +836,11 @@ export class Mutation extends EventHandler implements IMutation{
                 if(modelIsRoot(vm.modelType) || modelIsArtboard(vm.modelType)) return true;
                 const vmPos = vm.getAbsRect();
                 const shouldSelect = vmPos.isOverlap(pos);
-                const curSelect = curModel.getIn(['extra','isSelect'],null);
+                const curSelect = curModel.getIn(['extra','isSelect'],false);
                 if(curSelect !== shouldSelect){
                     if(shouldSelect){
                         this.addKeyPath(curModel.get('id',null));
+                        this._clearVmsSelect(curModel);
                     }else{
                         this.removeKeyPath(curModel.get('id',null));
                     }

@@ -51,6 +51,7 @@ export class Panel extends React.Component<PanelProps,PanelState> implements IPl
         this._mutation = mutation;
     }
     update(data:Model,selectModels:Model[]):void{
+        // console.log('in panel update!!!!!!!!!!! :',selectModels);
         this.setState({
             modelData:selectModels
         })

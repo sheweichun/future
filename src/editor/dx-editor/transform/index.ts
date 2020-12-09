@@ -97,15 +97,7 @@ function transform2Model(el:Element,modelType:ModelType){
         props:{style:{value:{}}},
         children:[]
     }
-    if(modelType != null){
-        model.type = modelType
-        if(modelType === ModelType.isArtBoard){
-            const style = model.props.style.value
-            style.backgroundColor = '#ffffff'
-            style.overflow = 'hidden'
-            style.position = 'relative'
-        }
-    }
+   
     if(tagName === 'FrameLayout'){
         const attributes = el.attributes;
         for(let i = 0; i < attributes.length; i++){
@@ -117,6 +109,7 @@ function transform2Model(el:Element,modelType:ModelType){
             }
         }
         model.name = 'div'
+        model.protoId = 'div'
     }else{
         model.name = DX_TEMPLATE
         model.props.dxSource = {
@@ -125,8 +118,17 @@ function transform2Model(el:Element,modelType:ModelType){
                 attrs:attributes2Obj(el.attributes,model)
             }
         }
+        model.protoId = tagName
     }
-    model.protoId = tagName
+    if(modelType != null){
+        model.type = modelType
+        if(modelType === ModelType.isArtBoard){
+            const style = model.props.style.value
+            style.backgroundColor = '#ffffff'
+            style.overflow = 'hidden'
+            style.position = 'relative'
+        }
+    }
     if(el.children){
         for(let i = 0; i < el.children.length; i++){
             const child = el.children[i]

@@ -1,23 +1,21 @@
 import {MarketDataItem,MarketData,ModelPropComponentType,Model,IMutation} from '@pkg/free-canvas-shared' 
 
 
-
 const bgAttr = {
     type:ModelPropComponentType.backgroundColor,
+    key:'divBackgroundColor',
     get(model:Model){
-        console.log('model :',model);
-        let bg = '';
-        if(model.props.dxSource && model.props.dxSource.value){
-            bg = model.props.dxSource.value.attrs.backgroundColor
-        }
-        if(bg){
-            if(typeof bg === 'string'){
-                return {
-                    value:bg,
-                    disabled:false
+        if(model.props.style && model.props.style.value){
+            const bg = model.props.style.value.backgroundColor
+            if(bg){
+                if(typeof bg === 'string'){
+                    return {
+                        value:bg,
+                        disabled:false
+                    }
                 }
+                return bg
             }
-            return bg
         }
         return {
             value:null,
@@ -25,7 +23,9 @@ const bgAttr = {
         }
     },
     update(mutation:IMutation,data:string){
-        mutation.updateModelPropsByKeyPath(['dxSource','value','attrs'],{backgroundColor:data});
+        mutation.updateModelStyle({
+            backgroundColor:data
+        });
     }
 }
 
@@ -45,21 +45,18 @@ export const marketData:MarketData[] = [
                         proto:{
                             attrs:[
                                 {
-                                    type:ModelPropComponentType.xywh
+                                    type:ModelPropComponentType.xywh,
                                 },bgAttr
                             ]
                         },
                         codeTemplate:{
-                            name:'dx-template',
-                            style:{},
+                            name:'div',
+                            style:{
+                                backgroundColor:'#ffffff'
+                            },
                             props:{
-                                dxSource:{
-                                    value:{
-                                        name:'FrameLayout',
-                                        attrs:{
-
-                                        }
-                                    }
+                                style:{
+                                    value:{}
                                 }
                             },
                             extra:{
@@ -69,6 +66,26 @@ export const marketData:MarketData[] = [
                                 }
                             }
                         }
+                        // codeTemplate:{
+                        //     name:'dx-template',
+                        //     style:{},
+                        //     props:{
+                        //         dxSource:{
+                        //             value:{
+                        //                 name:'FrameLayout',
+                        //                 attrs:{
+
+                        //                 }
+                        //             }
+                        //         }
+                        //     },
+                        //     extra:{
+                        //         position:{
+                        //             width:100,
+                        //             height:100
+                        //         }
+                        //     }
+                        // }
                     }
                 ]
             },{
@@ -80,8 +97,12 @@ export const marketData:MarketData[] = [
                         proto:{
                             attrs:[
                                 {
+                                    type:ModelPropComponentType.xywh,
+                                },
+                                {
                                     type:ModelPropComponentType.text,
                                     title:'文本内容',
+                                    key:'text',
                                     get(model:Model){
                                         return model.props.dxSource.value.attrs.text
                                     },
@@ -118,8 +139,12 @@ export const marketData:MarketData[] = [
                         proto:{
                             attrs:[
                                 {
+                                    type:ModelPropComponentType.xywh,
+                                },
+                                {
                                     type:ModelPropComponentType.text,
                                     title:'图片url',
+                                    key:'imageUrl',
                                     get(model:Model){
                                         return model.props.dxSource.value.attrs.imageUrl
                                     },
@@ -130,6 +155,7 @@ export const marketData:MarketData[] = [
                                 {
                                     type:ModelPropComponentType.text,
                                     title:'宽高比',
+                                    key:'aspectRatio',
                                     get(model:Model){
                                         return model.props.dxSource.value.attrs.aspectRatio
                                     },
@@ -140,6 +166,7 @@ export const marketData:MarketData[] = [
                                 {
                                     type:ModelPropComponentType.select,
                                     title:'图片缩放',
+                                    key:'scaleType',
                                     props:{
                                         dataSource:[
                                             'fitCenter','fitXY','centerCrop'
@@ -155,7 +182,9 @@ export const marketData:MarketData[] = [
                                 {
                                     type:ModelPropComponentType.text,
                                     title:'深色模式图片url',
+                                    key:'darkModeImageUrl', 
                                     get(model:Model){
+                                        //todo 框选触发BUG
                                         return model.props.dxSource.value.attrs.darkModeImageUrl
                                     },
                                     update(mutation:IMutation,data:any){
@@ -205,7 +234,7 @@ function flattern(data:MarketData[],result:MarketDataItem[]){
         flattern(item.children,result)
       }else{
         const {codeTemplate} = item;
-        if(codeTemplate.name === 'FrameLayout'){
+        if(codeTemplate.name === 'div'){
             item.protoId = codeTemplate.name
         }else{
             item.protoId = codeTemplate.props.dxSource.value.name

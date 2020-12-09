@@ -6,6 +6,7 @@ import {ModelIdMap} from '../type'
 
 const ALL_SCHEMA:{[key in ModelPropComponentType]?:ModelPropSchema} ={
     [ModelPropComponentType.xywh]:{
+        key:'xywh',
         type:ModelPropComponentType.xywh,
         sortIndex:10,
         get(model:Model){
@@ -18,6 +19,7 @@ const ALL_SCHEMA:{[key in ModelPropComponentType]?:ModelPropSchema} ={
     [ModelPropComponentType.backgroundColor]:{
         type:ModelPropComponentType.backgroundColor,
         title:'背景色',
+        key:'backgroundColor',
         sortIndex:20,
         get(model:Model){
             if(model.props.style && model.props.style.value){
@@ -42,27 +44,28 @@ const ALL_SCHEMA:{[key in ModelPropComponentType]?:ModelPropSchema} ={
                 backgroundColor:data
             });
         }
-    },[ModelPropComponentType.text]:{
-        type:ModelPropComponentType.text,
-        title:'文本',
-        sortIndex:30,
-        get(model:Model){
-            if(model.props.style && model.props.style.value){
-                const modelStyle = model.props.style.value
-                return {
-                    color:modelStyle.color,
-                    fontSize:modelStyle.fontSize,
-                    fontFamily:modelStyle.fontFamily,
-                    fontWeight:modelStyle.fontWeight,
-                    fontStyle:modelStyle.fontStyle
-                }
-            }
-            return {}
-        },
-        update(mutation:IMutation,data:any){
-            mutation.updateModelStyle(data);
-        }
     }
+    // ,[ModelPropComponentType.text]:{
+    //     type:ModelPropComponentType.text,
+    //     title:'文本',
+    //     sortIndex:30,
+    //     get(model:Model){
+    //         if(model.props.style && model.props.style.value){
+    //             const modelStyle = model.props.style.value
+    //             return {
+    //                 color:modelStyle.color,
+    //                 fontSize:modelStyle.fontSize,
+    //                 fontFamily:modelStyle.fontFamily,
+    //                 fontWeight:modelStyle.fontWeight,
+    //                 fontStyle:modelStyle.fontStyle
+    //             }
+    //         }
+    //         return {}
+    //     },
+    //     update(mutation:IMutation,data:any){
+    //         mutation.updateModelStyle(data);
+    //     }
+    // }
 }
 
 
@@ -71,11 +74,11 @@ export const SchemaMap:{[key:string]:ModelPropSchema[]} = {
     div:[
         ALL_SCHEMA[ModelPropComponentType.xywh],
         ALL_SCHEMA[ModelPropComponentType.backgroundColor],
-        ALL_SCHEMA[ModelPropComponentType.text]
+        // ALL_SCHEMA[ModelPropComponentType.text]
     ],
     span:[
         ALL_SCHEMA[ModelPropComponentType.xywh],
-        ALL_SCHEMA[ModelPropComponentType.text]
+        // ALL_SCHEMA[ModelPropComponentType.text]
     ],
     img:[
         ALL_SCHEMA[ModelPropComponentType.xywh]
@@ -104,18 +107,26 @@ export const SchemaMap:{[key:string]:ModelPropSchema[]} = {
 function fixProtoAttrs(attrs:ModelAttrProto[]){
     if(attrs == null) attrs;
     attrs.forEach((attr)=>{
-        const {type,get,update} = attr
+        const {type,get,update,key} = attr
         const schemaItem = ALL_SCHEMA[type];
         if(schemaItem){
             attr.get = get || schemaItem.get
             attr.update = update || schemaItem.update
+            attr.key = key || schemaItem.key
         }
     })
     return attrs
 }
 
+
+type SchemaResult = {
+    [key:string]:{
+        schema:ModelPropSchema
+        count:number
+    }
+}
+
 export function extractSchemaList(models:Model[],idMap:ModelIdMap):ModelPropSchema[]{
-    // console.log('models => :',models,idMap);
     if(models == null || models.length === 0) return []
     const modelLen = models.length;
     if(modelLen === 1){
@@ -128,10 +139,7 @@ export function extractSchemaList(models:Model[],idMap:ModelIdMap):ModelPropSche
         }
         return SchemaMap[curModel.name] || []
     }
-    const result:{[key in ModelPropComponentType]?:{
-        schema:ModelPropSchema
-        count:number
-    }} = {}
+    const result:SchemaResult = {}
     models.forEach((md)=>{
         let schemas:ModelPropSchema[] = SchemaMap[md.name]
         if(md.protoId != null){
@@ -141,11 +149,12 @@ export function extractSchemaList(models:Model[],idMap:ModelIdMap):ModelPropSche
             }
         }
         if(schemas){
-            schemas.forEach((schema)=>{
-                let item = result[schema.type];
+            schemas.forEach((schema)=>{ //todo存在混乱的情况
+                // console.log('schema :',schema,schema.type,schema.key,schema.type + schema.key);
+                let item = result[schema.type + schema.key];
                 if(item == null){
                     item = {schema,count:0}
-                    result[schema.type] = item
+                    result[schema.type + schema.key] = item
                 }
                 item.count++
             })
@@ -154,9 +163,9 @@ export function extractSchemaList(models:Model[],idMap:ModelIdMap):ModelPropSche
     let schemaList:ModelPropSchema[] = [];
     Object.keys(result).forEach((type:string)=>{ //保障多个model共有的属性才展示出来
         //@ts-ignore
-        const {schma,count} = result[type];
+        const {schema,count} = result[type];
         if(count === modelLen){
-            schemaList.push(schma)
+            schemaList.push(schema)
         }
     })
     return schemaList.sort((a:ModelPropSchema,b:ModelPropSchema)=>{

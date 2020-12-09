@@ -25,7 +25,8 @@ const ATTRIBUTE_CLZ = `${CLASS_PREFIX}attribute`
 
 function props2State(props:AttrbuteProps,defaultValue?:any):AttrbuteState{
     const {modelData,modelIdMap} = props;
-    if(modelData.length === 1){
+    // console.log('modelData len :',modelData.length);
+    if(modelData.length >= 1){
         return {
             selectModel:modelData[0],
             propsSchemas:extractSchemaList(modelData,modelIdMap)
