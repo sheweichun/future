@@ -47,6 +47,7 @@ export class Movable implements IMovable{
     outline:string
     style:ObjectStyleDeclaration
     idSpan:HTMLElement
+    maskEl:HTMLElement
     protected _onPostionChange:OnPositionChange
     constructor(protected _data:Model,options:MovableOptions){
         this._options = completeOptions(options,DEFAULT_OPTIONS);
@@ -88,6 +89,26 @@ export class Movable implements IMovable{
         // span.innerHTML = `id:${this._data.id}`
         // this.el.appendChild(span);
         // this.idSpan = span;
+    }
+    static createMaskEl(){
+        const maskEl = document.createElement('div')
+        maskEl.setAttribute('style','position:absolute;width:100%;height:100%;left:0;top:0;background-color:var(--MOVABLE_MASK_BACKGROUND)')
+        // maskEl.setAttribute('style','box-sizing: border-box;position:absolute;width:100%;height:100%;left:0;top:0;outline:1px solid var(--HIGHLIGHT_BORDER_COLOR)')
+        return maskEl
+    }
+    mark(flag:boolean){
+        if(flag){
+            if(this.maskEl == null){
+                const maskEl = Movable.createMaskEl();
+                this.maskEl = maskEl
+                this.el.appendChild(maskEl);
+            }
+        }else{
+            if(this.maskEl){
+                this.el.removeChild(this.maskEl)
+                this.maskEl = null;
+            }
+        }
     }
     updateIdSpan(){
         // this.idSpan.innerHTML = `id:${this._data.id}`

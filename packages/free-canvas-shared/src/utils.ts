@@ -66,6 +66,14 @@ export function isOverLap(left:number,top:number,right:number,bottom:number,
     )
 }
 
+export function contain(left:number,top:number,right:number,bottom:number,
+    left1:number,top1:number,right1:number,bottom1:number){
+    return left <= left1 &&
+        right >= right1 &&
+        top <= top1 && 
+        bottom >= bottom1
+}
+
 export function fixValue(val:number,scale:number){
     // return Math.floor(val * scale)
     return val * scale

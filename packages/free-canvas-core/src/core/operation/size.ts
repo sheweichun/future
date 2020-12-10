@@ -280,7 +280,7 @@ export class Size{
     }
     showTagName(){
         const {_tagName} = this
-        this._tagEl.innerHTML = _tagName
+        this._tagEl.innerHTML = _tagName || ''
     }
     initHanlder(_pos:OperationPos){
         const {_options,_parentEl} = this;
@@ -313,11 +313,13 @@ export class Size{
         this._handlerList.forEach((item)=>{
             item.hide();
         })
+        this._tagEl.style.display = 'none'
     }
     show(){
         this._handlerList.forEach((item)=>{
             item.show();
         })
+        this._tagEl.style.display = 'block'
     }
     update(pos:OperationPos,name?:string){
         // const curNoNeedOperation = this._noNeedOperation;  //是否显示handler的状态切换

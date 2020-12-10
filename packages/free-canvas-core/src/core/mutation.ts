@@ -4,11 +4,12 @@ import {Commander} from './commander'
 import { IViewModel } from "../render/type";
 import {COMMANDERS,Utils, modelIsGroup, modelIsRoot, modelIsArtboard,IMutation, IPos} from 'free-canvas-shared';
 import {createGroupModel} from '../render/index'
+import {getOverlapArtboard} from '../utils/index'
 import {CanvasEvent,EventHandler} from '../events/event'
 import {Model, updateAllId} from '../render/model';
 import {IOperation} from './operation/type';
 // import {isEqual} from '../render/dsl/store'
-import { OperationPos,calculateIncludeRect } from './operation/pos';
+import { OperationPos } from './operation/pos';
 import {MutationOptions} from './type';
 // import {DRAG_OVER} from '../utils/constant';
 
@@ -21,6 +22,51 @@ type BaseModelAndPos = {
     model:BaseModel
 }
 
+
+function changeVmPos(vm:IViewModel,vmMap:{[key:string]:IViewModel} = {}){
+    const parentVm = vm.getParent();
+    if(parentVm && modelIsGroup(parentVm.modelType)){
+        const pid = parentVm.getModel().get('id',null);
+        vmMap[pid] = parentVm;
+        return vmMap;
+    }
+    changeNormalVmPos(vm)
+    return vmMap
+}
+
+function changeNormalVmPos(vm:IViewModel){
+    const relativeRect = vm.getRelativeRect(vm.getRect());
+    return vm.getModel().updateIn(['extra','position'],null,(pos:any)=>{
+        return WrapData({
+            left:relativeRect.left,
+            top:relativeRect.top,
+            width:pos.get('width'),
+            height:pos.get('height')
+        })
+    })
+}
+
+
+// function changePosByArtboard(diffx:number,diffy:number,vm:IViewModel,data:{left:number,top:number},
+//     newParentModel:BaseModel,needRemoveVms:IViewModel[],needAddItems:{[key:string]:{parentModel:BaseModel,target:BaseModel[]}}){
+//     const vmModel = vm.getModel();
+//     const newVmModel:BaseModel = vmModel.updateIn(['extra','position'],null,(pos:any)=>{
+//         return WrapData({
+//             left:pos.get('left') + data.left + diffx,
+//             top:pos.get('top') + data.top + diffy,
+//             width:pos.get('width'),
+//             height:pos.get('height')
+//         })
+//     }).deref(null)
+//     needRemoveVms.push(vm);
+//     const pid = newParentModel.get('id',null);
+//     let addItem = needAddItems[pid]
+//     if(addItem == null){
+//         addItem = {parentModel:newParentModel,target:[]}
+//         needAddItems[pid] = addItem
+//     }
+//     addItem.target.push(newVmModel);
+// }
 
 // function sortBaseModelAndPos(data:BaseModelAndPos[]){
 //     return data.sort((a:BaseModelAndPos,b:BaseModelAndPos)=>{
@@ -642,113 +688,148 @@ export class Mutation extends EventHandler implements IMutation{
             this._changeVmPosAndSize(parent,noChild);
         })
     }
+    // onPostionChanges(val:{vms:IViewModel[],data:{left:number,top:number}}){
+    //     const {vms,data:posData} = val
+    //     const artboards = this.getAllArtboardVms();
+    //     const dslData = this.getDSLData();
+    //     const _this = this;
+    //     const needRemoveVms:IViewModel[] = [];
+    //     const needAddItems:{[key:string]:{parentModel:BaseModel,target:BaseModel[]}} = {}
+    //     const needChangePosVMMap:{[key:string]:IViewModel} = {}
+
+
+    //     function changeVmPos(vm:IViewModel,data:{left:number,top:number}){
+    //         const parentVm = vm.getParent();
+    //         if(parentVm && modelIsGroup(parentVm.modelType)){
+    //         // if(parentVm && (!modelIsRoot(parentVm.modelType) && !modelIsArtboard(parentVm.modelType))){
+    //             const pid = parentVm.getModel().get('id',null);
+    //             needChangePosVMMap[pid] = parentVm;
+    //             return;
+    //         }
+    //         vm.getModel().updateIn(['extra','position'],null,(pos:any)=>{
+    //             return WrapData({
+    //                 left:pos.get('left') + data.left,
+    //                 top:pos.get('top') + data.top,
+    //                 width:pos.get('width'),
+    //                 height:pos.get('height')
+    //             })
+    //         })
+    //     }
+
+
+    //     function changePosByArtboard(diffx:number,diffy:number,vm:IViewModel,data:{left:number,top:number},newParentModel:BaseModel){
+    //         const vmModel = vm.getModel();
+    //         const newVmModel:BaseModel = vmModel.updateIn(['extra','position'],null,(pos:any)=>{
+    //             return WrapData({
+    //                 left:pos.get('left') + data.left + diffx,
+    //                 top:pos.get('top') + data.top + diffy,
+    //                 width:pos.get('width'),
+    //                 height:pos.get('height')
+    //             })
+    //         }).deref(null)
+    //         needRemoveVms.push(vm);
+    //         const pid = newParentModel.get('id',null);
+    //         let addItem = needAddItems[pid]
+    //         if(addItem == null){
+    //             addItem = {parentModel:newParentModel,target:[]}
+    //             needAddItems[pid] = addItem
+    //         }
+    //         addItem.target.push(newVmModel);
+    //     }
+
+    //     function vmOutArtboard(overlapArtboard:IViewModel,vm:IViewModel,data:{left:number,top:number}){
+    //         const artboardRect = overlapArtboard.getRect();
+    //         changePosByArtboard(artboardRect.left,artboardRect.top,vm,data,dslData)
+    //     }
+
+    //     function vmFromToArtboard(fromArtboard:IViewModel,toArtboard:IViewModel,vm:IViewModel,data:{left:number,top:number}){
+    //         const fromArtboardRect = fromArtboard.getRect();
+    //         const toArtboardRect = toArtboard.getRect();
+    //         changePosByArtboard(
+    //             fromArtboardRect.left - toArtboardRect.left,
+    //             fromArtboardRect.top - toArtboardRect.top,
+    //             vm,data,toArtboard.getModel())
+    //     }
+
+
+    //     function vmIntoArtboard(overlapArtboard:IViewModel,vm:IViewModel,data:{left:number,top:number}){
+    //         const artboardRect = overlapArtboard.getRect();
+    //         const overlapArtboardModel = overlapArtboard.getModel();
+    //         changePosByArtboard(- artboardRect.left,- artboardRect.top,vm,data,overlapArtboardModel)
+    //     }
+
+    //     this.transition(()=>{
+    //         vms.forEach((vm)=>{
+    //             const vmIsArtboard = modelIsArtboard(vm.modelType);
+    //             if(vmIsArtboard) return changeVmPos(vm,posData);
+    //             const parentVm = vm.getInitialParent();
+    //             const parentVmIsArtboard = modelIsArtboard(parentVm.modelType);
+    //             const parentVmIsRoot = modelIsRoot(parentVm.modelType);
+    //             const overlapArtboard = getOverlapArtboard(artboards,vm.getRect()); //todo 待完善 因为重叠的画板可能有多个 通过什么策略选择最合适的画板
+    //             if(parentVmIsRoot){ //根下节点
+    //                 if(overlapArtboard){ //根下节点跟画板重合
+    //                     vmIntoArtboard(overlapArtboard,vm,posData);
+                        
+    //                 }else{
+    //                     changeVmPos(vm,posData);
+    //                 }
+    //             }else{ //非根下节点
+    //                 if(parentVmIsArtboard){ //非根下节点父节点是画板
+    //                     if(overlapArtboard){ //非根下节点跟一个画板重合
+    //                         if(overlapArtboard !== parentVm){ //非根节点从原来的画板移动到新的画板
+    //                             vmFromToArtboard(parentVm,overlapArtboard,vm,posData);
+    //                         }else{ //非根节点还在原来画板中
+    //                             changeVmPos(vm,posData);
+    //                         }
+    //                     }else{ //todo 这里应该从画板中移除掉
+    //                         vmOutArtboard(parentVm,vm,posData);
+    //                     }
+    //                 }else{ //非根节点父节点不是画板
+    //                     changeVmPos(vm,posData);
+    //                 }
+    //             }
+    //         })
+    //         this.updateGroupVm(needChangePosVMMap,true)
+
+    //         this._removeModelsFromEachModel(needRemoveVms,dslData); //先删除待删除的节点
+    //         Object.keys(needAddItems).forEach((pid:string)=>{
+    //             const {parentModel,target} = needAddItems[pid]
+    //             parentModel.updateIn(['children'],null,(childs:BaseModel)=>{
+    //                 //@ts-ignore
+    //                 return childs.push(...target);
+    //             })
+    //         })
+    //     })
+    // }
     onPostionChanges(val:{vms:IViewModel[],data:{left:number,top:number}}){
         const {vms,data:posData} = val
-        const artboards = this.getAllArtboardVms();
         const dslData = this.getDSLData();
-        const _this = this;
+        const needChangePosVMMap:{[key:string]:IViewModel} = {}
         const needRemoveVms:IViewModel[] = [];
         const needAddItems:{[key:string]:{parentModel:BaseModel,target:BaseModel[]}} = {}
-        function getOverlapArtboard(vm:IViewModel){
-            const vmRect = vm.getRect();
-            for(let i = 0 ; i < artboards.length ; i++){
-                const artboard = artboards[i];
-                if(artboard.getRect().isOverlap(vmRect)){
-                    return artboard
-                }
-            }
-        }
-        const needChangePosVMMap:{[key:string]:IViewModel} = {}
-
-
-        function changeVmPos(vm:IViewModel,data:{left:number,top:number}){
-            const parentVm = vm.getParent();
-            if(parentVm && modelIsGroup(parentVm.modelType)){
-            // if(parentVm && (!modelIsRoot(parentVm.modelType) && !modelIsArtboard(parentVm.modelType))){
-                const pid = parentVm.getModel().get('id',null);
-                needChangePosVMMap[pid] = parentVm;
-                return;
-            }
-            vm.getModel().updateIn(['extra','position'],null,(pos:any)=>{
-                return WrapData({
-                    left:pos.get('left') + data.left,
-                    top:pos.get('top') + data.top,
-                    width:pos.get('width'),
-                    height:pos.get('height')
-                })
-            })
-        }
-
-
-        function changePosByArtboard(diffx:number,diffy:number,vm:IViewModel,data:{left:number,top:number},newParentModel:BaseModel){
-            const vmModel = vm.getModel();
-            const newVmModel:BaseModel = vmModel.updateIn(['extra','position'],null,(pos:any)=>{
-                return WrapData({
-                    left:pos.get('left') + data.left + diffx,
-                    top:pos.get('top') + data.top + diffy,
-                    width:pos.get('width'),
-                    height:pos.get('height')
-                })
-            }).deref(null)
-            needRemoveVms.push(vm);
-            const pid = newParentModel.get('id',null);
-            let addItem = needAddItems[pid]
-            if(addItem == null){
-                addItem = {parentModel:newParentModel,target:[]}
-                needAddItems[pid] = addItem
-            }
-            addItem.target.push(newVmModel);
-        }
-
-        function vmOutArtboard(overlapArtboard:IViewModel,vm:IViewModel,data:{left:number,top:number}){
-            const artboardRect = overlapArtboard.getRect();
-            changePosByArtboard(artboardRect.left,artboardRect.top,vm,data,dslData)
-        }
-
-        function vmFromToArtboard(fromArtboard:IViewModel,toArtboard:IViewModel,vm:IViewModel,data:{left:number,top:number}){
-            const fromArtboardRect = fromArtboard.getRect();
-            const toArtboardRect = toArtboard.getRect();
-            changePosByArtboard(
-                fromArtboardRect.left - toArtboardRect.left,
-                fromArtboardRect.top - toArtboardRect.top,
-                vm,data,toArtboard.getModel())
-        }
-
-
-        function vmIntoArtboard(overlapArtboard:IViewModel,vm:IViewModel,data:{left:number,top:number}){
-            const artboardRect = overlapArtboard.getRect();
-            const overlapArtboardModel = overlapArtboard.getModel();
-            changePosByArtboard(- artboardRect.left,- artboardRect.top,vm,data,overlapArtboardModel)
-        }
-
         this.transition(()=>{
             vms.forEach((vm)=>{
-                const vmIsArtboard = modelIsArtboard(vm.modelType);
-                if(vmIsArtboard) return changeVmPos(vm,posData);
-                const parentVm = vm.getInitialParent();
-                const parentVmIsArtboard = modelIsArtboard(parentVm.modelType);
-                const parentVmIsRoot = modelIsRoot(parentVm.modelType);
-                const overlapArtboard = getOverlapArtboard(vm); //todo 待完善 因为重叠的画板可能有多个 通过什么策略选择最合适的画板
-                if(parentVmIsRoot){ //根下节点
-                    if(overlapArtboard){ //根下节点跟画板重合
-                        vmIntoArtboard(overlapArtboard,vm,posData);
-                        
-                    }else{
-                        changeVmPos(vm,posData);
-                    }
-                }else{ //非根下节点
-                    if(parentVmIsArtboard){ //非根下节点父节点是画板
-                        if(overlapArtboard){ //非根下节点跟一个画板重合
-                            if(overlapArtboard !== parentVm){ //非根节点从原来的画板移动到新的画板
-                                vmFromToArtboard(parentVm,overlapArtboard,vm,posData);
-                            }else{ //非根节点还在原来画板中
-                                changeVmPos(vm,posData);
-                            }
-                        }else{ //todo 这里应该从画板中移除掉
-                            vmOutArtboard(parentVm,vm,posData);
+                const {modelType} = vm;
+                const pvm = vm.getParent();
+                const prevPvm = vm.getPrevParent();
+                vm.resetPrevParent();  //清楚prevParent
+                if(modelIsGroup(pvm.modelType) || modelIsArtboard(modelType)){
+                    changeVmPos(vm,needChangePosVMMap);
+                }else{
+                    if(pvm !== prevPvm){
+                        needRemoveVms.push(vm);
+                        const parentModel = pvm.getModel();
+                        const pid = parentModel.get('id',null);
+                        let addItem = needAddItems[pid]
+                        if(addItem == null){
+                            addItem = {parentModel:parentModel,target:[]}
+                            needAddItems[pid] = addItem
                         }
-                    }else{ //非根节点父节点不是画板
-                        changeVmPos(vm,posData);
+                        const newVmModel = changeNormalVmPos(vm).deref(null);
+                        addItem.target.push(newVmModel);
+                    }else{
+                        // changeVmPos(vm,needChangePosVMMap);
+                        changeNormalVmPos(vm);
                     }
                 }
             })
@@ -758,8 +839,12 @@ export class Mutation extends EventHandler implements IMutation{
             Object.keys(needAddItems).forEach((pid:string)=>{
                 const {parentModel,target} = needAddItems[pid]
                 parentModel.updateIn(['children'],null,(childs:BaseModel)=>{
-                    //@ts-ignore
-                    return childs.push(...target);
+                    if(childs){
+                         //@ts-ignore
+                        return childs.push(...target);
+                    }else{
+                        return createList(target)
+                    }
                 })
             })
         })
@@ -770,7 +855,7 @@ export class Mutation extends EventHandler implements IMutation{
             return WrapData(vm.getRelativeRect(vm.getRect()))
         })
 
-        if(vm.children && !noChild){
+        if(vm.children.size && !noChild){
             vm.children.viewModelList.forEach((child)=>{
 
                 this._changeVmPosAndSize(child)
@@ -784,8 +869,10 @@ export class Mutation extends EventHandler implements IMutation{
             const needChangePosVMMap:{[key:string]:IViewModel} = {}
             vms.forEach((vm)=>{
                 // const pos = vm.getRelativeRect(vm.getRect());
+                
                 const parentVm = vm.getParent();
-                if(parentVm && modelIsGroup(parentVm.modelType)){
+                parentVm.mark(false);
+                if(modelIsGroup(parentVm.modelType)){
                 // if(parentVm && (!modelIsRoot(parentVm.modelType) && !modelIsArtboard(parentVm.modelType))){
                     const pid = parentVm.getModel().get('id',null);
                     needChangePosVMMap[pid] = parentVm;

@@ -1,4 +1,4 @@
-import {isOverLap} from './utils';
+import {isOverLap,contain} from './utils';
 
 type PosRect = {
     left:number,
@@ -193,6 +193,10 @@ export class OperationPos{
         // pos.bottom > this.top
         // )
         return isOverLap(left,top,right,bottom,pos.left,pos.top,pos.right,pos.bottom);
+    }
+    contain(pos:OperationPos){
+        const {left,top,right,bottom} = this;
+        return contain(left,top,right,bottom,pos.left,pos.top,pos.right,pos.bottom);
     }
     // isOverlap2(left:number,top:number,right:number,bottom:number){
     //     return (this.right  > left &&

@@ -1,5 +1,6 @@
 
-import {Utils} from 'free-canvas-shared'
+import {OperationPos, Utils} from 'free-canvas-shared'
+import { IViewModel } from '../render/type';
 
 export function controlDelta(val:number,speed:number = 5){
     return Math.floor(val / speed);
@@ -24,6 +25,16 @@ export function getPropertyValue(key:string){
         return ret;
     }
     return key
+}
+
+
+export function getOverlapArtboard(artboards:IViewModel[],rect:OperationPos){
+    for(let i = 0 ; i < artboards.length; i++){
+        const curArtboard = artboards[i];
+        if(curArtboard.getRect().isOverlap(rect)){ //移动到对应的artboard里面
+            return curArtboard;
+        }
+    }
 }
 
 // let debounceId:any;

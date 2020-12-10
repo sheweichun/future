@@ -31,7 +31,8 @@ import {
     PADDING_9_VAR,
     HIGHTLIGHT_TEXT_COLOR_VAR,
     LINE_1_VAR,
-    LINE_2_VAR
+    LINE_2_VAR,
+    MOVABLE_MASK_BACKGROUND_VAR
 } from './constant'
 
 // export const TEXT_COLOR = '#83868E'
@@ -95,7 +96,7 @@ export default {
     [BACKGROUND_5_VAR]:'#525252',
     [HIGHLIGHT_BACKGROUND_VAR]:'#DAEBF7',
     [CANVAS_MASK_BACKGROUND_VAR]:'#ff3db136',
-
+    [MOVABLE_MASK_BACKGROUND_VAR]:'#18a0fb10',
 
     [HEAD_HEIGHT]:'40px',
     [ASIDE_WIDTH]:'200px',

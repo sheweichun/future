@@ -150,7 +150,6 @@ export function extractSchemaList(models:Model[],idMap:ModelIdMap):ModelPropSche
         }
         if(schemas){
             schemas.forEach((schema)=>{ //todo存在混乱的情况
-                // console.log('schema :',schema,schema.type,schema.key,schema.type + schema.key);
                 let item = result[schema.type + schema.key];
                 if(item == null){
                     item = {schema,count:0}

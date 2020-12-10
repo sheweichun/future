@@ -41,7 +41,7 @@ function eachViewModel(vm:IViewModel,fn:(ret:any,vm:IViewModel)=>any,defaultVal?
     if(!modelIsRoot(vm.modelType)){
         fnRet = fn(fnRet,vm);
     }
-    if(vm.children){
+    if(vm.children.size){
         vm.children.viewModelList.forEach((vm)=>{
             fnRet = eachViewModel(vm,fn,fnRet);
         })
@@ -63,8 +63,9 @@ function findMiniestMoveDistance(...nums:number[]){
 }
 
 
-function getVmsByArtboard(artBoard:IViewModel,viewList:IViewModel[]){  //todo 多选情况下如何确保不重复计算
+function getVmsByArtboard(artBoard:IViewModel,views:IViewModel[]){  //todo 多选情况下如何确保不重复计算
     if(artBoard == null) return [];
+    const viewList = [].concat(views)
     for(let i = 0;i < viewList.length; i++){
         const vm = viewList[i]
         const curVmArtboard = vm.getArtboard();
@@ -73,8 +74,11 @@ function getVmsByArtboard(artBoard:IViewModel,viewList:IViewModel[]){  //todo �
         if(curVmArtboard === artBoard){
             viewList.splice(i,1);
             const parentVm = vm.getParent();
-            if(parentVm == null || parentVm.children == null) return [];
             const result:IViewModel[] = [artBoard];
+            if(artBoard !== parentVm){
+                result.push(parentVm)
+            }
+            if(parentVm == null || parentVm.children.size === 0) return result;
             const vms = parentVm.children.viewModelList
             for(let j = 0; j < vms.length; j++){
                 const retVm = vms[j];
@@ -85,7 +89,7 @@ function getVmsByArtboard(artBoard:IViewModel,viewList:IViewModel[]){  //todo �
             return result
         }
     }
-    return artBoard.children ? artBoard.children.viewModelList : []
+    return artBoard.children.viewModelList
 }
 // function isChildren(selectModels:IViewModel[],target:IViewModel){
 //     for(let i = 0; i < selectModels.length; i++){
@@ -107,7 +111,7 @@ function eachViewModelExcludeSelected(selectModels:IViewModel[],vm:IViewModel,fn
     if(!modelIsRoot(vm.modelType)){
         fnRet = fn(fnRet,vm);
     }
-    if(vm.children){
+    if(vm.children.size){
         vm.children.viewModelList.forEach((vm)=>{
             fnRet = eachViewModelExcludeSelected(selectModels,vm,fn,fnRet);
         })
@@ -208,15 +212,14 @@ export class Operation implements IDisposable,IOperation{
         let result:MakerAssist[] = []
         const {updateMakers,getRect} = this._options
         const {children} = this._rootViewModel;
-        if(children == null) return;
-        const selectedViewModels = [].concat(this._selectViewModels);
+        if(children.size === 0) return;
         children.viewModelList.forEach((vm)=>{
             if(modelIsArtboard(vm.modelType)){
                 // const vmList:IViewModel[] = []
                 // eachViewModelExcludeSelected(this._selectViewModels,vm,(ret,curVm)=>{ //todo如果选中节点非画板下顶级节点，那么只需要在父节点内进行计算就行了
                 //     vmList.push(curVm);
                 // })
-                const vmList = getVmsByArtboard(vm,selectedViewModels);  //如果画板中包含了当前选中节点，则返回当前节点的所有兄弟节点，否则返回画板的所有子节点
+                const vmList = getVmsByArtboard(vm,this._selectViewModels);  //如果画板中包含了当前选中节点，则返回当前节点的所有兄弟节点，否则返回画板的所有子节点
                 // const artboardId = vm.getModel().get('id',null)
                 if(vmList && vmList.length > 0){
                     result.push(new MakerAssist(vm,vmList,this._guideManager,{
@@ -488,14 +491,16 @@ export class Operation implements IDisposable,IOperation{
                 allRects.push(vm.getRect())
             // }
         }
-        let tagName:string;
+        let tagName:string = '';
         if(viewModels.length === 1){
             const curMd = viewModels[0].getModel();
             const mdName = curMd.get('name','');
-            if(showTagName){
-                tagName = showTagName(baseModel2Model(curMd))
-            }else{
-                tagName = mdName
+            if(!modelIsArtboard(curMd.get('type',''))){
+                if(showTagName){
+                    tagName = showTagName(baseModel2Model(curMd))
+                }else{
+                    tagName = mdName
+                }
             }
         }
         const pos = calculateIncludeRect(allRects)
@@ -524,7 +529,6 @@ export class Operation implements IDisposable,IOperation{
         this._selectViewModels.forEach((vm)=>{
             const parentVm = vm.getParent();
             if(modelIsGroup(parentVm.modelType)){
-            // if(!modelIsRoot(parentVm.modelType) && !modelIsArtboard(parentVm.modelType)){
                 const pid = parentVm.getModel().get('id',null)
                 vmMap[pid] = parentVm;
                 fn(vm,true);

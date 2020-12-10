@@ -39,13 +39,20 @@ export interface IViewModelCollection{
     viewModelList:IViewModel[]
     didMount:()=>void
     didUpdate:()=>void
+    size:number
     update:(data:any)=>void
+    appendViewModel(vm:IViewModel):void
 }
 
 export interface IViewModel{
     modelType:ModelType
     children:IViewModelCollection
+    getPrevParent():IViewModel
+    mark(flag:boolean):void
+    getChildOptions():ViewModelOptions
+    resetPrevParent():void
     getModel():BaseModel
+    getArtboardId():string
     getArtboard():IViewModel
     getParent():IViewModel
     getInitialParent():IViewModel
@@ -83,6 +90,7 @@ export interface IViewModel{
 
 export interface IMovable{
     view:IView<Model>
+    mark(flag:boolean):void
     updateIsChild(isChild:boolean):void
     focus(x:number,y:number,shiftKey:boolean):void
     // mark():void
@@ -128,6 +136,7 @@ export interface ViewModelOptions extends MovableOptions{
     updateViewModel:(prevId:string,curVm:IViewModel)=>void
     getRect:()=>OperationPos
     isOperating:()=>boolean
+    onModelStructureChange:()=>void 
 }
 
 export interface MovableOptions extends ViewOptions{

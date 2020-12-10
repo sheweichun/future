@@ -1,10 +1,3 @@
-.fc-editor-aside {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  overflow: hidden;
-}
-
 .fc-editor-button {
   display: inline-block;
   cursor: pointer;
@@ -131,6 +124,10 @@
   height: 45px;
 }
 
+.fc-editor-panel {
+  overflow: hidden;
+}
+
 @font-face {
   font-family: 'iconfont';
   /* project id 1991465 */
@@ -154,10 +151,6 @@
   content: '\E79C';
 }
 
-.fc-editor-panel {
-  overflow: hidden;
-}
-
 .fc-editor-tree {
   height: 100%;
   overflow-y: scroll;
@@ -176,7 +169,7 @@
 }
 .fc-editor-tree-item-content-arrow:before {
   position: absolute;
-  left: 8px;
+  left: -14px;
 }
 .fc-editor-tree-item-content-arrow.expand:before {
   transform: rotate(90deg);
@@ -202,6 +195,13 @@
 }
 .fc-editor-tree-item-selected > .fc-editor-tree-item-wrap:after {
   display: none;
+}
+
+.fc-editor-aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
 }
 
 .fc-editor-editItem {
@@ -241,7 +241,6 @@
   color: var(--TEXT-COLOR);
 }
 
-
 .fc-editor-attribute .next-before {
   border: 0;
   background: none;
@@ -262,6 +261,7 @@
   padding: 0 8px;
   align-items: center;
 }
+
 
 .fc-editor-color {
   display: flex;
@@ -312,10 +312,10 @@
   width: 28px;
 }
 
-.fc-editor-select {
+.fc-editor-text {
   width: 100%;
 }
 
-.fc-editor-text {
+.fc-editor-select {
   width: 100%;
 }

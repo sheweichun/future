@@ -104,14 +104,16 @@ export class Tree extends React.Component<TreeProps,TreeState> implements IPlugi
             return <ul className={TreeItemClz} key={item.id}> 
                 <li style={itemStyle} className={`${hoverMap[itemId] ? TreeItemActiveClz : ''} ${selected ? TreeItemSelectedClz : ''}`}>
                     <div className={isArtboard ? TreeItemArtboardClz : TreeItemWrapClz}>
-                        <div className={`${TreeItemContentClz}`} style={{paddingLeft : `${12 * depth}px`}}
+                        <div className={`${TreeItemContentClz}`} style={{paddingLeft : `${6 + 12 * depth}px`}}
                         onMouseEnter={this.onMouseEnter.bind(this,item)}
                         onMouseLeave={this.onMouseLeave.bind(this,item)}
                         onClick={this.onSelected.bind(this,item)}
                         >   
-                            {(hasChildren && !isArtboard)  && <Icon className={`${TreeItemContentArrowClz} ${needRenderChild ? 'expand' : ''}`} type="arrow" onClick={this.onClickArrow.bind(this,item)}></Icon>} 
-                            {isGroup && <Icon type={needRenderChild ? 'folder-open':'folder'} style={{paddingRight:'4px'}}></Icon>}
-                            {item.extra.label ? item.extra.label : `${showTagName ? showTagName(item) : item.name}-${item.id}`} 
+                            <div style={{position:'relative'}}>
+                                {(hasChildren && !isArtboard)  && <Icon className={`${TreeItemContentArrowClz} ${needRenderChild ? 'expand' : ''}`} type="arrow" onClick={this.onClickArrow.bind(this,item)}></Icon>} 
+                                {isGroup && <Icon type={needRenderChild ? 'folder-open':'folder'} style={{paddingRight:'4px'}}></Icon>}
+                                {item.extra.label ? item.extra.label : `${showTagName ? showTagName(item) : item.name}-${item.id}`} 
+                            </div>
                         </div>
                     </div>
                     {needRenderChild && this.renderItem(item.children,depth + 1)}

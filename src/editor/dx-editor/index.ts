@@ -14,7 +14,7 @@ export class DxEditorHook implements IEditorHook{
     onInit(core:IHookCore){
         this._core = core
         getTemplateById('10117').then((data:any)=>{
-            const model = template2Model(data.source);
+            const model = template2Model(data.source,data.name);
             core.update(model)
         })
     }

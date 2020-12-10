@@ -143,6 +143,7 @@ export enum ModelType{
     isRoot,
     isGroup,
     isArtBoard,
+    isFrame
 }
 
 export function modelIsGroup(type:ModelType){
@@ -192,6 +193,7 @@ export interface ModelProps{
     [key:string]:{
         value:any,
         expression?:string
+        enableExp?:boolean
     }
 }
 

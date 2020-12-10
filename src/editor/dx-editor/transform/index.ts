@@ -110,6 +110,7 @@ function transform2Model(el:Element,modelType:ModelType){
         }
         model.name = 'div'
         model.protoId = 'div'
+        model.type = ModelType.isFrame
     }else{
         model.name = DX_TEMPLATE
         model.props.dxSource = {
@@ -139,7 +140,7 @@ function transform2Model(el:Element,modelType:ModelType){
 }
 
 
-export function template2Model(data:string):Model{
+export function template2Model(data:string,title:string):Model{
     const parser = new DOMParser()
     const doc = parser.parseFromString(data,'text/xml');
     // console.dir(doc)
@@ -150,12 +151,9 @@ export function template2Model(data:string):Model{
         props:{style:{value:{}}},
         children:[]
     }
-    for(let i = 0; i < doc.children.length; i++){
-        const child = doc.children[i];
-        model.children.push(
-            transform2Model(child,ModelType.isArtBoard)
-        )
-    }
+    const arboard = transform2Model(doc.children[0],ModelType.isArtBoard)
+    arboard.extra.label = title;
+    model.children.push(arboard)
     return model;
 }
 
@@ -198,7 +196,12 @@ function postion2Attribute(pos:ModelPos){
     if(pos == null) return {}
     return Object.keys(pos).reduce((ret,name:ModelPosKeys)=>{
         const newName = POS_KEY_MAP[name] || name;
-        ret[newName] = pos[name] + 'ap'
+        const posVal = pos[name];
+        if(posVal === 0){
+            ret[newName] = pos[name] + ''
+        }else{
+            ret[newName] = pos[name] + 'ap'
+        }
         return ret;
     },{} as DXDSLAttribute)
 }
@@ -228,7 +231,12 @@ export function model2Template(md:Model):string{
     let attributes:DXDSLAttribute = {} 
     if(name === 'div'){
         tagName = 'FrameLayout'
-        attributes = Object.assign({},filterArboardStyle(props && props.style && props.style.value),postion2Attribute(extra && extra.position))
+        const pos = Object.assign({},extra && extra.position);
+        if(type === ModelType.isArtBoard){
+            pos.left = 0;
+            pos.top = 0;
+        }
+        attributes = Object.assign({},filterArboardStyle(props && props.style && props.style.value),postion2Attribute(pos))
     }else if(name === DX_TEMPLATE){
         if(props && props.dxSource && props.dxSource.value){
             const dxSourceValue = props.dxSource.value

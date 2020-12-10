@@ -1,9 +1,9 @@
 
 // import {ViewAttribute} from './type';
 import {baseModel2Model,ModelType,modelIsRoot, modelIsArtboard,IPos} from 'free-canvas-shared'
-import {BaseModel,WrapData,isEqual} from './index'
+import {BaseModel,WrapData,isEqual,createList} from './index'
 // import {Model} from './model';
-
+import {getOverlapArtboard} from '../utils/index'
 import {Movable,ArtBoardMovable} from './movable';
 import {IViewModel,IViewModelCollection,ViewModelOptions, IMovable} from './type'
 import { OperationPos } from '../core/operation/pos';
@@ -14,20 +14,26 @@ import { OperationPos } from '../core/operation/pos';
 //     return percent < MINI_NUMBER ? MINI_NUMBER : percent
 // }
 
-function fixData(val:number){
-    return Math.floor(val);
-}
+// function fixData(val:number){
+//     return Math.floor(val);
+// }
 export class ViewModelCollection implements IViewModelCollection{
     viewModelList:IViewModel[]
-    constructor(private _parent:ViewModel,private _models:BaseModel,private _options:ViewModelOptions){
+    static createEmptyViewModelCollection(parent:IViewModel,options:ViewModelOptions){
+        return new ViewModelCollection(parent,null,options)
+    }
+    constructor(private _parent:IViewModel,private _models:BaseModel,private _options:ViewModelOptions){
         
         const viewModels:any[] = []
         //@ts-ignore
-        _models.forEach((model)=>{
+        _models && _models.forEach((model)=>{
             const viewModel = new ViewModel(model,_parent,_options)
             viewModels.push(viewModel);
         })
         this.viewModelList = viewModels;
+    }
+    get size(){
+        return this.viewModelList.length;
     }
     didUpdate(){
         this.viewModelList.forEach((vm)=>{
@@ -50,7 +56,7 @@ export class ViewModelCollection implements IViewModelCollection{
         for(;index < this.viewModelList.length; index++){
             const item = this.viewModelList[index];
             //@ts-ignore
-            const newModel = newModels.get(modelIndex);
+            const newModel = newModels && newModels.get(modelIndex);
             if(newModel){
                 const prevModel = item.getModel();
                 // if(newModel.get('id',null) === '113'){
@@ -75,12 +81,14 @@ export class ViewModelCollection implements IViewModelCollection{
             modelIndex++;
         }
         this.viewModelList = newModelList;
-        for(; modelIndex < newModels.size; modelIndex++){
-            //@ts-ignore
-            const newModel = newModels.get(modelIndex);
-            const newViewModel = new ViewModel(newModel,this._parent,this._options);
-            this.viewModelList.push(newViewModel);
-            newViewModel.didMount();
+        if(newModels){
+            for(; modelIndex < newModels.size; modelIndex++){
+                //@ts-ignore
+                const newModel = newModels.get(modelIndex);
+                const newViewModel = new ViewModel(newModel,this._parent,this._options);
+                this.viewModelList.push(newViewModel);
+                newViewModel.didMount();
+            }
         }
         this._models = newModels;
     }
@@ -95,11 +103,13 @@ export class ViewModel implements IViewModel{
     _rect:OperationPos
     modelType:ModelType
     _initialParent:IViewModel
+    private _prevParent:IViewModel
     // isRoot:boolean
     // isGroup:boolean
     constructor(public model:BaseModel,private _parent:IViewModel,private _options:ViewModelOptions){
         // this.isRoot = model.get('isRoot',false)
         // this.isGroup = model.get('isGroup',false);
+        this._prevParent = _parent
         this.modelType = model.get('type',null);
         this._initialParent = _parent;
         const MovableClass = modelIsArtboard(this.modelType) ? ArtBoardMovable : Movable
@@ -112,28 +122,57 @@ export class ViewModel implements IViewModel{
             isChild:_parent != null && !modelIsRoot(_parent.modelType) && !modelIsArtboard(_parent.modelType),
             excute:this.excute.bind(this)
         }))
+        // let childOption = this._options;
+        // if(modelIsArtboard(this.modelType)){
+        //     childOption = Object.assign({},this._options,{
+        //         artboardId:model.get('id',null)
+        //     })
+        // }
+        //@ts-ignore
+        this.children = createViewModels(this,this.getModel().get('children'),this.getChildOptions());
+
+        _parent && _parent.appendChild(this)
+        this.view.mount();
+        this._options.addViewModel(this);
+    }
+    getChildOptions(){
+        const {model} = this;
         let childOption = this._options;
         if(modelIsArtboard(this.modelType)){
             childOption = Object.assign({},this._options,{
                 artboardId:model.get('id',null)
             })
         }
-        //@ts-ignore
-        this.children = createViewModels(this,this.getModel().get('children'),childOption);
-
-        _parent && _parent.appendChild(this)
-        this.view.mount();
-        this._options.addViewModel(this);
+        return childOption
     }
-    changeParent(parent:IViewModel){
-        if(parent == null || parent.children == null) return;
+    getPrevParent(){
+        return this._prevParent
+    }
+    resetPrevParent(){
+        this._prevParent = this._parent
+        this._parent.mark(false)
+    }
+    changeParent(parent:IViewModel,artboardId:string){
+        const {onModelStructureChange} = this._options
+        this.changeArtboardId(artboardId);
+        if(parent == null) return;
+        if( parent.children == null ){
+            parent.children = ViewModelCollection.createEmptyViewModelCollection(parent,parent.getChildOptions())
+        }
+        this._prevParent = this._parent
         this._parent = parent;
-        parent.children.viewModelList.push(this);
+        this._prevParent.mark(false);
+        parent.mark(true)
+        parent.children.appendViewModel(this);
         this.view.updatePosAndSize(this.getRelativeRect(this._rect)) //当更改父容器的时候需要还原到新父容器下的相对坐标
         parent.appendChild(this);
         this.view.updateIsChild(
             parent != null && !modelIsRoot(parent.modelType) && !modelIsArtboard(parent.modelType)
         )
+        onModelStructureChange && onModelStructureChange()
+    }
+    mark(flag:boolean){
+        this.view.mark(flag)
     }
     didMount(){
         this.children && this.children.didMount();
@@ -197,6 +236,9 @@ export class ViewModel implements IViewModel{
                 vm.separate()
             }
         }
+        // if(viewModelList.length === 0){
+        //     this.children = null;
+        // }
     }
     recalculateRect(){ //更新当前viewModel 是相对画布的坐标 todo 当isGroup的时候需要动态更新
         const {getRect} = this._options
@@ -218,7 +260,8 @@ export class ViewModel implements IViewModel{
         // const hPercent = fixPercent((diffx + curRect._width) / curRect._width),vPercent = fixPercent((diffy + curRect._height) / curRect._height);
         // console.log('hPercent :',hPercent,diffx);
         // const curWidth = curRect.width,curHeight = curRect.height;
-        const {modelType,children} = this;
+        const {modelType,children,_parent} = this;
+        _parent.mark(true);
         //@ts-ignore
         this._rect[target](diffx,diffy,onlyPos);
         if(modelType !== ModelType.isArtBoard && children){
@@ -240,7 +283,7 @@ export class ViewModel implements IViewModel{
         vmRect[target](parentPos,rootPos,onlyPos)
         //需要重新计算 
         // const childHPercent = fixPercent(newRect.width / vmRect.width),childVPercent = fixPercent(newRect.height / vmRect.height);
-        vm.children && vm.children.viewModelList.forEach((child)=>{
+        vm.children.size && vm.children.viewModelList.forEach((child)=>{
             ViewModel.changeRectByPercent(target,child,rootPos,onlyPos);
         })
         // vm.setRect(newRect);
@@ -258,33 +301,72 @@ export class ViewModel implements IViewModel{
         if(artboardId == null) return null;
         return getViewModel(artboardId)
     }
+    static getContainFrame(vm:IViewModel,rect:OperationPos,filterVm:IViewModel):IViewModel{
+        if(vm === filterVm) return;
+        if(vm.children.size){
+            const childVms = vm.children.viewModelList;
+            for(let i = childVms.length - 1; i >= 0; i--){
+                const childVm = childVms[i];
+                const overLapVm = ViewModel.getContainFrame(childVm,rect,filterVm);
+                if(overLapVm) return overLapVm
+            }
+        }
+        if(vm.modelType === ModelType.isFrame){
+            const isOverLap = vm.getRect().isOverlap(rect);
+            if(isOverLap){
+                return vm;
+            }
+        }
+    }
+    getArtboardId(){
+        return this._options.artboardId
+    }
     changePosition(diffx:number,diffy:number,onlyPos:boolean=false):boolean{ //todo 由于在实际拖动以及最终释放之后是分别计算转换逻辑的，需要确保最终行为一致性
-        // console.log('parent :',this._parent.modelType,this._initialParent.modelType,this._parent === this._initialParent);
         const {artboardId,getViewModel,getArtboards,getRootViewModel} = this._options
         this._rect.changeLeftAndTop(diffx,diffy,onlyPos);
         if(modelIsArtboard(this.modelType) || onlyPos) return; //如果是画板就不需要走下面的逻辑
+        const parentVm = this._parent;
         if(artboardId != null){
             const artboard = getViewModel(artboardId);
             if(artboard == null) return
             const isOverlap = artboard.getRect().isOverlap(this._rect)
             if(!isOverlap){ //移动到顶层
-                this._parent.removeChildViewModel(this);
-                this.changeParent(getRootViewModel());
-                this.changeArtboardId(null);
+                parentVm.removeChildViewModel(this);
+                this.changeParent(getRootViewModel(),null);
                 return true;
                 //todo 添加到顶层
             }
-            return false;
+            const ovm = ViewModel.getContainFrame(getRootViewModel(),this._rect,this)
+            if(ovm){
+                if(ovm !== parentVm){
+                    // console.log('go here');
+                    parentVm.removeChildViewModel(this);
+                    this.changeParent(ovm,artboardId);
+                    return true;
+                }else{
+                    parentVm.mark(true);
+                }
+            }else{
+                if(parentVm && parentVm.modelType === ModelType.isFrame){
+                    const pparentVm = parentVm.getParent();
+                    // console.log('pparentVm :',pparentVm);
+                    if(pparentVm){
+                        parentVm.removeChildViewModel(this);
+                        this.changeParent(pparentVm,artboardId)
+                        return true;
+                    }
+                }else{  //在当前画布内移动
+                    parentVm.mark(true);
+                }
+            }
+            // return false; 当前viewModel移出了当前所属的artboard
         }
         const allArtboards = getArtboards({[artboardId]:true});
-        for(let i = 0 ; i < allArtboards.length; i++){
-            const curArtboard = allArtboards[i];
-            if(curArtboard.getRect().isOverlap(this._rect)){ //移动到对应的artboard里面
-                this._parent.removeChildViewModel(this);
-                this.changeParent(curArtboard);
-                this.changeArtboardId(curArtboard.getModel().get('id',null));
-                return true;
-            }
+        const overlapArtboard = getOverlapArtboard(allArtboards,this._rect);
+        if(overlapArtboard){ //移入新的画布
+            this._parent.removeChildViewModel(this);
+            this.changeParent(overlapArtboard,overlapArtboard.getModel().get('id',null));
+            return true
         }
         return false;
     }
@@ -388,8 +470,8 @@ export class ViewModel implements IViewModel{
     }
 }
 
-function createViewModels(parent:ViewModel,models:BaseModel,_options:ViewModelOptions):ViewModelCollection{
-    if(models == null) return;
+function createViewModels(parent:IViewModel,models:BaseModel,_options:ViewModelOptions):ViewModelCollection{
+    // if(models == null) return;
     // let parentViewModel = parent || new ViewModel(new FragmentView(mountNode),null);
     const collection = new ViewModelCollection(parent,models,_options);
     // if(mountNode && parentViewModel.view instanceof FragmentView){

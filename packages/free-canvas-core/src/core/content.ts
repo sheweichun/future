@@ -113,6 +113,7 @@ export class Content{
         this.getRootViewModel = this.getRootViewModel.bind(this);
         this.triggerUnselect = this.triggerUnselect.bind(this);
         this.getScale = this.getScale.bind(this);
+        this.onModelStructureChange = this.onModelStructureChange.bind(this)
         this._store.subscribe((nextState:any)=>{
             this._viewModel.update(nextState.get('data'));
             this._operation.update();
@@ -152,7 +153,8 @@ export class Content{
             getRootViewModel:this.getRootViewModel,
             getArtboards:this._operation.getArtboards,
             getRect:this.getRect,
-            isOperating:this.isOperating
+            isOperating:this.isOperating,
+            onModelStructureChange:this.onModelStructureChange,
         });
         this._rectSelect = new RectSelect(document.body,{
             updateRectSelect:this.updateRectSelect.bind(this)
@@ -163,6 +165,10 @@ export class Content{
         this.registerShortCuts();
         this.registerCommands();
         // this.test();
+    }
+    onModelStructureChange(){
+        const { _operation } = this
+        _operation.createMakerAssistList()
     }
     getStore(){
         return this._store

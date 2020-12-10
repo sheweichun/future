@@ -13,7 +13,7 @@ export class HeadView implements IHeadView{
     onClick=()=>{
         const {_core} = this
         const data = _core.getStore().currentState.toJS().data
-        console.log('_core.getStore().currentState :',model2Template(data))
+        // console.log('_core.getStore().currentState :',model2Template(data))
     }
     renderMiddleView(){
         return <div onClick={this.onClick}>
