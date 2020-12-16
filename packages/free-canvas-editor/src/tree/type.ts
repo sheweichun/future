@@ -11,8 +11,13 @@ export interface FlagMap{
     [key:string]:boolean
 }
 
+export interface StringMap{
+    [key:string]:string
+}
+
 export interface TreeState{
     data:Model[],
+    editableMap:StringMap,
     hoverMap:FlagMap,
     expandMap:FlagMap
 }

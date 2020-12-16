@@ -1,49 +1,49 @@
 import {MarketDataItem,MarketData,ModelPropComponentType,Model,IMutation, ModelType} from '@pkg/free-canvas-shared' 
 
-
-function createBgAttrSchema(key:string,title:string){
-    return {
-        type:ModelPropComponentType.backgroundColor,
-        key,
-        title,
-        get(model:Model){
-            const bg = model.props.dxSource.value.attrs[key]
-                if(bg){
-                    if(typeof bg === 'string'){
-                        return {
-                            value:bg,
-                            disabled:false
-                        }
-                    }
-                    return bg
-                }
-            return {
-                value:null,
-                disabled:false
-            }
-        },
-        update(mutation:IMutation,data:string){
-            mutation.updateModelPropsByKeyPath(['dxSource','value','attrs'],{[key]:data});
-        }
-    }
-}
-
 type AttrScheme = {
     type:ModelPropComponentType,
     key:string,
     title?:string,
+    props?:{
+        [key:string]:any
+    }
     get?:(data:Model)=>any
     update?:(mutation:IMutation,data:string)=>void
 }
 
-function createDxAttrSchema(data:AttrScheme){
-    const {type,key,title,get,update} = data
+
+function createStyleAttrSchema(data:AttrScheme){
+    const {type,key,title,get,update,...others} = data
     return {
         type,
         key,
         title,
+        ...others,
+        get:get ? get: function(model:Model){
+            const val = model.props.style.value[key]
+            return val ? val : {
+                value:'',
+                disabled:false
+            }
+        },
+        update:update ? update : function(mutation:IMutation,data:string){
+            // mutation.updateModelPropsByKeyPath(['dxSource','value','attrs'],{[key]:data});
+            mutation.updateModelStyle({
+                [key]:data
+            })
+        }
+    }
+}
+
+function createDxAttrSchema(data:AttrScheme){
+    const {type,key,title,get,update,...others} = data
+    return {
+        type,
+        key,
+        title,
+        ...others,
         get:get ? get : function(model:Model){
-            return model.props.dxSource.value.attrs[key]
+            return model.props.dxSource.value.attrs[key] || {value:''}
         },
         update: update ? update : function(mutation:IMutation,data:any){
             mutation.updateModelPropsByKeyPath(['dxSource','value','attrs'],{[key]:data});
@@ -51,50 +51,24 @@ function createDxAttrSchema(data:AttrScheme){
     }
 }
 
-function createNormalStyleAttrSchema(data:AttrScheme){
-    const {type,key,title,get,update} = data
-    return {
-        type,
-        key,
-        title,
-        get:get ? get : function(model:Model){
-            return model.props.style.value[key]
-        },
-        update: update ? update : function(mutation:IMutation,data:any){
-            mutation.updateModelStyle({
-                [key]:data
-            });
-        }
-    }
-}
+// function createDxStyleAttrSchema(data:AttrScheme){
+//     const {type,key,title,get,update} = data
+//     return {
+//         type,
+//         key,
+//         title,
+//         get:get ? get : function(model:Model){
+//             return model.props.style.value[key]
+//         },
+//         update: update ? update : function(mutation:IMutation,data:any){
+//             mutation.updateModelStyle({
+//                 [key]:data
+//             });
+//         }
+//     }
+// }
 
-const bgAttr = {
-    type:ModelPropComponentType.backgroundColor,
-    key:'divBackgroundColor',
-    get(model:Model){
-        if(model.props.style && model.props.style.value){
-            const bg = model.props.style.value.backgroundColor
-            if(bg){
-                if(typeof bg === 'string'){
-                    return {
-                        value:bg,
-                        disabled:false
-                    }
-                }
-                return bg
-            }
-        }
-        return {
-            value:null,
-            disabled:false
-        }
-    },
-    update(mutation:IMutation,data:string){
-        mutation.updateModelStyle({
-            backgroundColor:data
-        });
-    }
-}
+
 
 
 
@@ -113,11 +87,16 @@ export const marketData:MarketData[] = [
                             attrs:[
                                 {
                                     type:ModelPropComponentType.xywh,
-                                },bgAttr,
-                                createNormalStyleAttrSchema({
+                                },
+                                createStyleAttrSchema({
+                                    type:ModelPropComponentType.backgroundColor,
+                                    title:'背景色',
+                                    key:'backgroundColor'
+                                }),
+                                createStyleAttrSchema({
                                     type:ModelPropComponentType.text,
                                     title:'圆角',
-                                    key:'cornerRadius',
+                                    key:'radius',
                                 })
 
                             ]
@@ -128,7 +107,9 @@ export const marketData:MarketData[] = [
                             props:{
                                 style:{
                                     value:{
-                                        backgroundColor:'#ffffff'
+                                        backgroundColor:{
+                                            value:'#ffffff'
+                                        }
                                     }
                                 }
                             },
@@ -172,11 +153,21 @@ export const marketData:MarketData[] = [
                                 {
                                     type:ModelPropComponentType.xywh,
                                 },
-                                createBgAttrSchema('textColor','字体颜色'),
+                                // createStyleAttrSchema('textColor','字体颜色'),
+                                createDxAttrSchema({
+                                    type:ModelPropComponentType.backgroundColor,
+                                    title:'字体颜色',
+                                    key:'textColor'
+                                }),
                                 createDxAttrSchema({
                                     type:ModelPropComponentType.text,
                                     title:'文本内容',
                                     key:'text',
+                                }),
+                                createDxAttrSchema({
+                                    type:ModelPropComponentType.switch,
+                                    title:'是否粗体',
+                                    key:'isBold',
                                 })
                             ]
                         },
@@ -188,8 +179,12 @@ export const marketData:MarketData[] = [
                                     value:{
                                         name:'TextView',
                                         attrs:{
-                                            text:'请输入文本',
-                                            textSize:"14ap"
+                                            text:{
+                                                value:'请输入文本',
+                                            },
+                                            textSize:{
+                                                value:"14ap"
+                                            }
                                         }
                                     }
                                 }
@@ -221,6 +216,9 @@ export const marketData:MarketData[] = [
                                 }),
                                 createDxAttrSchema({
                                     type:ModelPropComponentType.select,
+                                    props:{
+                                        dataSource:[ 'fitCenter' , 'fixXY' , 'centerScrop' ]
+                                    },
                                     title:'图片缩放',
                                     key:'scaleType',
                                 }),
@@ -239,7 +237,9 @@ export const marketData:MarketData[] = [
                                     value:{
                                         name:'ImageView',
                                         attrs:{
-                                            imageUrl:'https://img.alicdn.com/tfs/TB192rWjsKfxu4jSZPfXXb3dXXa-1600-912.png'
+                                            imageUrl:{
+                                                value:'https://img.alicdn.com/tfs/TB192rWjsKfxu4jSZPfXXb3dXXa-1600-912.png'
+                                            }
                                         }
                                     }
                                 }
@@ -295,8 +295,8 @@ export const marketItemList = flattern(marketData,[])
 //             {
 //                 type:ModelPropComponentType.xywh,
 //             },
-//             createBgAttrSchema('timerTextColor','倒计时字体颜色'),
-//             createBgAttrSchema('timerBackgroundColor','倒计时数字的背景色')
+//             createStyleAttrSchema('timerTextColor','倒计时字体颜色'),
+//             createStyleAttrSchema('timerBackgroundColor','倒计时数字的背景色')
 //         ]
 //     },
 //     codeTemplate:{

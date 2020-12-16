@@ -1,3 +1,10 @@
+.fc-editor-aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
 .fc-editor-button {
   display: inline-block;
   cursor: pointer;
@@ -42,6 +49,7 @@
   flex: 1;
   flex-direction: column;
   position: relative;
+  border: 1px solid var(--BOARDER_COLOR);
 }
 .fc-editor-canvas iframe {
   width: 100%;
@@ -62,6 +70,10 @@
 }
 .fc-editor-header-middler {
   flex: 1;
+}
+
+.fc-editor-panel {
+  overflow: hidden;
 }
 
 .fc-editor-market {
@@ -124,15 +136,11 @@
   height: 45px;
 }
 
-.fc-editor-panel {
-  overflow: hidden;
-}
-
 @font-face {
   font-family: 'iconfont';
   /* project id 1991465 */
-  src: url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.eot');
-  src: url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.eot?#iefix') format('embedded-opentype'), url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.woff2') format('woff2'), url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.woff') format('woff'), url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.ttf') format('truetype'), url('//at.alicdn.com/t/font_1991465_2dc805lyyqr.svg#iconfont') format('svg');
+  src: url('//at.alicdn.com/t/font_1991465_73ptcvb59mf.eot');
+  src: url('//at.alicdn.com/t/font_1991465_73ptcvb59mf.eot?#iefix') format('embedded-opentype'), url('//at.alicdn.com/t/font_1991465_73ptcvb59mf.woff2') format('woff2'), url('//at.alicdn.com/t/font_1991465_73ptcvb59mf.woff') format('woff'), url('//at.alicdn.com/t/font_1991465_73ptcvb59mf.ttf') format('truetype'), url('//at.alicdn.com/t/font_1991465_73ptcvb59mf.svg#iconfont') format('svg');
 }
 .fc-editor-icon {
   font-family: 'iconfont';
@@ -150,6 +158,42 @@
 .fc-editor-icon-folder-open:before {
   content: '\E79C';
 }
+.fc-editor-icon-gengduo:before {
+  content: '\E690';
+}
+.fc-editor-icon-tiaoshiqi:before {
+  content: '\E691';
+}
+.fc-editor-icon-zhenjitiaoshi:before {
+  content: '\E693';
+}
+.fc-editor-icon-fabu:before {
+  content: '\E600';
+}
+.fc-editor-icon-yulan:before {
+  content: '\E695';
+}
+.fc-editor-icon-baocun:before {
+  content: '\E82A';
+}
+.fc-editor-icon-yufabu:before {
+  content: '\E694';
+}
+.fc-editor-icon-huitui:before {
+  content: '\E69C';
+}
+.fc-editor-icon-tice:before {
+  content: '\E629';
+}
+.fc-editor-icon-tongguo:before {
+  content: '\E65F';
+}
+.fc-editor-icon-shuju:before {
+  content: '\E611';
+}
+.fc-editor-icon-js:before {
+  content: '\E60E';
+}
 
 .fc-editor-tree {
   height: 100%;
@@ -166,6 +210,9 @@
   cursor: pointer;
   height: var(--PADDING_9);
   line-height: var(--PADDING_9);
+}
+.fc-editor-tree-item-content .next-input.next-medium input {
+  height: 100%;
 }
 .fc-editor-tree-item-content-arrow:before {
   position: absolute;
@@ -197,23 +244,17 @@
   display: none;
 }
 
-.fc-editor-aside {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  overflow: hidden;
-}
 
 .fc-editor-editItem {
   border-bottom: 1px solid var(--BOARDER_COLOR);
   padding: 8px 0;
 }
 .fc-editor-editItem-head {
-  display: grid;
-  grid-template-rows: 32px;
-  grid-template-columns: repeat(28, 8px);
+  display: flex;
   padding: 0 8px;
+  height: 28px;
   align-items: center;
+  justify-content: space-between;
 }
 .fc-editor-editItem-title {
   font-weight: bold;
@@ -222,7 +263,6 @@
 .fc-editor-editItem-content {
   padding: 0px 8px;
 }
-
 
 .fc-editor-tab ul {
   display: flex;
@@ -312,10 +352,14 @@
   width: 28px;
 }
 
-.fc-editor-text {
+.fc-editor-select {
   width: 100%;
 }
 
-.fc-editor-select {
+.fc-editor-switch {
+  width: 100%;
+}
+
+.fc-editor-text {
   width: 100%;
 }

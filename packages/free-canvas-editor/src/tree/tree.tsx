@@ -1,5 +1,6 @@
 import React from 'react'
 import {ThemeVar} from 'free-canvas-theme'
+import {Input} from '@alife/next'
 import {IPlugin,ICommander, IMutation,modelIsArtboard,Model,IPluginOptions, modelIsGroup} from 'free-canvas-shared' 
 import {TreeProps,TreeState,FlagMap} from './type'
 import {Icon} from '../icon'
@@ -22,6 +23,7 @@ export class Tree extends React.Component<TreeProps,TreeState> implements IPlugi
     constructor(props:TreeProps){
         super(props);
         this.state = {
+            editableMap:{},
             data:[],
             hoverMap:{},
             expandMap:{}
@@ -79,10 +81,39 @@ export class Tree extends React.Component<TreeProps,TreeState> implements IPlugi
             noTrigger:true
         })
     }
+    onItemDisplayNameChange(data:Model,val:string){
+        const {editableMap} = this.state;
+        editableMap[data.id] = val
+        this.setState({
+            editableMap
+        })
+    }
+    onItemEditable(data:Model,e:MouseEvent){
+        const {showTagName} = this.props;
+        const {editableMap} = this.state;
+        editableMap[data.id] = data.displayName || (showTagName ? showTagName(data) : data.name);
+        this.setState({
+            editableMap
+        })
+        e.stopPropagation();
+    }
+    onItemDisableEdit(data:Model){
+        // console.log('!!!onItemDisableEdit');
+        const {_mutation} = this;
+        const {showTagName} = this.props;
+        const {editableMap} = this.state;
+        let val = editableMap[data.id] || '';
+        val = val.replace(/\s*/g,'');
+        editableMap[data.id] = null;
+        this.setState({
+            editableMap
+        })
+        _mutation.changeDisplayName(data.id,val ? val : showTagName ? showTagName(data) : data.name)
+    }
     onClickArrow(data:Model,e:MouseEvent){
         const {expandMap} = this.state
         expandMap[data.id] = !expandMap[data.id]
-        console.log('onClickArrow!!');
+        // console.log('onClickArrow!!');
         this.setState({
             expandMap
         })
@@ -91,7 +122,7 @@ export class Tree extends React.Component<TreeProps,TreeState> implements IPlugi
     renderItem(models:Model[],depth=1){
         if(models == null) return
         const {showTagName} = this.props;
-        const {hoverMap,expandMap} = this.state;
+        const {hoverMap,expandMap,editableMap} = this.state;
         return models.map((item)=>{
             const itemId = item.id;
             const isArtboard = modelIsArtboard(item.type)
@@ -99,21 +130,26 @@ export class Tree extends React.Component<TreeProps,TreeState> implements IPlugi
             const selected = item.extra.isSelect
             const hasChildren = item.children && item.children.length > 0;
             const expand = expandMap[item.id];
+            const editableDisplayName = editableMap[item.id];
             const needRenderChild = (expand || isArtboard)
             const itemStyle = needRenderChild ? {} : {height}
             return <ul className={TreeItemClz} key={item.id}> 
-                <li style={itemStyle} className={`${hoverMap[itemId] ? TreeItemActiveClz : ''} ${selected ? TreeItemSelectedClz : ''}`}>
+                <li style={itemStyle} className={`${hoverMap[itemId] ? TreeItemActiveClz : ''} ${selected ? TreeItemSelectedClz : ''}`} onDoubleClick={this.onItemEditable.bind(this,item)}>
                     <div className={isArtboard ? TreeItemArtboardClz : TreeItemWrapClz}>
                         <div className={`${TreeItemContentClz}`} style={{paddingLeft : `${6 + 12 * depth}px`}}
                         onMouseEnter={this.onMouseEnter.bind(this,item)}
                         onMouseLeave={this.onMouseLeave.bind(this,item)}
                         onClick={this.onSelected.bind(this,item)}
                         >   
-                            <div style={{position:'relative'}}>
+                            {editableDisplayName != null ? <Input autoFocus 
+                            onBlur={this.onItemDisableEdit.bind(this,item)} 
+                            onChange={this.onItemDisplayNameChange.bind(this,item)}
+                            value={editableDisplayName} style={{width:'100%'}}></Input> : <div style={{position:'relative'}}>
                                 {(hasChildren && !isArtboard)  && <Icon className={`${TreeItemContentArrowClz} ${needRenderChild ? 'expand' : ''}`} type="arrow" onClick={this.onClickArrow.bind(this,item)}></Icon>} 
                                 {isGroup && <Icon type={needRenderChild ? 'folder-open':'folder'} style={{paddingRight:'4px'}}></Icon>}
-                                {item.extra.label ? item.extra.label : `${showTagName ? showTagName(item) : item.name}-${item.id}`} 
-                            </div>
+                                {item.displayName ? item.displayName : `${showTagName ? showTagName(item) : item.name}`}
+                                {/* {item.extra.label ? item.extra.label : `${showTagName ? showTagName(item) : item.name}-${item.id}`}  */}
+                            </div>}
                         </div>
                     </div>
                     {needRenderChild && this.renderItem(item.children,depth + 1)}

@@ -4,7 +4,7 @@ import {Header,HeadProps} from '../header/index'
 import {Panel,PanelProps} from '../panel/index'
 import {Aside} from '../aside/index'
 import {Tree,TreeProps} from '../tree/index'
-import {IHeadView, IPlugin,ShowTagName,ComponentMarketStore} from 'free-canvas-shared'
+import {IHeadView, IPlugin,ShowTagName,ComponentMarketStore,RenderVarInput} from 'free-canvas-shared'
 
 
 
@@ -31,6 +31,7 @@ export interface EditorProps extends HocProps{
     head?:IHeadView
     showTagName?:ShowTagName
     getComponentData:()=>Promise<ComponentMarketStore>
+    renderVarInput?:RenderVarInput
 }
 
 export interface EditorState{  

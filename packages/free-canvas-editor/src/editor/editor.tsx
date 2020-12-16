@@ -87,7 +87,7 @@ type HocCom = ReturnType<typeof Hoc>
 
 
 export function createEditor(props:EditorProps){
-    const {runTask,components,head,showTagName,getComponentData} = props;
+    const {runTask,components,head,showTagName,getComponentData,renderVarInput} = props;
     const HeaderComponent = components.header || Header
     const PanelComponent = Hoc<PanelProps,Panel>(components.panel || Panel);
     const MarketComponent = Hoc<MarketProps,Market>(components.market || Market);
@@ -112,6 +112,7 @@ export function createEditor(props:EditorProps){
         useLayoutEffect(()=>{
             const marketCom = marketRef.current;
             marketCom.ins.initCanvas(canvasContainerRef.current);
+            head.initCanvasEl(canvasContainerRef.current)
         },[]);
         useEffect(()=>{
             getComponentData().then((result)=>{
@@ -128,7 +129,7 @@ export function createEditor(props:EditorProps){
                 <div className={`${CLASS_PREFIX}canvas`} ref={canvasContainerRef} onDragEnter={onDragEnter} onDragLeave={onDragLeave}>
                     <iframe ref={iframeRef} src="./canvas.html"></iframe>
                 </div>
-                <PanelComponent componentData={comStore.list} runTask={runTask}>
+                <PanelComponent renderVarInput={renderVarInput} componentData={comStore.list} runTask={runTask}>
                     panel
                 </PanelComponent>
             </div>

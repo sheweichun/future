@@ -5,6 +5,9 @@ import {Model,View,ViewOptions,ModelPropSchemaMap} from 'free-canvas-shared'
 import {DxView} from './view'
 
 
+
+
+
 export function createView(data:Model,options:ViewOptions){
     const {name} = data;
     //@ts-ignore

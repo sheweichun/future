@@ -2,7 +2,7 @@
 import {Store,WrapData, BaseModel,isEqual,createList,createMap} from '../render/index'
 import {Commander} from './commander'
 import { IViewModel } from "../render/type";
-import {COMMANDERS,Utils, modelIsGroup, modelIsRoot, modelIsArtboard,IMutation, IPos} from 'free-canvas-shared';
+import {COMMANDERS,Utils, modelIsGroup, modelIsRoot, modelIsArtboard,IMutation,IPos} from 'free-canvas-shared';
 import {createGroupModel} from '../render/index'
 import {getOverlapArtboard} from '../utils/index'
 import {CanvasEvent,EventHandler} from '../events/event'
@@ -91,17 +91,37 @@ function sortViewModel(data:IViewModel[]){ //保证编组的顺序合理
     })
 }
 
-function sortBaseModel(data:BaseModel[]){ //保证编组的顺序合理
-    return data.sort((a:BaseModel,b:BaseModel)=>{
-        const aKeyPath = a._keyPath;
-        const bKeyPath = b._keyPath;
-        const alen = aKeyPath.length;
-        const blen = bKeyPath.length;
-        const compareLen = Math.min(alen,blen);
-        const compareResult = parseInt(aKeyPath[compareLen - 1]) - parseInt(bKeyPath[compareLen - 1]);
-        return compareResult === 0 ? alen - blen : compareResult
-    })
+// function sortBaseModel(data:BaseModel[]){ //保证编组的顺序合理
+//     return data.sort((a:BaseModel,b:BaseModel)=>{
+//         const aKeyPath = a._keyPath;
+//         const bKeyPath = b._keyPath;
+//         const alen = aKeyPath.length;
+//         const blen = bKeyPath.length;
+//         const compareLen = Math.min(alen,blen);
+//         const compareResult = parseInt(aKeyPath[compareLen - 1]) - parseInt(bKeyPath[compareLen - 1]);
+//         return compareResult === 0 ? alen - blen : compareResult
+//     })
+// }
+
+function getBaseModelById(id:string,target:BaseModel):BaseModel{
+    if(target == null) return;
+    const targetId = target.get('id',null);
+    if(targetId === id) return target;
+    const children = target.get('children',null);
+    if(children == null || children.size === 0){
+        return
+    }
+    for(let i = 0; i < children.size; i++){
+        const child = children.get(i);
+        const ret = getBaseModelById(id,child);
+        if(ret){
+            return ret;
+        }
+    }
 }
+
+
+
 // function extractAllModel(model:BaseModel,ret:BaseModel[]=[]){
 //     const children = model.get('children',null);
 //     if(children == null || children.size === 0) return ret;
@@ -201,6 +221,15 @@ export class Mutation extends EventHandler implements IMutation{
         })
         return sortViewModel(artboards);
     }
+    changeDisplayName(id:string,displayName:string){
+        // const selectModels = this.getSelectedBaseModels() as BaseModel[]
+        const target:BaseModel = getBaseModelById(id,this.getDSLData());
+        if(target){
+            target.updateIn(['displayName'],null,()=>{
+                return displayName
+            })
+        }
+    }
     removeViewModel(viewModel:IViewModel){
         const vmId = viewModel.getModel().get('id',null)
         const oldVm = this._viewModelMap.get(vmId);
@@ -235,7 +264,7 @@ export class Mutation extends EventHandler implements IMutation{
         this._operation = operation;
     }
     getSelectedBaseModels(pure:boolean = false){
-        const arr:BaseModel|Model[] = [];
+        const arr:BaseModel[]|Model[] = [];
         this.reduceSelectedKeyPath((keyPath:string)=>{
             const item = this._viewModelMap.get(keyPath);
             if(item){

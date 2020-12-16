@@ -127,16 +127,20 @@ export class Movable implements IMovable{
             data.props.style = style;
         }
         const styleValue = style.value
-        const {backgroundColor} = styleValue
-        if(backgroundColor && typeof backgroundColor === 'object'){
-            if(backgroundColor.disabled){
-                styleValue.backgroundColor = ''
-            }else{
-                styleValue.backgroundColor = backgroundColor.value
-            }
+        // const {backgroundColor} = styleValue
+        // if(backgroundColor && typeof backgroundColor === 'object'){
+        //     if(backgroundColor.disabled){
+        //         styleValue.backgroundColor = ''
+        //     }else{
+        //         styleValue.backgroundColor = backgroundColor.value
+        //     }
+        // }
+        styleValue.width = {
+            value:position.width == null  ? 'auto': `${position.width}px`
         }
-        styleValue.width = position.width == null  ? 'auto': `${position.width}px`
-        styleValue.height = position.height == null ? 'auto': `${position.height}px`
+        styleValue.height = {
+            value:position.height == null ? 'auto': `${position.height}px`
+        }
         return data;
     }
     render(){
@@ -158,7 +162,11 @@ export class Movable implements IMovable{
         const {left,top,width,height} = pos;
         this.left = left;
         this.top = top
-        this.view.updateStyle(width,height);
+        if(this.width !== width || this.height !== height){
+            this.view.updateStyle(width,height);
+            this.width = width;
+            this.height = height;
+        }
         this.setStyle();
     }
     // onPostionChange(onPositionChange:OnPositionChange){
@@ -392,7 +400,9 @@ export class ArtBoardMovable extends Movable{
         const {_data} = this;
         const el = document.createElement('div');
         el.className = MOVABLE_HANDLER_CLASSNAME
-        el.innerHTML = `${_data && _data.extra ? _data.extra.label : ''}`
+        // el.innerHTML = `${_data && _data.extra ? _data.extra.label : ''}`
+        // console.log('_data :',_data);
+        el.innerHTML = `${_data && _data.displayName ? _data.displayName : ''}`
         this.el.appendChild(el);
         this._eventEl = el;
     }

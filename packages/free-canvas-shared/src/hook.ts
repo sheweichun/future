@@ -37,7 +37,8 @@ export interface IPluginView{
 
 
 export interface IHeadView extends HeadViewHook,IPluginView{
-    
+    initCanvasEl(el:HTMLElement):void
+    setRefreshCallback(cb:()=>void):void
 }
 
 export interface HeadViewHook{
@@ -45,3 +46,4 @@ export interface HeadViewHook{
     renderRightView?:()=>JSX.Element
     renderMiddleView?:()=>JSX.Element
 }
+

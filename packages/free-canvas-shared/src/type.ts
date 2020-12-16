@@ -163,7 +163,8 @@ export enum ModelPropComponentType{
     backgroundColor,
     text,
     xywh,
-    select
+    select,
+    switch
 }
 
 export interface ModelPropSchema{
@@ -182,6 +183,8 @@ export interface ModelPropSchemaMap{
 }
 
 
+export type RenderVarInput = (data:Model[],schema:ModelPropSchema,mut:IMutation)=>JSX.Element 
+
 
 // export interface ModelPropSchemas{
 //     [key:string]:ModelPropSchema
@@ -189,12 +192,29 @@ export interface ModelPropSchemaMap{
 /*
 *  style中的backgroundColor可能是个object 需要特殊处理
 */
+
+
+export type AttrPropType = {
+    modelData:Model[]
+    renderVarInput:RenderVarInput
+    schema:ModelPropSchema
+    selectModel:Model
+    mutation:IMutation
+}
+
+export type AttrStateType = {
+    value:ModelAttrValue
+}
+
+export interface ModelAttrValue{
+    value:any,
+    expression?:string
+    isExp?:boolean
+    disabled?:boolean
+}
+
 export interface ModelProps{
-    [key:string]:{
-        value:any,
-        expression?:string
-        enableExp?:boolean
-    }
+    [key:string]:ModelAttrValue
 }
 
 export interface ModelAttrProto{
@@ -224,6 +244,7 @@ export interface Model {
     pid?:string
     protoId?:string
     name?:string
+    displayName?:string
     type?:ModelType
     props:ModelProps
     children?:Model[]
@@ -257,6 +278,7 @@ export function baseModel2Model(data:ImutBase){
     const ret = {
         id:getValFromBaseModel('id',data),
         name:getValFromBaseModel('name',data),
+        displayName:getValFromBaseModel('displayName',data),
         // isRoot:getValFromBaseModel('isRoot',data),
         // isGroup:getValFromBaseModel('isGroup',data),
         type:getValFromBaseModel('type',data),
@@ -272,11 +294,11 @@ export interface IRender{
 }
 
 export interface IMutation{
-    getSelectedBaseModels(pure:boolean):ImutBase | Model[]
+    getSelectedBaseModels(pure:boolean):ImutBase[] | Model[]
     getDSLData():ImutBase
     getViewModelBaseModel(id:string):ImutBase
     onModelSelected(target:ImutBase,data:{needKeep:boolean,x:number,y:number,noTrigger?:boolean}):void
-
+    changeDisplayName(id:string,displayName:string):void
     updateModelPosition(data:IPos):void
     updateModelStyle(data:Partial<CSSStyleDeclaration>):void
     updateModelProps(key:string,data:any):void
@@ -301,6 +323,7 @@ export interface MarketDataItem{
     proto?:any
     eventList?:MarketDataItemEvent[]
     name:string,
+    displayName?:string
     preview:string
 }
 
@@ -315,4 +338,8 @@ export interface MarketData{
 export type ComponentMarketStore = {
     data:MarketData[]
     list:MarketDataItem[]
+}
+
+export type ModelVo = {
+    [key:string]:any
 }

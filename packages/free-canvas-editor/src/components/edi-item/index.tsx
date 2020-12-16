@@ -1,4 +1,5 @@
 import React from 'react'
+import {Checkbox} from '@alife/next'
 import {EditItemProps,EditItemState} from './type'
 import {CLASS_PREFIX} from '../../util/contant'
 
@@ -12,14 +13,21 @@ const EDI_ITEM_TITLE_CLZ = `${CLASS_PREFIX}editItem-title`
 
 
 export function EdiItem(props:EditItemProps){
-    const {className,children,title} = props;
+    const {className,children,title,checked,onChange,supportVar} = props;
 
+    function onCheckChange(val:boolean){
+        onChange && onChange(val)
+    }
 
     return <div className={`${EDI_ITEM_CLZ} ${className || ''}`}>
         {title && <div className={`${EDI_ITEM_HEAD_CLZ}`}>
             <div className={EDI_ITEM_TITLE_CLZ}>
                 {title}
             </div>
+            {supportVar && <div>
+                <Checkbox checked={checked} onChange={onCheckChange}></Checkbox>
+                <span>使用变量</span>
+            </div>}
         </div>}
         <div className={EDI_ITEM_CONTENT_CLZ}>
             {children}

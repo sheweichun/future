@@ -21,9 +21,12 @@ const HEADER_MIDDLER_CLZ = `${CLASS_PREFIX}header-middler`
 export class Header extends React.Component<HeadProps,HeadState>{
     constructor(props:HeadProps){
         super(props);
+        const {headView} = props;
+        const setState = this.setState.bind(this,{});
+        headView.setRefreshCallback(setState)
     }
     render(){
-        console.log('props =====>',this.props);
+        // console.log('props =====>',this.props);
         const {className,headView} = this.props;
         return <header className={`${HEADER_CLZ} ${className || ''}`} style={{
             backgroundColor:backgroundColor,

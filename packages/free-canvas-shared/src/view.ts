@@ -98,7 +98,7 @@ export class View implements IView<Model>{
                 el.innerHTML = item.value;
                 return;
             }
-            if(item == null){
+            if(item == null || !item.value  || item.disabled){
                 el.removeAttribute(key);
             }else{
                 el.setAttribute(key,item.value);
@@ -106,8 +106,9 @@ export class View implements IView<Model>{
         })
         if(style){
             Object.keys(style).forEach(styleName => {
+                const styleItem = style[styleName]
                 //@ts-ignore
-                el.style[styleName] = style[styleName];
+                el.style[styleName] = styleItem && !styleItem.disabled ? styleItem.value : '';
             });
         }
     }

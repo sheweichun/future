@@ -1,10 +1,11 @@
-import {Model,MarketDataItem} from 'free-canvas-shared'
+import {Model,MarketDataItem,IMutation,ModelPropSchema,RenderVarInput} from 'free-canvas-shared'
 import {TabDataItem} from '../components/tab/type'
 
 export interface PanelProps{
     className?:string
-    componentData:MarketDataItem[]
-}
+    componentData:MarketDataItem[] 
+    renderVarInput?:RenderVarInput
+} 
 
 export interface PanelState{
     activeTab:number,

@@ -65,8 +65,9 @@ export class Panel extends React.Component<PanelProps,PanelState> implements IPl
     }
     renderTabContent(tabIndex:number,data:TabDataItem){
         const {modelData,modelIdMap} = this.state;
+        const {renderVarInput} = this.props;
         if(tabIndex === 0){
-            return <Attribute modelIdMap={modelIdMap} tabData={data} modelData={modelData} mutation={this._mutation}></Attribute>
+            return <Attribute renderVarInput={renderVarInput}  modelIdMap={modelIdMap} tabData={data} modelData={modelData} mutation={this._mutation}></Attribute>
         }
     }
     render(){

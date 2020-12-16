@@ -1,5 +1,5 @@
 
-import {IPlugin,IEditorHook,IHookCore, IHeadView, ComponentMarketStore} from '@pkg/free-canvas-shared'
+import {IPlugin,IEditorHook,IHookCore, IHeadView, ComponentMarketStore, RenderVarInput} from '@pkg/free-canvas-shared'
 import {showTagName} from '@pkg/free-canvas-dx'
 import {setup,HookManager} from '@pkg/free-canvas-editor'
 import {initTheme} from '@pkg/free-canvas-theme'
@@ -22,11 +22,12 @@ function runTask(...plugins:IPlugin[]){
 
 export type InitOption = {
     head?:IHeadView
-    getComponentData():Promise<ComponentMarketStore>
+    getComponentData?:()=>Promise<ComponentMarketStore>
+    renderVarInput?:RenderVarInput
 }
 
 export function init(hooks:IEditorHook[],opt:InitOption){
-    const { head,getComponentData } = opt || {}
+    const { head,getComponentData,renderVarInput } = opt || {}
     const hookManager = new HookManager(hooks);
     initTheme(); 
     //@ts-ignore
@@ -43,6 +44,7 @@ export function init(hooks:IEditorHook[],opt:InitOption){
         head:head,
         components:{},//components
         showTagName,
+        renderVarInput,
         getComponentData,
         runTask
     })

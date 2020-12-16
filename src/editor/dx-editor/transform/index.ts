@@ -21,7 +21,9 @@ function nextId(){
 function createStyleUnitTransform(name:string,unit = 'px'){
     return function transformStyleUnit(val:string,ret:Model){
         //@ts-ignore
-        ret.props.style.value[name] = val.replace('ap',unit)
+        ret.props.style.value[name] = {
+            value:val.replace('ap',unit)
+        }
     }
 }
 
@@ -35,7 +37,9 @@ function createPositionUnitTransform(name:string){
 function createStyleTransform(name:string){
     return function transformStyleUnit(val:string,ret:Model){
         //@ts-ignore
-        ret.props.style.value[name] = val
+        ret.props.style.value[name] = {
+            value:val
+        }
     }
 }
 
@@ -71,13 +75,15 @@ type attributeTransformMapKeys = keyof (typeof attributeTransformMap)
 // }
 
 function attributes2Obj(attrs:NamedNodeMap,model:Model){
-    const ret:{[key:string]:string} = {};
+    const ret:{[key:string]:any} = {};
     for(let i = 0 ;i < attrs.length; i++){
         const item:Attr = attrs.item(i);
         if(POSTION_NAME_MAP[item.name as POSTION_NAME]){
             attributeTransformMap[item.name as attributeTransformMapKeys](item.value,model)
         }else{
-            ret[item.name] = item.value
+            ret[item.name] = {
+                value:item.value
+            }
         }
         // ret.push(`${item.name}="${item.value}"`)
     }
@@ -125,9 +131,9 @@ function transform2Model(el:Element,modelType:ModelType){
         model.type = modelType
         if(modelType === ModelType.isArtBoard){
             const style = model.props.style.value
-            style.backgroundColor = '#ffffff'
-            style.overflow = 'hidden'
-            style.position = 'relative'
+            style.backgroundColor = {value:'#ffffff'}
+            style.overflow = {value:'hidden'}
+            style.position = {value:'relative'}
         }
     }
     if(el.children){
@@ -152,8 +158,10 @@ export function template2Model(data:string,title:string):Model{
         children:[]
     }
     const arboard = transform2Model(doc.children[0],ModelType.isArtBoard)
-    arboard.extra.label = title;
+    arboard.displayName = title;
+    // arboard.extra.label = title;
     model.children.push(arboard)
+    // console.log('arboard :',arboard);
     return model;
 }
 
@@ -173,9 +181,10 @@ function filterArboardStyle(style:CSSStyleDeclaration){
             return ret;
         }
         //@ts-ignore
-        let val:string = style[name]
-        if(val != null){
-            val = val.replace(/px$/,'ap');
+        const item = style[name]
+        let val:string
+        if(item != null && item.value){
+            val = item.value.replace(/px$/,'ap');
         }
         const newName = reverseAttributeTransformMap[name] || name
         //@ts-ignore
@@ -198,9 +207,13 @@ function postion2Attribute(pos:ModelPos){
         const newName = POS_KEY_MAP[name] || name;
         const posVal = pos[name];
         if(posVal === 0){
-            ret[newName] = pos[name] + ''
+            ret[newName] = {
+                value:pos[name] + ''
+            }
         }else{
-            ret[newName] = pos[name] + 'ap'
+            ret[newName] = {
+                value:pos[name] + 'ap'
+            }
         }
         return ret;
     },{} as DXDSLAttribute)
@@ -209,14 +222,16 @@ function postion2Attribute(pos:ModelPos){
 
 
 export interface DXDSLAttribute{
-    [key:string]:string
+    [key:string]:{
+        value:string
+    }
 }
 
 
 function attributes2Str(attrs:DXDSLAttribute){
     if(attrs == null) return ''
     return Object.keys(attrs).map((name)=>{
-        return `${name}="${attrs[name]}"`;
+        return `${name}="${attrs[name] ? attrs[name].value : ''}"`;
     }).join(' ')
 }
 

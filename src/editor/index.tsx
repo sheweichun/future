@@ -4,7 +4,7 @@
 // import {Editor} from './editor'
 import {init} from './startup';
 import '@pkg/free-canvas-editor/dist/editor.css'
-import {DxEditorHook,HeadView,getComponentData} from './dx-editor'
+import {DxEditorHook,HeadView,getComponentData,renderVarInput} from './dx-editor'
 
 // const canvasEl = document.querySelector('.canvas-content') as HTMLElement;
 // const iframe = (canvasEl.querySelector('iframe') as HTMLIFrameElement)
@@ -14,9 +14,13 @@ import {DxEditorHook,HeadView,getComponentData} from './dx-editor'
 //         return iframe.contentDocument.getElementById(id)
 //     }
 // })
+
+console.log('renderVarInput :',renderVarInput);
+
 init([new DxEditorHook()],{
     head:new HeadView(),
-    getComponentData
+    getComponentData,
+    renderVarInput
 }); 
 
 // const mountNode = document.querySelector('.root')

@@ -494,12 +494,11 @@ export class Operation implements IDisposable,IOperation{
         let tagName:string = '';
         if(viewModels.length === 1){
             const curMd = viewModels[0].getModel();
-            const mdName = curMd.get('name','');
             if(!modelIsArtboard(curMd.get('type',''))){
                 if(showTagName){
                     tagName = showTagName(baseModel2Model(curMd))
                 }else{
-                    tagName = mdName
+                    tagName = curMd.get('displayName','') || curMd.get('name','');
                 }
             }
         }

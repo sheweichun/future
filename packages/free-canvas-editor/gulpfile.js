@@ -10,8 +10,8 @@ const pump   = require('pump');
 const lessSource = path.resolve(__dirname,'src/**/*.less')
 const lessDist = path.resolve(__dirname,'dist')
 
-exports.editorLess = function (cb) {
-  pump([
+exports.editorLess = function editorLess(cb) {
+  return pump([
     src([lessSource]),
     less(),
     concat('editor.css'),
@@ -31,6 +31,6 @@ function buildLess(cb){
   ],cb)
 }
 
-exports.editorLessWatch = function () {
+exports.editorLessWatch = function editorLessWatch() {
   watch(lessSource,buildLess)
 }

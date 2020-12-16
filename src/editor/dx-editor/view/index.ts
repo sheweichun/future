@@ -2,4 +2,4 @@
 
 
 
-export * from './headView'
+export * from './head-view/index'

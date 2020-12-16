@@ -23,16 +23,17 @@ const ALL_SCHEMA:{[key in ModelPropComponentType]?:ModelPropSchema} ={
         sortIndex:20,
         get(model:Model){
             if(model.props.style && model.props.style.value){
-                const bg = model.props.style.value.backgroundColor
-                if(bg){
-                    if(typeof bg === 'string'){
-                        return {
-                            value:bg,
-                            disabled:false
-                        }
-                    }
-                    return bg
-                }
+                // const bg = model.props.style.value.backgroundColor
+                // if(bg){
+                //     if(typeof bg === 'string'){
+                //         return {
+                //             value:bg,
+                //             disabled:false
+                //         }
+                //     }
+                //     return bg
+                // }
+                return model.props.style.value.backgroundColor
             }
             return {
                 value:null,

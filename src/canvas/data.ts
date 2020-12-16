@@ -15,7 +15,9 @@ export default [
         props:{
             style:{
                 value:{
-                    backgroundColor:'#ffffff'
+                    backgroundColor:{
+                        value:'#ffffff'
+                    }
                 }
             }
         },
@@ -34,7 +36,9 @@ export default [
             props:{
                 style:{
                     value:{
-                        backgroundColor:'#ff000055'
+                        backgroundColor:{
+                            value:'#ff000055'
+                        }
                     }
                 }
             },
@@ -45,7 +49,9 @@ export default [
                     props:{
                         style:{
                             value:{
-                                backgroundColor:'#00ff0055'
+                                backgroundColor:{
+                                    value:'#00ff0055'
+                                }
                             }
                         }
                     },
@@ -64,7 +70,9 @@ export default [
                             props:{
                                 style:{
                                     value:{
-                                        backgroundColor:'#00ff3355'
+                                        backgroundColor:{
+                                            value:'#00ff3355'
+                                        }
                                     }
                                 }
                             },
@@ -84,7 +92,9 @@ export default [
                     props:{
                         style:{
                             value:{
-                                backgroundColor:'#ffff0055'
+                                backgroundColor:{
+                                    value:'#ffff0055'
+                                }
                             }
                         }
                     },
@@ -105,7 +115,9 @@ export default [
             props:{
                 style:{
                     value:{
-                        backgroundColor:'#00000055'
+                        backgroundColor:{
+                            value:'#00000055'
+                        }
                     }
                 }
             },
@@ -123,7 +135,9 @@ export default [
             props:{
                 style:{
                     value:{
-                        backgroundColor:'#00000055'
+                        backgroundColor:{
+                            value:'#00000055'
+                        }
                     }
                 }
             },
@@ -141,7 +155,7 @@ export default [
             props:{
                 style:{
                     value:{
-                        lineHeight:1
+                        lineHeight:{value:1}
                     }
                 },
                 children:{

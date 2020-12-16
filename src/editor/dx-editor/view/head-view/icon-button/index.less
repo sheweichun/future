@@ -1,0 +1,41 @@
+
+
+.iconButton{
+    display: inline-block;
+    text-align: center;
+    // width: 48px;
+    padding:0 6px;
+    cursor: pointer;
+
+    // border-left:1px solid var(--BOARDER_COLOR);
+    // border-top:1px solid var(--BOARDER_COLOR);
+    // border-bottom:1px solid var(--BOARDER_COLOR); 
+    // &:last-child{
+    //     border-right:1px solid var(--BOARDER_COLOR);
+    // }
+    &:hover{
+        i{
+            background-color: var(--BACKGROUND_6);
+        }
+    }
+    i{
+        width:48px;
+        font-size: 14px;
+        display: inline-block;
+        border-radius: 4px;
+        background-color: var(--BACKGROUND_5);
+        margin-bottom: 6px;
+        padding: 2px 0;
+        
+    }
+    &.iconButtonDisable{
+        opacity: 0.5;
+    }
+    
+    &.iconButtonActive{
+        i{
+            background-color: var(--PRIMARY_BACKGROUND);
+        }
+    }
+}
+

@@ -1,19 +1,18 @@
 import React from 'react'
 import {Select} from '@alife/next'
-import {IMutation, Model,ModelPropSchema,Utils} from 'free-canvas-shared'
+import {Utils,AttrPropType,AttrStateType} from 'free-canvas-shared'
+import {EdiItem} from '../../../../components/edi-item/index'
+import {BaseComponent,getDerivedStateFromProps} from '../base'
 import {CLASS_PREFIX} from '../../../../util/contant'
 
 
 const {debounce} = Utils
 
-export interface SelectProps{
-    modelData:Model[]
-    selectModel:Model
-    schema:ModelPropSchema
-    mutation:IMutation
+export interface SelectProps extends AttrPropType{
+ 
 }
 
-export interface SelectState{
+export interface SelectState extends AttrStateType{
     
 }
 
@@ -31,36 +30,32 @@ function getValue(val:string){
 }
 
 
-export class SelectAttr extends React.Component<SelectProps,SelectState>{
+export class SelectAttr extends BaseComponent<SelectProps,SelectState>{
     constructor(props:SelectProps){
         super(props)
         this.state = {
-
+            value:null
         }
         // this.onChangeValue = debounce(this.onChangeValue.bind(this),50);
         this.onChangeValue = this.onChangeValue.bind(this)
     }
+    static getDerivedStateFromProps = getDerivedStateFromProps
     onChangeValue(value:any,actionType:string,item:any){
         const {schema,mutation} = this.props;
-        schema.update(mutation,value)
-    }
-    getRenderValue(){
-        const {modelData,schema} = this.props;
-        let value = schema.get(modelData[0]);
-        modelData.forEach((md)=>{
-            const data = schema.get(md)
-            if(value != null && data != value){
-                value = null
-            }
-        })
-        return value
+        schema.update(mutation,Object.assign({},this.state.value,{
+            value:value
+        }))
     }
     render(){
-        const {schema,modelData} = this.props
+        const {schema,modelData,renderVarInput,mutation} = this.props
+        const {value} = this.state
         const {props} = schema
         const hasMore = modelData.length > 1
-        return <Select className={Select_CLZ} {...props} placeholder={hasMore ? '多个值': ''} value={this.getRenderValue()} onChange={this.onChangeValue}>
+        return  <EdiItem title={schema.title} supportVar={!!renderVarInput} checked={value.isExp} onChange={this._onChangeExp}>
+            {value.isExp ? renderVarInput(modelData,schema,mutation) : 
+            <Select className={Select_CLZ} {...props} placeholder={hasMore ? '多个值': ''} value={value ? value.value : null} onChange={this.onChangeValue}>
 
-        </Select>
+            </Select>}
+        </EdiItem> 
     }
 }

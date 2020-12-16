@@ -2,9 +2,11 @@ import {IEditorHook,IHookCore} from '@pkg/free-canvas-shared'
 import {getTemplateById} from './fetch'
 
 import {template2Model} from './transform'
-
+import './index.less';
 export {getComponentData} from './fetch'
 
+
+export * from './data/index'
 export * from './view/index'
 
 
@@ -22,6 +24,10 @@ export class DxEditorHook implements IEditorHook{
 
     }
 }
+
+// export function renderVarInput(data:Model[],schema:ModelPropSchema,mut:IMutation){
+//     return <div>test</div>
+// }
 
 
 

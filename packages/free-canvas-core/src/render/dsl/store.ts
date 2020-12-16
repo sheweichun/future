@@ -1,4 +1,5 @@
 import {fromJS,is,List,Map} from 'immutable'
+import {ModelVo} from 'free-canvas-shared'
 import {HistoryOptions,History} from './history';
 
 // import {Model} from '../model'

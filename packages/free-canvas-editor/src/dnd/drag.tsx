@@ -24,6 +24,7 @@ export class Drag extends React.Component<DragProp,DragState>{
             const {onDragStart,data,previewEle} = this.props;
             onDragStart(Object.assign({},data.codeTemplate,{
                 protoId:data.protoId
+                // displayName:data.displayName || data.codeTemplate.name
             }),clientX,clientY);
             const dataTransfer = e.dataTransfer;
             dataTransfer.effectAllowed = 'move'
