@@ -1,5 +1,5 @@
 
-import {Model,IPlugin} from './type'
+import {Model,IPlugin} from './view'
 
 
 export interface CallbackFunction {

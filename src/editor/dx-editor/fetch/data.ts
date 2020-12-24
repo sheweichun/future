@@ -96,7 +96,7 @@ export const marketData:MarketData[] = [
                                 createStyleAttrSchema({
                                     type:ModelPropComponentType.text,
                                     title:'圆角',
-                                    key:'radius',
+                                    key:'borderRadius',
                                 })
 
                             ]

@@ -2,7 +2,7 @@
 import {Store,WrapData, BaseModel,isEqual,createList,createMap} from '../render/index'
 import {Commander} from './commander'
 import { IViewModel } from "../render/type";
-import {COMMANDERS,Utils, modelIsGroup, modelIsRoot, modelIsArtboard,IMutation,IPos} from 'free-canvas-shared';
+import {COMMANDERS,Utils, modelIsGroup, modelIsRoot, modelIsArtboard,IMutation,IPos, baseModel2Model} from 'free-canvas-shared';
 import {createGroupModel} from '../render/index'
 import {getOverlapArtboard} from '../utils/index'
 import {CanvasEvent,EventHandler} from '../events/event'
@@ -269,7 +269,8 @@ export class Mutation extends EventHandler implements IMutation{
             const item = this._viewModelMap.get(keyPath);
             if(item){
                 const itemModel = item.getModel();
-                arr.push(pure ? itemModel.searialize() : itemModel)
+                // arr.push(pure ? itemModel.searialize() : itemModel)
+                arr.push(pure ? baseModel2Model(itemModel) as any : itemModel)
             }
         })
         return arr;

@@ -1,5 +1,6 @@
 const {watch,parallel,src,dest} = require('gulp')
 const {editorLess,editorLessWatch} = require('../packages/free-canvas-editor/gulpfile');
+const {jsonLess,jsonLessWatch} = require('../packages/free-canvas-json-editor/gulpfile');
 const path = require('path')
 const pump   = require('pump');
 
@@ -17,12 +18,13 @@ function copyLess(cb){
 function watchAllLess(){
   watch(sourceLess,copyLess)
   editorLessWatch()
+  jsonLessWatch()
 }
 
 
 
 
-exports.watch = parallel(editorLess,copyLess,watchAllLess)
+exports.watch = parallel(editorLess,jsonLess,copyLess,watchAllLess)
 
 
 exports.build = parallel(editorLess)

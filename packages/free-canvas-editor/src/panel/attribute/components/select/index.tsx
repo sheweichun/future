@@ -52,7 +52,7 @@ export class SelectAttr extends BaseComponent<SelectProps,SelectState>{
         const {props} = schema
         const hasMore = modelData.length > 1
         return  <EdiItem title={schema.title} supportVar={!!renderVarInput} checked={value.isExp} onChange={this._onChangeExp}>
-            {value.isExp ? renderVarInput(modelData,schema,mutation) : 
+            {value.isExp ? renderVarInput(modelData,schema,mutation,value) : 
             <Select className={Select_CLZ} {...props} placeholder={hasMore ? '多个值': ''} value={value ? value.value : null} onChange={this.onChangeValue}>
 
             </Select>}

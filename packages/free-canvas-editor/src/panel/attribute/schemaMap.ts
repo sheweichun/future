@@ -107,6 +107,7 @@ export const SchemaMap:{[key:string]:ModelPropSchema[]} = {
 
 function fixProtoAttrs(attrs:ModelAttrProto[]){
     if(attrs == null) attrs;
+    // console.log('attrs : ',attrs);
     attrs.forEach((attr)=>{
         const {type,get,update,key} = attr
         const schemaItem = ALL_SCHEMA[type];

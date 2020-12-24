@@ -72,10 +72,6 @@
   flex: 1;
 }
 
-.fc-editor-panel {
-  overflow: hidden;
-}
-
 .fc-editor-market {
   flex: 1;
   min-height: 100px;
@@ -139,12 +135,18 @@
 @font-face {
   font-family: 'iconfont';
   /* project id 1991465 */
-  src: url('//at.alicdn.com/t/font_1991465_73ptcvb59mf.eot');
-  src: url('//at.alicdn.com/t/font_1991465_73ptcvb59mf.eot?#iefix') format('embedded-opentype'), url('//at.alicdn.com/t/font_1991465_73ptcvb59mf.woff2') format('woff2'), url('//at.alicdn.com/t/font_1991465_73ptcvb59mf.woff') format('woff'), url('//at.alicdn.com/t/font_1991465_73ptcvb59mf.ttf') format('truetype'), url('//at.alicdn.com/t/font_1991465_73ptcvb59mf.svg#iconfont') format('svg');
+  src: url('//at.alicdn.com/t/font_1991465_lsncbvj3wa.eot');
+  src: url('//at.alicdn.com/t/font_1991465_lsncbvj3wa.eot?#iefix') format('embedded-opentype'), url('//at.alicdn.com/t/font_1991465_lsncbvj3wa.woff2') format('woff2'), url('//at.alicdn.com/t/font_1991465_lsncbvj3wa.woff') format('woff'), url('//at.alicdn.com/t/font_1991465_lsncbvj3wa.ttf') format('truetype'), url('//at.alicdn.com/t/font_1991465_lsncbvj3wa.svg#iconfont') format('svg');
 }
 .fc-editor-icon {
   font-family: 'iconfont';
   font-style: normal;
+}
+.fc-editor-icon-copy:before {
+  content: '\E7E4';
+}
+.fc-editor-icon-add:before {
+  content: '\E67B';
 }
 .fc-editor-icon-upoad:before {
   content: '\E612';
@@ -193,6 +195,24 @@
 }
 .fc-editor-icon-js:before {
   content: '\E60E';
+}
+.fc-editor-icon-wenhao:before {
+  content: '\E71D';
+}
+.fc-editor-icon-delete:before {
+  content: '\E6F7';
+}
+.fc-editor-icon-up:before {
+  content: '\E665';
+}
+.fc-editor-icon-down:before {
+  transform: rotate(180deg);
+  display: inline-block;
+  content: '\E665';
+}
+
+.fc-editor-panel {
+  overflow: hidden;
 }
 
 .fc-editor-tree {
@@ -245,6 +265,23 @@
 }
 
 
+.fc-editor-tab ul {
+  display: flex;
+  flex-direction: row;
+  cursor: pointer;
+}
+.fc-editor-tab-item {
+  height: 40px;
+  line-height: 40px;
+  padding: 0px 12px;
+  flex: 1;
+  text-align: center;
+  color: var(--DISABLED_COLOR);
+}
+.fc-editor-tab-active-item {
+  color: var(--TEXT-COLOR);
+}
+
 .fc-editor-editItem {
   border-bottom: 1px solid var(--BOARDER_COLOR);
   padding: 8px 0;
@@ -264,22 +301,6 @@
   padding: 0px 8px;
 }
 
-.fc-editor-tab ul {
-  display: flex;
-  flex-direction: row;
-  cursor: pointer;
-}
-.fc-editor-tab-item {
-  height: 40px;
-  line-height: 40px;
-  padding: 0px 12px;
-  flex: 1;
-  text-align: center;
-  color: var(--DISABLED_COLOR);
-}
-.fc-editor-tab-active-item {
-  color: var(--TEXT-COLOR);
-}
 
 .fc-editor-attribute .next-before {
   border: 0;
@@ -302,6 +323,16 @@
   align-items: center;
 }
 
+.fc-editor-measure {
+  display: grid;
+  grid-template-rows: 32px;
+  grid-template-columns: repeat(2, 40%);
+  padding: 0 8px;
+  align-items: center;
+}
+.fc-editor-measure .next-before {
+  width: 28px;
+}
 
 .fc-editor-color {
   display: flex;
@@ -339,17 +370,6 @@
 }
 .fc-editor-color-alpha .next-input-group input {
   text-align: right;
-}
-
-.fc-editor-measure {
-  display: grid;
-  grid-template-rows: 32px;
-  grid-template-columns: repeat(2, 40%);
-  padding: 0 8px;
-  align-items: center;
-}
-.fc-editor-measure .next-before {
-  width: 28px;
 }
 
 .fc-editor-select {

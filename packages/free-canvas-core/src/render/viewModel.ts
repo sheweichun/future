@@ -450,7 +450,8 @@ export class ViewModel implements IViewModel{
         const idNotEqual = prevId !== curId
         const needUpdate = idNotEqual || !isEqual(model,prevModel)
         if(needUpdate){
-            this.view.update(model.searialize());
+            // this.view.update(model.searialize());
+            this.view.update(baseModel2Model(model));
         }
         this.model = model;
         if(idNotEqual){

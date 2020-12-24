@@ -1,7 +1,7 @@
 import React from 'react'
 import {ThemeVar} from 'free-canvas-theme'
 import {Input} from '@alife/next'
-import {IPlugin,ICommander, IMutation,modelIsArtboard,Model,IPluginOptions, modelIsGroup} from 'free-canvas-shared' 
+import {IPlugin,ICommander, IMutation,modelIsArtboard,Model,IPluginOptions, modelIsGroup,IViewModel, COMMANDERS} from 'free-canvas-shared' 
 import {TreeProps,TreeState,FlagMap} from './type'
 import {Icon} from '../icon'
 import {CLASS_PREFIX} from '../util/contant' 
@@ -33,7 +33,7 @@ export class Tree extends React.Component<TreeProps,TreeState> implements IPlugi
         this._commander = commander;
         this._mutation = mutation;
     }
-    update(data:Model,selectModels:Model[]):void{
+    update(data:Model,selectModels:Model[],vms:IViewModel[]):void{
         const {expandMap} = this.state;
         const dataChildren = data.children;
         this.updateExpandMap(dataChildren,expandMap)
@@ -80,6 +80,8 @@ export class Tree extends React.Component<TreeProps,TreeState> implements IPlugi
             y,
             noTrigger:true
         })
+        const {_commander} = this
+        _commander.excute(COMMANDERS.FOCUSCANVAS); //让画板获取焦点
     }
     onItemDisplayNameChange(data:Model,val:string){
         const {editableMap} = this.state;

@@ -322,6 +322,12 @@ export class Content{
     }
     registerCommands(){
         this._mutation.register();
+        this._commander.register(COMMANDERS.FOCUSCANVAS,this.focus,this)
+    }
+    focus(){
+        const { eventEl } = this._options
+        eventEl && eventEl.focus()
+        // console.log('focus');
     }
     undo(){
         this._store.undo();

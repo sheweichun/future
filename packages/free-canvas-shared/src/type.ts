@@ -1,48 +1,11 @@
 
-import {OperationPos,IPos} from './pos'
-import { ImgCookDsl } from './imgcook'
+// import { ImgCookDsl } from './imgcook'
+// import {Model} from './model'
 // export interface Market{
     
 // }
 
-export interface ImutBase{ 
-    size:number
-    _keyPath:string[]
-    deref(notSetValue:any):any;
-    // Need test of noSetValue
-    valueOf(notSetValue:any):any;
-  
-    get(key:string, notSetValue:any):any 
-  
-    getIn(keyPath:string[], notSetValue:any):any
-  
-    set(key:string, value:any):ImutBase
-    setIn(keyPath:string[],value:any):ImutBase
-    // Needs tests
-    remove(key:string):ImutBase
-    // Needs tests
-    delete(key:string):ImutBase
-  
-    clear():ImutBase
-  
-    searialize():any
-  
-    update(keyOrFn:any, notSetValue:any, updater:any):ImutBase
-  
-    updateIn(keyPath:string[], notSetValue:any, updater:any):ImutBase
-  
-    merge() :ImutBase
-  
-    mergeWith():ImutBase
-  
-    mergeDeep():ImutBase
-  
-    mergeDeepWith():ImutBase
-  
-    withMutations(fn:any) :ImutBase
-  
-    cursor(path:string) :ImutBase
-}
+
   
 // export interface IMutation{
 //     onModelSelected(target:any,data:{needKeep:boolean,x:number,y:number,noTrigger?:boolean}):void
@@ -95,22 +58,9 @@ export enum COMMANDERS {
     SELECTSTOP, //物料拖动结束
     SELECTENTER, //物料进入画布区域
     SELECTLEAVE, //物料离开画布区域
+    FOCUSCANVAS,
 }
 
-export interface IPluginOptions{
-    getContentRect:()=>OperationPos
-}
-
-export interface IPluginManagerOptions extends IPluginOptions{
-
-}
-
-export interface IPlugin{
-    install(commander:ICommander,mutation:IMutation,options:IPluginOptions):void
-    // update(data:ImutBase,selectNodes:ImutBase[]):void
-    update(data:Model,selectNodes:Model[]):void
-    destroy():void
-}
 
 
 
@@ -121,69 +71,69 @@ export interface UniversalObject{
 export type ObjectStyleDeclaration = Partial<CSSStyleDeclaration>
 
 
-export enum ModelFromType {
-    ISDEFAULT,
-    INDEFAULT,
-    ITEM
-}
+// export enum ModelFromType {
+//     ISDEFAULT,
+//     INDEFAULT,
+//     ITEM
+// }
 
-export type DSLModel = (Model | ImgCookDsl)[]
+// export type DSLModel = (Model | ImgCookDsl)[]
 
-export interface DSL{
-    data:DSLModel
-    type:DSLType
-}
+// export interface DSL{
+//     data:DSLModel
+//     type:DSLType
+// }
 
-export enum DSLType{
-    MODEL,
-    IMGCOOK
-}
+// export enum DSLType{
+//     MODEL,
+//     IMGCOOK
+// }
 
-export enum ModelType{
-    isRoot,
-    isGroup,
-    isArtBoard,
-    isFrame
-}
+// export enum ModelType{
+//     isRoot,
+//     isGroup,
+//     isArtBoard,
+//     isFrame
+// }
 
-export function modelIsGroup(type:ModelType){
-    return type === ModelType.isGroup
-}
+// export function modelIsGroup(type:ModelType){
+//     return type === ModelType.isGroup
+// }
 
-export function modelIsRoot(type:ModelType){
-    return type === ModelType.isRoot
-}
+// export function modelIsRoot(type:ModelType){
+//     return type === ModelType.isRoot
+// }
 
-export function modelIsArtboard(type:ModelType){
-    return type === ModelType.isArtBoard
-}
-
-
-export enum ModelPropComponentType{
-    backgroundColor,
-    text,
-    xywh,
-    select,
-    switch
-}
-
-export interface ModelPropSchema{
-    type:ModelPropComponentType,
-    identity?:string,
-    title?:string
-    key:string
-    sortIndex:number
-    props?:{[key:string]:any}
-    get?:(val:Model)=>any
-    update?:(mutation:IMutation,target:any)=>void
-}
-
-export interface ModelPropSchemaMap{
-    [key:string]:ModelPropSchema[]
-}
+// export function modelIsArtboard(type:ModelType){
+//     return type === ModelType.isArtBoard
+// }
 
 
-export type RenderVarInput = (data:Model[],schema:ModelPropSchema,mut:IMutation)=>JSX.Element 
+// export enum ModelPropComponentType{
+//     backgroundColor,
+//     text,
+//     xywh,
+//     select,
+//     switch
+// }
+
+// export interface ModelPropSchema{
+//     type:ModelPropComponentType,
+//     identity?:string,
+//     title?:string
+//     key:string
+//     sortIndex:number
+//     props?:{[key:string]:any}
+//     get?:(val:Model)=>any
+//     update?:(mutation:IMutation,target:any)=>void
+// }
+
+// export interface ModelPropSchemaMap{
+//     [key:string]:ModelPropSchema[]
+// }
+
+
+// export type RenderVarInput = (data:Model[],schema:ModelPropSchema,mut:IMutation)=>JSX.Element 
 
 
 // export interface ModelPropSchemas{
@@ -194,116 +144,106 @@ export type RenderVarInput = (data:Model[],schema:ModelPropSchema,mut:IMutation)
 */
 
 
-export type AttrPropType = {
-    modelData:Model[]
-    renderVarInput:RenderVarInput
-    schema:ModelPropSchema
-    selectModel:Model
-    mutation:IMutation
-}
+// export type AttrPropType = {
+//     modelData:Model[]
+//     renderVarInput:RenderVarInput
+//     schema:ModelPropSchema
+//     selectModel:Model
+//     mutation:IMutation
+// }
 
-export type AttrStateType = {
-    value:ModelAttrValue
-}
+// export type AttrStateType = {
+//     value:ModelAttrValue
+// }
 
-export interface ModelAttrValue{
-    value:any,
-    expression?:string
-    isExp?:boolean
-    disabled?:boolean
-}
+// export interface ModelAttrValue{
+//     value:any,
+//     expression?:string
+//     isExp?:boolean
+//     disabled?:boolean
+// }
 
-export interface ModelProps{
-    [key:string]:ModelAttrValue
-}
+// export interface ModelProps{
+//     [key:string]:ModelAttrValue
+// }
 
-export interface ModelAttrProto{
-    type:ModelPropComponentType,
-    title:string,
-    key:string
-    sortIndex:number,
-    props:{
-        [key:string]:any
-    },
-    get?(model:Model):void,
-    update?(mutation:IMutation,data:any):void
-}
-
-
-export interface ModelPos{
-    left?:number,
-    top?:number,
-    width?:number,
-    height?:number
-}
-
-export type ModelPosKeys = keyof ModelPos
-
-export interface Model {
-    id?:string
-    pid?:string
-    protoId?:string
-    name?:string
-    displayName?:string
-    type?:ModelType
-    props:ModelProps
-    children?:Model[]
-    proto?:{
-        import?:{
-            from :string,
-            version:string,
-            type:ModelFromType
-        },
-        attrs?:ModelAttrProto[]
-    }
-    extra:{
-        label?:string,
-        position?:ModelPos,
-        isSelect?:boolean
-    }
-}
+// export interface ModelAttrProto{
+//     type:ModelPropComponentType,
+//     title:string,
+//     key:string
+//     sortIndex:number,
+//     props:{
+//         [key:string]:any
+//     },
+//     get?(model:Model):void,
+//     update?(mutation:IMutation,data:any):void
+// }
 
 
-function getValFromBaseModel(key:string,data:ImutBase){
-    return data.get(key,null);
-}
+// export interface ModelPos{
+//     left?:number,
+//     top?:number,
+//     width?:number,
+//     height?:number
+// }
 
-function getJSValFromBaseModel(key:string,data:ImutBase,defaultValue?:any){
-    const result = data.get(key,defaultValue)
-    if(result == null) return result;
-    return result.toJS()
-}
+// export type ModelPosKeys = keyof ModelPos
 
-export function baseModel2Model(data:ImutBase){
-    const ret = {
-        id:getValFromBaseModel('id',data),
-        name:getValFromBaseModel('name',data),
-        displayName:getValFromBaseModel('displayName',data),
-        // isRoot:getValFromBaseModel('isRoot',data),
-        // isGroup:getValFromBaseModel('isGroup',data),
-        type:getValFromBaseModel('type',data),
-        style:getJSValFromBaseModel('style',data),
-        props:getJSValFromBaseModel('props',data),
-        extra:getJSValFromBaseModel('extra',data)
-    }
-    return ret;
-}
+// export interface Model {
+//     id?:string
+//     pid?:string
+//     protoId?:string
+//     name?:string
+//     displayName?:string
+//     type?:ModelType
+//     props:ModelProps
+//     children?:Model[]
+//     proto?:{
+//         import?:{
+//             from :string,
+//             version:string,
+//             type:ModelFromType
+//         },
+//         attrs?:ModelAttrProto[]
+//     }
+//     extra:{
+//         label?:string,
+//         position?:ModelPos,
+//         isSelect?:boolean
+//     }
+// }
 
-export interface IRender{
-    renderByDsl:(data:Model)=>void
-}
 
-export interface IMutation{
-    getSelectedBaseModels(pure:boolean):ImutBase[] | Model[]
-    getDSLData():ImutBase
-    getViewModelBaseModel(id:string):ImutBase
-    onModelSelected(target:ImutBase,data:{needKeep:boolean,x:number,y:number,noTrigger?:boolean}):void
-    changeDisplayName(id:string,displayName:string):void
-    updateModelPosition(data:IPos):void
-    updateModelStyle(data:Partial<CSSStyleDeclaration>):void
-    updateModelProps(key:string,data:any):void
-    updateModelPropsByKeyPath(key:string[],data:any):void
-}
+// function getValFromBaseModel(key:string,data:ImutBase){
+//     return data.get(key,null);
+// }
+
+// function getJSValFromBaseModel(key:string,data:ImutBase,defaultValue?:any){
+//     const result = data.get(key,defaultValue)
+//     if(result == null) return result;
+//     return result.toJS()
+// }
+
+// export function baseModel2Model(data:ImutBase){
+//     const ret = {
+//         id:getValFromBaseModel('id',data),
+//         name:getValFromBaseModel('name',data),
+//         displayName:getValFromBaseModel('displayName',data),
+//         // isRoot:getValFromBaseModel('isRoot',data),
+//         // isGroup:getValFromBaseModel('isGroup',data),
+//         type:getValFromBaseModel('type',data),
+//         style:getJSValFromBaseModel('style',data),
+//         props:getJSValFromBaseModel('props',data),
+//         extra:getJSValFromBaseModel('extra',data)
+//     }
+//     return ret;
+// }
+
+// export interface IRender{
+//     renderByDsl:(data:Model)=>void
+// }
+
+
 
 
 
@@ -343,3 +283,5 @@ export type ComponentMarketStore = {
 export type ModelVo = {
     [key:string]:any
 }
+
+

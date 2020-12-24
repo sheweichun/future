@@ -41,7 +41,6 @@ const COLOR_ALPHA_CLZ = `${CLASS_PREFIX}color-alpha`
 function props2State(props:ColorProps,state?:ColorState){
     const {modelData,schema} = props;
     let item = schema.get(modelData[0])
-    // console.log('item :',item);
     for(let i = 0 ; i < modelData.length; i++){
         const md = modelData[i];
         const curItem = schema.get(md);
@@ -244,12 +243,27 @@ export class Color extends React.Component<ColorProps,ColorState>{
             disabled
         })
     }
+    updateValue=(val:any)=>{
+        const {schema,mutation} = this.props;
+        const {expression,disabled,isExp} = this.state
+        schema.update(mutation,{
+            isExp,
+            expression,
+            value:val,
+            disabled
+        })
+    }
     render(){
         const {schema,renderVarInput,modelData,mutation} = this.props;
-        const {showColorPicker,data,hex,alpha,disabled,isExp} = this.state;
+        const {showColorPicker,data,hex,alpha,disabled,isExp,value,expression} = this.state;
         return <EdiItem title={schema.title} supportVar={!!renderVarInput} checked={isExp} onChange={this.onChangeExp}>
             { isExp ? <div className={COLOR_CLZ}>
-                {renderVarInput(modelData,schema,mutation)}
+                {renderVarInput(modelData,schema,mutation,{
+                    isExp,
+                    disabled,
+                    value,
+                    expression
+                })}
             </div> : <div className={COLOR_CLZ}>
                 <Checkbox style={{marginRight:'8px'}} checked={!disabled} onChange={this.toggleBackgroundColor}></Checkbox>
                 <div className={COLOR_TRIGGER_CLZ} >

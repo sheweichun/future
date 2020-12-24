@@ -42,7 +42,7 @@ export class SwitchAttr extends BaseComponent<SwitchProps,SwitchState>{
         const {props} = schema
         const {placeholder,...otherProps} = props || {}
         return <EdiItem title={schema.title} supportVar={!!renderVarInput} checked={value.isExp} onChange={this._onChangeExp}>
-            {value.isExp ? renderVarInput(modelData,schema,mutation) : 
+            {value.isExp ? renderVarInput(modelData,schema,mutation,value) : 
             <Switch className={Switch_CLZ} {...otherProps} placeholder={modelData.length > 1 ? '多个值' : placeholder} checked={value ? value.value ? true : false : false} onChange={this.onChangeValue}>
 
             </Switch>}

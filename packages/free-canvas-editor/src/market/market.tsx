@@ -1,4 +1,4 @@
-import {IPlugin,ICommander,IMutation, COMMANDERS,Model, CanvasEvent, IPluginOptions, OperationPos,MarketData} from 'free-canvas-shared'  
+import {IPlugin,ICommander,IMutation, COMMANDERS,Model, IViewModel, IPluginOptions, OperationPos,MarketData} from 'free-canvas-shared'  
 import * as React from 'react';
 import { Search } from '@alife/next';
 import {CLASS_PREFIX} from '../util/contant'
@@ -71,7 +71,7 @@ export class Market extends React.Component<MarketProps,MarketState> implements 
         this._commander = commander;
         this._getContentRect = options.getContentRect
     }
-    update(data:Model,selectNodes:Model[]):void{
+    update(data:Model,selectModels:Model[],vms:IViewModel[]):void{
 
     }
     destroy(){

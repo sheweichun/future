@@ -1,6 +1,6 @@
 import React from 'react'
 import {ThemeVar} from 'free-canvas-theme'
-import {IPlugin,ICommander,IMutation,Model,IPluginOptions} from 'free-canvas-shared'
+import {IPlugin,ICommander,IMutation,Model,IPluginOptions, IViewModel} from 'free-canvas-shared'
 import {PanelProps,PanelState,ModelIdMap} from './type'
 import {Tab, TabDataItem} from '../components/index'
 import {Attribute} from './attribute/index'
@@ -50,7 +50,7 @@ export class Panel extends React.Component<PanelProps,PanelState> implements IPl
     install(commander:ICommander,mutation:IMutation,options:IPluginOptions){
         this._mutation = mutation;
     }
-    update(data:Model,selectModels:Model[]):void{
+    update(data:Model,selectModels:Model[],vms:IViewModel[]):void{
         this.setState({
             modelData:selectModels
         })

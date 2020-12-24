@@ -44,7 +44,7 @@ export class TextAttr extends BaseComponent<TextProps,TextState>{
         const {props} = schema
         const {placeholder,...otherProps} = props || {}
         return <EdiItem title={schema.title} supportVar={!!renderVarInput} checked={value.isExp} onChange={this._onChangeExp}> 
-            {value.isExp ? renderVarInput(modelData,schema,mutation) : 
+            {value.isExp ? renderVarInput(modelData,schema,mutation,value) : 
             <Input className={Text_CLZ} {...otherProps} placeholder={modelData.length > 1 ? '多个值' : placeholder} value={value ? value.value : null} onChange={this.onChangeValue}>
 
             </Input>}
