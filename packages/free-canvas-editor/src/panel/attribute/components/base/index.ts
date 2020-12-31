@@ -36,9 +36,9 @@ export class BaseComponent<T extends AttrPropType,V extends AttrStateType> exten
         super(props)
     }
     protected _onChangeExp=(checked:boolean)=>{
-        const {schema,mutation} = this.props;
+        const {schema,mutation,modelData} = this.props;
         const {expression,disabled,value} = this.state.value
-        schema.update(mutation,{
+        schema.update(mutation,modelData,{
             isExp:checked,
             expression,
             value,

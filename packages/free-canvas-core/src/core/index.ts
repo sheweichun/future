@@ -43,7 +43,7 @@ const DEFAULT_OPTIONS:CoreOptions = {
 }
 
 function calcualteTransition(data:Model):{left:number,top:number,width:number,height:number}{
-    if(data == null || data.children == null) return {left:0,top:0,width:0,height:0}
+    if(data == null || data.children == null || data.children.length === 0) return {left:0,top:0,width:0,height:0}
     const boards:OperationPos[] = []
     data.children.map((item)=>{
         if(modelIsArtboard(item.type)){
@@ -103,13 +103,14 @@ export default class Core extends EventHandler implements IHookCore{
     private _data:Model
 
     private _guideManage:GuideManager
+    // private _modelDataGetter:()=>any
     // private _rect:OperationPos
-    private _rect:DOMRect
+    // private _rect:DOMRect
     margin:number = 20
     constructor(el: string,options?:CoreOptions){
         super();
         this._options = completeOptions(options,DEFAULT_OPTIONS);
-        const {data,type} = this._options.data;
+        const {data=[],type} = this._options.data || {};
         this._data = transformDsl(data,type);
         const {rulerBackgroundColor} = this._options;
         this.updateMakers = this.updateMakers.bind(this)
@@ -134,6 +135,18 @@ export default class Core extends EventHandler implements IHookCore{
         this.listen()
         this.draw()
     }
+    getMutation(){
+        return this._content.getMutation();
+    }
+    refreshAllViews(){
+        return this._content.refresh()
+    }
+    // setModelDataGetter(cb:()=>any){
+    //     this._modelDataGetter = cb;
+    // }
+    // getModelData(){
+    //     return this._modelDataGetter();
+    // }
     registerHookManager(hookManager:IHookManager){
         this._hookManager = hookManager
     }
@@ -175,8 +188,9 @@ export default class Core extends EventHandler implements IHookCore{
         // const contentDiv = document.createElement('div');
         initGlobalContextMenu(wrapDiv);
         this._content = new Content(div,_data,this._guideManage,{
-            createView:this._options.createView,
-            showTagName:this._options.showTagName,
+            // createView:this._options.createView,
+            // showTagName:this._options.showTagName,
+            renderEngine:this._options.renderEngine,
             eventEl:wrapDiv,
             scale:this._scale,
             // margin:this.margin,

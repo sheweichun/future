@@ -1,5 +1,5 @@
 
-import {Model,ModelType,ModelPos,ModelPosKeys} from '@pkg/free-canvas-shared';
+import {Model,ModelType,ModelPos,ModelPosKeys,ModelAttrValue} from '@pkg/free-canvas-shared';
 import {DX_TEMPLATE} from '../utils/contant'
 
 let curId = 1;
@@ -19,27 +19,27 @@ function nextId(){
 }
 
 function createStyleUnitTransform(name:string,unit = 'px'){
-    return function transformStyleUnit(val:string,ret:Model){
+    return function transformStyleUnit(val:ModelAttrValue,ret:Model){
+        const value = val.value.replace('ap',unit)
         //@ts-ignore
-        ret.props.style.value[name] = {
-            value:val.replace('ap',unit)
-        }
+        ret.props.style.value[name] = Object.assign({},val,{
+            value
+        })
     }
 }
 
 function createPositionUnitTransform(name:string){
-    return function transformStyleUnit(val:string,ret:Model){
+    return function transformStyleUnit(val:ModelAttrValue,ret:Model){
+        const value = parseInt(val.value)
         //@ts-ignore
-        ret.extra.position[name] = parseInt(val)
+        ret.extra.position[name] = value
     }
 }
 
 function createStyleTransform(name:string){
-    return function transformStyleUnit(val:string,ret:Model){
+    return function transformStyleUnit(val:ModelAttrValue,ret:Model){
         //@ts-ignore
-        ret.props.style.value[name] = {
-            value:val
-        }
+        ret.props.style.value[name] = val
     }
 }
 
@@ -74,18 +74,38 @@ type attributeTransformMapKeys = keyof (typeof attributeTransformMap)
 //     return ret.join(' ')
 // }
 
+
+const NAME_MAP:{[key:string]:boolean} = {
+    listData:true
+}
+
+function transformValue(val:string,name:string):ModelAttrValue{
+    if(val == null) return {value:val}
+    if(val.indexOf('@') === 0){
+        return {
+            value:null,
+            expression:val,
+            isExp:true,
+            onlyExp:NAME_MAP[name]
+        }
+    }
+    return {
+        value:val
+    }
+}
+
 function attributes2Obj(attrs:NamedNodeMap,model:Model){
     const ret:{[key:string]:any} = {};
     for(let i = 0 ;i < attrs.length; i++){
         const item:Attr = attrs.item(i);
         if(POSTION_NAME_MAP[item.name as POSTION_NAME]){
-            attributeTransformMap[item.name as attributeTransformMapKeys](item.value,model)
+            attributeTransformMap[item.name as attributeTransformMapKeys](
+                transformValue(item.value,item.name),
+                model
+            )
         }else{
-            ret[item.name] = {
-                value:item.value
-            }
+            ret[item.name] = transformValue(item.value,item.name)
         }
-        // ret.push(`${item.name}="${item.value}"`)
     }
     return ret
 }
@@ -108,10 +128,13 @@ function transform2Model(el:Element,modelType:ModelType){
         const attributes = el.attributes;
         for(let i = 0; i < attributes.length; i++){
             const item:Attr = attributes.item(i)
+            // console.log('name :',item.name);
             //@ts-ignore
             const transformer = attributeTransformMap[item.name]
             if(transformer){
-                transformer(item.value,model);
+                transformer(transformValue(item.value,item.name),model);
+            }else{
+                model.props[item.name] = transformValue(item.value,item.name)
             }
         }
         model.name = 'div'
@@ -222,16 +245,21 @@ function postion2Attribute(pos:ModelPos){
 
 
 export interface DXDSLAttribute{
-    [key:string]:{
-        value:string
-    }
+    [key:string]:ModelAttrValue
 }
 
 
 function attributes2Str(attrs:DXDSLAttribute){
     if(attrs == null) return ''
     return Object.keys(attrs).map((name)=>{
-        return `${name}="${attrs[name] ? attrs[name].value : ''}"`;
+        const item = attrs[name];
+        // console.log('item :',item);
+        let itemValue = '';
+        if(item){
+            const {isExp,expression,value} = item;
+            itemValue = (isExp ? expression : value) || ''
+        }
+        return `${name}="${itemValue}"`;
     }).join(' ')
 }
 

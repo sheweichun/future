@@ -144,10 +144,10 @@ export class Color extends React.Component<ColorProps,ColorState>{
         return this._triggerColorPickerEl
     }
     onChangeColor(data:ColorData,e?:MouseEvent){
-        const {schema,mutation} = this.props;
+        const {schema,mutation,modelData} = this.props;
         const {disabled,expression,isExp} = this.state
         const backgroundColor = data2BackgroundColor(data);
-        schema.update(mutation,{
+        schema.update(mutation,modelData,{
             value:backgroundColor,
             disabled,
             expression,
@@ -211,19 +211,19 @@ export class Color extends React.Component<ColorProps,ColorState>{
         this.changeAlpha(val);
     }
     toggleBackgroundColor=(checked:boolean)=>{
-        const {schema,mutation} = this.props;
+        const {schema,mutation,modelData} = this.props;
         const {data,isExp,expression,value} = this.state;
         // const backgroundColor = data2BackgroundColor(data);
         // const backgroundColor = hex ? data2BackgroundColor(data) : '';
         if(checked){
-            schema.update(mutation,{
+            schema.update(mutation,modelData,{
                 value:value,
                 isExp,
                 expression,
                 disabled:false
             });
         }else{
-            schema.update(mutation,{
+            schema.update(mutation,modelData,{
                 value:value,
                 disabled:true,
                 isExp,
@@ -232,11 +232,11 @@ export class Color extends React.Component<ColorProps,ColorState>{
         }
     }
     onChangeExp=(checked:boolean)=>{
-        const {schema,mutation} = this.props;
+        const {schema,mutation,modelData} = this.props;
         const {expression,disabled,value} = this.state
         // const backgroundColor = data2BackgroundColor(data);
         // const backgroundColor = hex ? data2BackgroundColor(data) : '';
-        schema.update(mutation,{
+        schema.update(mutation,modelData,{
             isExp:checked,
             expression,
             value:value,
@@ -244,9 +244,9 @@ export class Color extends React.Component<ColorProps,ColorState>{
         })
     }
     updateValue=(val:any)=>{
-        const {schema,mutation} = this.props;
+        const {schema,mutation,modelData} = this.props;
         const {expression,disabled,isExp} = this.state
-        schema.update(mutation,{
+        schema.update(mutation,modelData,{
             isExp,
             expression,
             value:val,

@@ -474,7 +474,7 @@ export class Operation implements IDisposable,IOperation{
         this.calculate(this._selectViewModels,isArtboard);
     }
     calculate(viewModels:IViewModel[],isArtboard:boolean){
-        const {showTagName} = this._options
+        const {renderEngine} = this._options
         if(viewModels == null || viewModels.length === 0){
             this._root.style.display = 'none'
             this._pos = null
@@ -495,8 +495,8 @@ export class Operation implements IDisposable,IOperation{
         if(viewModels.length === 1){
             const curMd = viewModels[0].getModel();
             if(!modelIsArtboard(curMd.get('type',''))){
-                if(showTagName){
-                    tagName = showTagName(baseModel2Model(curMd))
+                if(renderEngine){
+                    tagName = renderEngine.showTagName(baseModel2Model(curMd))
                 }else{
                     tagName = curMd.get('displayName','') || curMd.get('name','');
                 }

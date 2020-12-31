@@ -1,15 +1,20 @@
-import {IEditorHook,IHookCore,IHeadView, ModelVo} from '@pkg/free-canvas-shared'
+import {IEditorHook,IHookCore,IHeadView} from '@pkg/free-canvas-shared'
+import {ObjectSchema,SchemaChangeType} from '@pkg/free-canvas-json-editor'
 import React from 'react'
 import ReactDOM from 'react-dom'
 // import DataView from './dataView/index'
 import IconButton from './icon-button/index' 
 import JSONEditor from './json-editor/index'
 import {model2Template} from '../../transform/index'
+// import {schemaData,schemaValue,emptySchemaData,emptyValue} from '../../data/schema'
+import {schema,updateSchemaValue} from '../store/index'
 
   
 import s from './index.less';      
 
 
+
+// const objSchema = rootSchema2JSONSchema(schemaData,{});
 // const tabs = [
 //     { title: '视图', key: 'view' },
 //     { title: '数据', key: 'data'}
@@ -19,9 +24,11 @@ export class HeadView implements IHeadView{
     private _core:IHookCore
     private _canvasEl:HTMLElement
     private _dataViewRootEl:HTMLElement
+    private _contentEl:HTMLElement
     private _unmountCallback:()=>void
     private _dataOpenFlag:boolean = false
     private _refreshCallback:()=>void
+    private _schemaChangeFlag:boolean = false;
     constructor(){
         // console.log(3)
     }
@@ -31,9 +38,12 @@ export class HeadView implements IHeadView{
     setRefreshCallback(cb:()=>void){
         this._refreshCallback = cb;
     }
+    setContentEl(el:HTMLElement){
+        this._contentEl = el;
+    }
     showLeftPanel(render:(el:HTMLElement)=>(()=>void)){
-        const {_canvasEl} = this
-        if(_canvasEl == null) return
+        const {_contentEl} = this
+        if(_contentEl == null) return
         if(this._dataViewRootEl){
             if(this._unmountCallback){
                 this._unmountCallback();
@@ -42,19 +52,19 @@ export class HeadView implements IHeadView{
             const div = document.createElement('div')
             div.className = s.dxDataView
             this._dataViewRootEl = div
-            _canvasEl.appendChild(div)
+            _contentEl.appendChild(div)
         }
         this._unmountCallback = render(this._dataViewRootEl)
     }
     hideLeftPanel(){
-        const {_dataViewRootEl,_canvasEl} = this
-        if(_dataViewRootEl == null || _canvasEl == null) return
+        const {_dataViewRootEl,_contentEl} = this
+        if(_dataViewRootEl == null || _contentEl == null) return
         // ReactDOM.unmountComponentAtNode(_dataViewRootEl)
         if(this._unmountCallback){
             this._unmountCallback();
         }
         this._unmountCallback = null
-        _canvasEl.removeChild(_dataViewRootEl);
+        _contentEl.removeChild(_dataViewRootEl);
         this._dataViewRootEl = null;
     }
     setCore(core:IHookCore){
@@ -65,19 +75,18 @@ export class HeadView implements IHeadView{
         const data = _core.getStore().currentState.toJS().data
         console.log('_core.getStore().currentState :',model2Template(data))
     }
-    onChangeJson=(vo:ModelVo)=>{
-        console.log('vo :',vo);
+    onChangeJson=(val:ObjectSchema,type:SchemaChangeType)=>{
+        this._schemaChangeFlag = true
+        updateSchemaValue(val.toValue());
     }
     toggleDataPanel=()=>{
         // const {_dataOpenFlag} = this;
         this._dataOpenFlag = !this._dataOpenFlag;
         if(this._dataOpenFlag){
+            this._schemaChangeFlag = false;
             this.showLeftPanel((el:HTMLElement)=>{
-                ReactDOM.render(<JSONEditor defaultValue={{
-                    "text1":"test1",
-                    "text2":"test2",
-                    "text3":"test3"
-                }} onChange={this.onChangeJson}>
+                ReactDOM.render(<JSONEditor value={schema} onChange={this.onChangeJson}>
+                {/* ReactDOM.render(<JSONEditor data={emptySchemaData} value={emptyValue} onChange={this.onChangeJson}> */}
                 </JSONEditor>,el)
                 return ()=>{
                     el && ReactDOM.unmountComponentAtNode(el);
@@ -85,6 +94,10 @@ export class HeadView implements IHeadView{
             })
         }else{
             this.hideLeftPanel()
+            if(this._schemaChangeFlag){
+                this._core.refreshAllViews()
+            }
+            this._schemaChangeFlag = false;
         }
         this._refreshCallback();
     }

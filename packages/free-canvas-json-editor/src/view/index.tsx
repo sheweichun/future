@@ -1,17 +1,23 @@
 import React from 'react'
 import {JSON_ROOT_SCHEMA} from 'free-canvas-shared'
+import {Button, Input} from '@alife/next'
 import {ObjectSchema,createValueSchema,SchemaViewProps,SchemaViewState, ValueSchema, SchemaChangeType, SchemaOnChange, BaseComponent} from '../schema'
 import ObjectView from './object_view'
 import Operation from './operation'
 import {PREFIX, ROOT_CLASS} from './constant'
+import {ROOT_IDENTIFY} from './util'
+
+
+// export {ROOT_IDENTIFY} from './util'
 // import {} from './factory'
 
 
 
 
-function rootSchema2JSONSchema(data:JSON_ROOT_SCHEMA,value:any={},onChange:SchemaOnChange){
+export function rootSchema2JSONSchema(data:JSON_ROOT_SCHEMA,value:any={},onChange:SchemaOnChange){
     const {properties,required} = data;
-    const schema = new ObjectSchema(null,'','')
+    const schema = new ObjectSchema(null,'数据定义','数据')
+    // debugger;
     Object.keys(properties).forEach((name:string)=>{
         const item = properties[name]
         const val = value[name];
@@ -25,15 +31,19 @@ function rootSchema2JSONSchema(data:JSON_ROOT_SCHEMA,value:any={},onChange:Schem
 export class JSONSchemaView extends React.Component<SchemaViewProps,SchemaViewState>{
     hoverSchema:ValueSchema
     hoverName:string
-    private _scrollEl:HTMLElement
+    // private _scrollEl:HTMLElement
+    private _rootEl:HTMLElement
     private _onChangeFlag:boolean = false
     private _updateId:number
     constructor(props:SchemaViewProps){
         super(props)
-        const rootSchema = rootSchema2JSONSchema(props.data,props.value,this.onSchemaChange)
-        rootSchema.onChange(this.onSchemaChange)
+        const {value} = props;
+        value.onChange(this.onSchemaChange);
+        // const rootSchema = rootSchema2JSONSchema(data,value,this.onSchemaChange)
+        // onInitValue && onInitValue(rootSchema);
         this.state = {
-            schema:rootSchema
+            schema:props.value,
+            // value:'test'
         }
         this._onChangeFlag = true
     }
@@ -45,18 +55,24 @@ export class JSONSchemaView extends React.Component<SchemaViewProps,SchemaViewSt
         this._updateId = setTimeout(()=>{
             this.setState({})
         })
+        const {onValueChange} = this.props;
+        // if(type === SchemaChangeType.isData){
+        onValueChange && onValueChange(this.state.schema,type)
+        // }
     }
     onClickView=(value:ValueSchema,name:string,view:BaseComponent<any,any>)=>{
-        // console.log('!!! in onClickView');
+        if(name === ROOT_IDENTIFY) return;
         const {hoverSchema,hoverName} = this
         if(hoverSchema === value && name == hoverName) return;
         if(hoverSchema){
             hoverSchema.blur()
         }
-        value.focus()
         this.hoverSchema = value;
         this.hoverName = name
-        this.onSchemaChange(value,SchemaChangeType.isSchema)
+        if(value){
+            value.focus()
+            this.onSchemaChange(value,SchemaChangeType.isSchema)
+        }
     }
     onCopy=(value:ValueSchema,name:string,view:BaseComponent<any,any>)=>{
         const {parent} = value;
@@ -87,22 +103,40 @@ export class JSONSchemaView extends React.Component<SchemaViewProps,SchemaViewSt
             this.onSchemaChange(value,SchemaChangeType.isSchema)
         }
     }
-    initScroll=(el:HTMLElement)=>{
-        this._scrollEl = el;
+    // initScroll=(el:HTMLElement)=>{
+    //     this._scrollEl = el;
+    // }
+    initRootEl=(el:HTMLElement)=>{
+        this._rootEl = el;
+    }
+    getRootEl=()=>{
+        return this._rootEl
     }
     render(){
         const {hoverSchema,hoverName} = this;
+        const {className,style} = this.props;
         const {schema} = this.state;
-        return <div className={ROOT_CLASS}>
-            <div style={{flex:1,overflow:'auto'}} ref={this.initScroll}>
-                <ObjectView name="" value={schema} style={{flex:1}} 
+        return <div className={`${ROOT_CLASS} ${className || ''}`} style={style} ref={this.initRootEl}>
+            {/* <div>
+                <Button type="primary" onClick={()=>{
+                    console.log('schema :',)
+                    console.log('value :',schema.toValue())
+                }}>导出</Button>
+            </div> */}
+            <div style={{flex:1,overflow:'auto'}} >
+                <ObjectView name={ROOT_IDENTIFY} value={schema} style={{flex:1}} 
                     onClickView={this.onClickView}
                     onCopy={this.onCopy}
+                    isRequired={false}
+                    noIcon
                     onDelete={this.onDelete}
+                    getRootEl={this.getRootEl}
+                    // onlyValue
                 >
                 </ObjectView>
             </div>
             <Operation onChangeHover={this.onClickView} data={hoverSchema} name={hoverName}></Operation>
+            
         </div>
     }
 }

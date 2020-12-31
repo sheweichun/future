@@ -11,7 +11,7 @@ export interface StringViewProps extends BaseProps {
 }
 
 export type StringViewState = {
-
+    
 }
 
 
@@ -22,7 +22,7 @@ export default class StringView extends BaseComponent<StringViewProps,StringView
     onChange=(val:string)=>{
         const {value} = this.props;
         value.setValue(val)
-        // this.setState({})
+        this.setState({})
     }
     onItemClick=()=>{
         const {onClickView,value,name} = this.props;

@@ -2,11 +2,12 @@
 
 
 import React from 'react';
-import {ArraySchema, ValueSchema,BaseProps,BaseComponent} from '../schema'
+import {ArraySchema, ValueSchema,BaseProps,BaseComponent, createValueSchema} from '../schema'
 import {Table,Button} from '@alife/next'
 import Item from './item'
 import Icon from './icon'
 import { renderView } from './util';
+import { JSON_PROPERTY_TYPES } from 'free-canvas-shared';
 
 export interface ArrayViewProps extends BaseProps {
     value:ArraySchema,
@@ -77,13 +78,41 @@ export default class ArrayView extends BaseComponent<ArrayViewProps,ArrayViewSta
         const {value} = this.props;
         value.addItem();
         value.triggerChange()
-        // this.setState({})
+    }
+    onAddItemProperty=(e:React.MouseEvent)=>{
+        const {value,onClickView} = this.props;
+        const newSchema = createValueSchema(value,{
+            type:JSON_PROPERTY_TYPES.string,
+            title:'测试',
+            description:'test',
+        },null,value.getChangeCallback())
+        const name = value.getCopyPropertiName('column')
+        value.addItemProperty(name,newSchema,true);
+        onClickView(newSchema,name,null)
+        e.stopPropagation();
     }
     renderCell=(colName:string,schema:ValueSchema)=>{
         // const {} = this.props
         // console.log('name :',name);
         const {value,onlyChild,name,...others} = this.props;
-        return renderView(schema,colName,{onlyChild:true,...others})
+        return renderView(schema,colName,{onlyChild:true,...others,isRequired:value.isRequired(name)})
+    }
+    onDeleteClick(name:string,e:React.MouseEvent){
+        const {value,onClickView,name:curName} = this.props;
+        value.removeItemProperty(name)
+        onClickView(value,curName,this);
+        e.stopPropagation()
+    }
+    onCopyClick(name:string,e:React.MouseEvent){
+        const {value,onClickView} = this.props;
+        const properties = value.getObjectSchema()
+        const curSchema = properties[name]
+        if(!curSchema) return
+        const newSchema = curSchema.clone(true)
+        const newName = value.getCopyPropertiName(name);
+        value.addItemProperty(newName,newSchema,value.isRequired(name))
+        onClickView(newSchema,newName,null);
+        e.stopPropagation()
     }
     render(){
         const {value,name,onlyChild,...others} = this.props;
@@ -95,7 +124,7 @@ export default class ArrayView extends BaseComponent<ArrayViewProps,ArrayViewSta
                     name={name} 
                     view={this}
                     onClick={this.onItemClick} 
-                    action={<Icon style={{cursor:'pointer'}} type="add" onClick={this.onAdd}></Icon>}
+                    action={<Icon style={{cursor:'pointer'}} type="add" onClick={this.onAddItemProperty}></Icon>}
                     {...others}
                     onlyChild={onlyChild}>
             <div style={{width:'100%'}}>
@@ -103,17 +132,36 @@ export default class ArrayView extends BaseComponent<ArrayViewProps,ArrayViewSta
                     {
                         propKeys && propKeys.map((name:string,key:number)=>{
                             const schema = properties[name];
-                            return <Table.Column key={key} title={<div style={{padding:'8px 12px',cursor:'pointer',background:schema.focused ? 'var(--HIGHLIGHT_BACKGROUND)' : ''}} 
-                            onClick={this.onColClick.bind(this,schema,name,properties[name])}>
-                                {schema.getTitle()+`(${name})`}
-                            </div>} dataIndex={name} cell={this.renderCell.bind(this,name)}></Table.Column>
+                            return <Table.Column 
+                            key={key} 
+                            title={<div 
+                                    style={{padding:'8px 12px',cursor:'pointer',background:schema.focused ? 'var(--HIGHLIGHT_BACKGROUND)' : ''}} 
+                                    onClick={this.onColClick.bind(this,schema,name,properties[name])}>
+                                    <div style={{width:'100%',height:'100%',display:'flex',justifyContent:'space-between'}}>
+                                        <div>
+                                            {value.isRequired(name) ? <span style={{color:'red',marginRight:'4px',position: 'relative',top: '2px'}}>*</span>:''}
+                                            <span>{schema.getTitle()+`(${name})`}</span>
+                                        </div>
+                                        {!others.onlyValue && <div>
+                                            <Icon style={{marginLeft:'6px',cursor:'pointer'}} type="copy" onClick={this.onCopyClick.bind(this,name)}></Icon>
+                                            <Icon style={{marginLeft:'6px',cursor:'pointer'}} type="delete" onClick={this.onDeleteClick.bind(this,name)}></Icon>
+                                        </div>}
+                                    </div>
+                                    
+                                </div>
+                            } dataIndex={name} cell={this.renderCell.bind(this,name)}></Table.Column>
                         })
                     }
-                    {!others.onlyValue &&  <Table.Column width={115} title={<div style={{padding:'8px 12px'}}>操作</div>} cell={this.renderOperation}></Table.Column>}
+                    <Table.Column width={115} title={<div style={{padding:'8px 12px'}}>操作</div>} cell={this.renderOperation}></Table.Column>
                 </Table>
-                {/* <div style={{cursor:'pointer',margin:'0px 4px',padding:'4px 0',textAlign:'center',background:'var(--PRIMARY_BACKGROUND)',color:'var(--ACTIVE_TEXT_COLOR)'}}>
-                    新增
-                </div> */}
+                <div onClick={this.onAdd} style={{
+                    cursor:'pointer',
+                    margin:'0px 4px',
+                    padding:'6px 0',
+                    textAlign:'center',
+                    background:'var(--PRIMARY_BACKGROUND)',color:'var(--ACTIVE_TEXT_COLOR)'}}>
+                    新增一行
+                </div>
             </div>
         </Item>
     }

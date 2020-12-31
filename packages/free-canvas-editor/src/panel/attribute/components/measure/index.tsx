@@ -69,8 +69,8 @@ export class Measure extends React.Component<MeasureProps,MeasureState>{
         })
     }
     onChangeValue(data:any){
-        const {schema,mutation} = this.props;
-        schema.update(mutation,data)
+        const {schema,mutation,modelData} = this.props;
+        schema.update(mutation,modelData,data)
     }
     static getDerivedStateFromProps(nextProps:MeasureProps,prevState:MeasureState){
         const {modelData,schema} = nextProps;

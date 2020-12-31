@@ -12,7 +12,7 @@ const ALL_SCHEMA:{[key in ModelPropComponentType]?:ModelPropSchema} ={
         get(model:Model){
             return model.extra.position
         },
-        update(mutation:IMutation,data:IPos){
+        update(mutation:IMutation,modelData:Model[],data:IPos){
             mutation.updateModelPosition(data);
         }
     },
@@ -40,7 +40,7 @@ const ALL_SCHEMA:{[key in ModelPropComponentType]?:ModelPropSchema} ={
                 disabled:false
             }
         },
-        update(mutation:IMutation,data:string){
+        update(mutation:IMutation,modelData:Model[],data:string){
             mutation.updateModelStyle({
                 backgroundColor:data
             });

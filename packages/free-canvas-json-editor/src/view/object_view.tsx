@@ -6,7 +6,7 @@ import React from 'react';
 // import {Balloon} from '@alife/next'
 import {renderView} from './util'
 import Icon from './icon'
-import {ObjectSchema, ValueSchema,BaseProps,BaseComponent, createValueSchema, StringSchema} from '../schema'
+import {ObjectSchema, ValueSchema,BaseProps,BaseComponent, createValueSchema} from '../schema'
 import {PREFIX} from './constant'
 import Item from './item'
 import { JSON_PROPERTY_TYPES } from 'free-canvas-shared';
@@ -14,6 +14,7 @@ import { JSON_PROPERTY_TYPES } from 'free-canvas-shared';
 export interface ObjectViewProps extends BaseProps {
     value:ObjectSchema
     style?:React.CSSProperties 
+    noIcon?:boolean
 }
 
 export type ObjectViewState = {
@@ -37,28 +38,30 @@ export default class ObjectView extends BaseComponent<ObjectViewProps,ObjectView
         const {value,onClickView} = this.props;
         const newSchema = createValueSchema(value,{
             type:JSON_PROPERTY_TYPES.string,
-            title:'test',
+            title:'测试',
             description:'test',
         },null,value.getChangeCallback())
         newSchema.focus()
         const newName = value.getCopyPropertiName('test')
-        value.addProperty(newName,newSchema,false);
+        value.addProperty(newName,newSchema,true);
         onClickView(newSchema,newName,null);
     }
     render(){
-        const {value,style,onlyChild,onClickView,name,...others} = this.props;
+        const {value,style,onlyChild,onClickView,name,noIcon,...others} = this.props;
         const properties = value.getProperties();
-        return <Item view={this} getRoot={this.initRoot} name={name} onlyChild={onlyChild} 
+        const propKeys = Object.keys(properties);
+        return <Item noIcon={noIcon} view={this} getRoot={this.initRoot} name={name} onlyChild={onlyChild} 
             action={<Icon style={{cursor:'pointer'}} type="add" onClick={this.onAdd}></Icon>}
             onClick={this.onItemClick} data={value} {...others}>
             <div className={OBJECT_VIEW_CLASS} style={style}>
                 {
-                    Object.keys(properties).map((name:string)=>{
+                    propKeys.map((name:string)=>{
                         const item:ValueSchema = properties[name];
                         // const des = item.getDescription() || ''
                         return renderView(item,name,{
                             onClickView,
-                            ...others
+                            ...others,
+                            isRequired:value.isRequired(name)
                         })
                     })
                 }

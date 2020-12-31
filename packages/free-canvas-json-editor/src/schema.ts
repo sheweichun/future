@@ -4,7 +4,6 @@ import {JSON_PROPERTY_TYPE,
     JSON_PROPERTY_VALUE_TYPE,
     JSON_PROPERTY_KEY,
     JSON_ARRAY_SCHEMA,
-    JSON_ARRAY_ITEMS_SCHEMA,
     JSON_NUMBER_SCHEMA,
     JSON_BOOLEAN_SCHEMA, 
     JSON_ROOT_SCHEMA,
@@ -13,12 +12,18 @@ import {JSON_PROPERTY_TYPE,
 // import { ObjectSchema } from './factory';
 
 export interface SchemaViewProps {
-    data:JSON_ROOT_SCHEMA
-    value:any
+    // data:JSON_ROOT_SCHEMA
+    className?:string
+    style?:React.CSSProperties,
+    onValueChange?:(val:ValueSchema,type:SchemaChangeType)=>void
+    value:ObjectSchema
+    // onInitValue?:(val:ValueSchema)=>void
+    // value:any
 }
 
 export interface SchemaViewState {
     schema:ObjectSchema,
+    // value:string
     // hoverSchema:ValueSchema
     // hoverName:string
 }
@@ -104,14 +109,12 @@ export class ValueSchema{
     }
     changeRequired(name:string,required:boolean){
         const {parent} = this
-        if(parent instanceof ObjectSchema){
-            const pSchema = parent as ObjectSchema;
-            pSchema.changeRequired(name,required)
-        }else if(parent instanceof ArraySchema){
-            const pSchema = parent as ArraySchema;
-            pSchema.changeRequired(name,required)
+        // console.log('changeRequired :',parent);
+        if(parent instanceof ObjectSchema || parent instanceof ArraySchema){
+            const pSchema = parent as ObjectSchema | ArraySchema;
+            pSchema.setRequired(name,required)
+            this.triggerChange()
         }
-        this.triggerChange()
     }
     changeName(prevName:string,newName:string){
         const {parent} = this;
@@ -176,6 +179,8 @@ export class ValueSchema{
         this.triggerChange(SchemaChangeType.isData)
         // this._onChangeCallback && this._onChangeCallback(this)
     }
+    toValue():any{
+    }
     toSchema(){
         const {_type,_description,_title,_format} = this
         const ret:any = {}
@@ -210,9 +215,12 @@ export class StringSchema extends ValueSchema{
         }else{
             this._value = val + '';
         }
-        super.setValue(val)
+        super.setValue(this._value)
     }
     getValue(){
+        return this._value
+    }
+    toValue():string{
         return this._value
     }
     clone(flag:boolean=false){
@@ -233,14 +241,20 @@ export class NumberSchema extends ValueSchema{
         return this._value
     }
     setValue(val:any){
-        if(val == null){ 
+        if(val == null || val == ''){ 
             this._value = null
         }else{
             const numVal = Number(val);
-            if(isNaN(val)) return
-            this._value = numVal
+            if(!isNaN(val)){
+                this._value = numVal
+            }
+            
         }
-        super.setValue(val)
+        // console.log('val :',this._value);
+        super.setValue(this._value)
+    }
+    toValue():number{
+        return this._value
     }
     clone(flag:boolean=false){
         const {parent,_title,_description,_format,_value} = this;
@@ -267,7 +281,10 @@ export class BooleanSchema extends ValueSchema{
         }else{
             this._value = Boolean(val);
         }
-        super.setValue(val)
+        super.setValue(this._value)
+    }
+    toValue():boolean{
+        return this._value
     }
     clone(flag:boolean=false){
         const {_title,_description,_format,_value,parent} = this;
@@ -336,6 +353,15 @@ export class ObjectSchema extends ValueSchema{
     getValue(){
         return this._value
     }
+    onChange(cb:SchemaOnChange){
+        const {_properties} = this;
+        const propKeys = Object.keys(_properties);
+        propKeys.forEach((name)=>{
+            const item = _properties[name];
+            item.onChange(cb)
+        })
+        this._onChangeCallback = cb;
+    }
     hasPropertiName(keyName:string){
         return !!this._properties[keyName]
     }
@@ -363,7 +389,7 @@ export class ObjectSchema extends ValueSchema{
         }
         this.triggerChange()
     }
-    changeRequired(keyName:string,required:boolean=false){
+    setRequired(keyName:string,required:boolean=false){
         const {_requiredMap,_properties} = this
         if(!_properties[keyName]) return;
         if(required){
@@ -387,13 +413,13 @@ export class ObjectSchema extends ValueSchema{
         }
         this.triggerChange()
     }
-    setRequired(keyName:string,required:boolean){
-        if(required){
-            this._requiredMap[keyName] = true
-        }else{
-            delete this._requiredMap[keyName]
-        }
-    }
+    // setRequired(keyName:string,required:boolean){
+    //     if(required){
+    //         this._requiredMap[keyName] = true
+    //     }else{
+    //         delete this._requiredMap[keyName]
+    //     }
+    // }
     removeProperty(keyName:JSON_PROPERTY_KEY){
         this._properties[keyName] = null;
         delete this._properties[keyName]
@@ -424,6 +450,14 @@ export class ObjectSchema extends ValueSchema{
         schema._onChangeCallback = this._onChangeCallback
         flag && schema.setValue(_value && JSON.parse(JSON.stringify(_value)))
         return schema
+    }
+    toValue():any{
+        const {_properties} = this;
+        return Object.keys(_properties).reduce((ret,name:string)=>{
+            //@ts-ignore
+            ret[name] = _properties[name].toValue()
+            return ret;
+        },{})
     }
     toSchema(){
         const baseVal = super.toSchema();
@@ -457,6 +491,22 @@ export class ArraySchema extends ValueSchema{
     getValue(){
         return this._value
     }
+    onChange(cb:SchemaOnChange){
+        const {_objectSchema,_items} = this;
+        const propKeys = Object.keys(_objectSchema);
+        propKeys.forEach((name)=>{
+            const item = _objectSchema[name];
+            item.onChange(cb)
+        })
+        _items.forEach((item)=>{
+            const itemKeys = Object.keys(item)
+            itemKeys.forEach((name)=>{
+                const item = _objectSchema[name];
+                item.onChange(cb)
+            })
+        })
+        this._onChangeCallback = cb;
+    }
     clone(flag:boolean=false){
         const {_title,_description,_objectSchema,_requiredMap,_value,parent} = this;
         const schema = new ArraySchema(parent,_title,_description)
@@ -471,7 +521,7 @@ export class ArraySchema extends ValueSchema{
     getObjectSchema(){
         return this._objectSchema
     }
-    changeRequired(keyName:string,required:boolean=false){
+    setRequired(keyName:string,required:boolean=false){
         const {_requiredMap,_objectSchema} = this
         if(!_objectSchema[keyName]) return;
         if(required){
@@ -479,6 +529,15 @@ export class ArraySchema extends ValueSchema{
         }else{
             delete this._requiredMap[keyName]
         }
+    }
+    getCopyPropertiName(keyName:string){
+        const {_objectSchema} = this;
+        let name = keyName;
+        let index = 1;
+        while(_objectSchema[name]){
+            name = `${keyName}${index++}`
+        }
+        return name
     }
     addItemProperty(keyName:string,value:ValueSchema,required?:boolean){
         const { _items } = this;
@@ -520,6 +579,7 @@ export class ArraySchema extends ValueSchema{
         _items.forEach((item)=>{
             delete item[keyName]
         })
+        delete this._requiredMap[keyName]
         this.triggerChange()
     }
     setValue(value:Array<any>){
@@ -547,6 +607,9 @@ export class ArraySchema extends ValueSchema{
             ret[keyName] = value.clone()
             return ret;
         },{}))
+        if(this.maxItems < this._items.length){
+            this.maxItems = this._items.length
+        }
         this.triggerChange()
     }
     removeItem(index:number){
@@ -584,6 +647,26 @@ export class ArraySchema extends ValueSchema{
         _items.splice(index, 0 , newTarget)
         this.triggerChange()
     }
+    toValue():any{
+        const {_items} = this;
+        return _items.map((item)=>{
+            return Object.keys(item).reduce((ret,name)=>{
+                //@ts-ignore
+                ret[name] = item[name].toValue();
+                return ret;
+            },{})
+        })
+    }
+    isRequired(keyName:string){
+        return !!this._requiredMap[keyName]
+    }
+    // setRequired(keyName:string,required:boolean){
+    //     if(required){
+    //         this._requiredMap[keyName] = true
+    //     }else{
+    //         delete this._requiredMap[keyName]
+    //     }
+    // }
     toSchema(){
         const baseVal = super.toSchema();
         const {minItems,maxItems,_objectSchema,_requiredMap} = this;
@@ -612,6 +695,8 @@ export interface BaseProps {
     onClickView?:OnClickView
     onCopy?:OnClickView
     onDelete?:OnClickView
+    getRootEl?:()=>HTMLElement
+    isRequired?:boolean
     name:string
     value?:any
     onlyValue?:boolean

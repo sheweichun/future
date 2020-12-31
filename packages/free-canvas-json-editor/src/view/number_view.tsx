@@ -29,8 +29,9 @@ export default class NumberView extends BaseComponent<NumberViewProps,NumberView
     }
     render(){
         const {value,name,onlyChild,...others} = this.props;
+        const val = value.getValue();
         return <Item view={this} getRoot={this.initRoot} data={value} name={name} onClick={this.onItemClick} onlyChild={onlyChild} {...others}>
-            <Input style={{width:'100%'}} value={value.getValue()} onChange={this.onChange}></Input>
+            <Input style={{width:'100%'}} value={val == null ? '' : val} onChange={this.onChange}></Input>
         </Item>
     }
 }

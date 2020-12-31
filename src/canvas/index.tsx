@@ -1,8 +1,8 @@
 import FreeCanvas from '@pkg/free-canvas-core';
-// import {createView} from '@pkg/free-canvas-fusion-render';
-import {createView,showTagName} from '@pkg/free-canvas-dx';
+// import {createViewGenerator,showTagName} from '@pkg/free-canvas-dx';
+import {DXRenderEngine} from '@pkg/free-canvas-dx';
 import {initTheme} from '@pkg/free-canvas-theme'
-
+// import {getSchemaValue} from '../editor/dx-editor/view/store/schema'
 import ModelData from './data'
 const imgCookData = require('./schema');
 const imgCookData1 = require('./schema1');
@@ -14,21 +14,28 @@ const imgCookData2 = require('./schema2');
     
 //     cb(canvas)
 // }
+// @ts-ignore
+const {$$onCanvasLoaded,$$getSchemaValue} = window.top;
+const dxRenderEngine = new DXRenderEngine({
+    getData:$$getSchemaValue
+})
 initTheme();
 const canvas = FreeCanvas('canvas',{
-    createView,
-    showTagName,
-    data:{
-        data:ModelData,
-        type:0
-        // data:[imgCookData,imgCookData1,imgCookData2],
-        // type:1
-        // data:[imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2],
-        // type:1
-    }
+    renderEngine:dxRenderEngine 
+    // createView:createViewGenerator($$getSchemaValue),
+    // showTagName,
+    // data:{
+    //     data:ModelData,
+    //     type:0
+    // }
 });
 // @ts-ignore
-const {$$onCanvasLoaded} = window.top;
 if($$onCanvasLoaded){
     $$onCanvasLoaded(canvas);
 }
+
+
+    // data:[imgCookData,imgCookData1,imgCookData2],
+        // type:1
+        // data:[imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2,imgCookData,imgCookData1,imgCookData2],
+        // type:1

@@ -15,8 +15,6 @@
   },
   "devDependencies": {},
   "dependencies": {
-    "@ali/dinamic": "^4.1.18",
-    "@ali/dinamic-views": "^4.1.18",
     "free-canvas-shared": "0.0.1"
   }
 }

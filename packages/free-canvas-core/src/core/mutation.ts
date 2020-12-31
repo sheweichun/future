@@ -188,10 +188,17 @@ export class Mutation extends EventHandler implements IMutation{
     private _viewModelMap:Map<string,IViewModel> = new Map()
     private _operation:IOperation
     private _copyTarget:IViewModel[] 
+    private _rootVm:IViewModel
     // private _lastEnter:EventTarget;
     constructor(private _el:HTMLElement,private _store:Store,private _commander:Commander,private _options:MutationOptions){
         super()
         this.listen();
+    }
+    setRootViewModel(vm:IViewModel){
+        this._rootVm = vm
+    }
+    refreshAllViews(){
+        this._rootVm && this._rootVm.update(this.getDSLData());
     }
     listen(){
         // this.onDragOver = this.onDragOver.bind(this)
@@ -1138,6 +1145,9 @@ export class Mutation extends EventHandler implements IMutation{
         this.transition(()=>{
             vms.forEach((vm)=>{
                 vm.getModel().updateIn(['extra','position'],null,(oldPos:BaseModel)=>{
+                    if(oldPos == null){
+                        return WrapData(data)
+                    }
                     //@ts-ignore
                     return oldPos.merge(WrapData(data))
                 })
@@ -1149,6 +1159,9 @@ export class Mutation extends EventHandler implements IMutation{
         this.transition(()=>{
             vms.forEach((vm)=>{
                 vm.getModel().updateIn(['props','style','value'],null,(oldVal:BaseModel)=>{
+                    if(oldVal == null){
+                        return WrapData(data)
+                    }
                     //@ts-ignore
                     return oldVal.merge(WrapData(data))
                 })
@@ -1163,6 +1176,9 @@ export class Mutation extends EventHandler implements IMutation{
         this.transition(()=>{
             vms.forEach((vm)=>{
                 vm.getModel().updateIn(['props',...keys],null,(oldVal:BaseModel)=>{
+                    if(oldVal == null){
+                        return WrapData(data)
+                    }
                     //@ts-ignore
                     return oldVal.merge(WrapData(data))
                 })

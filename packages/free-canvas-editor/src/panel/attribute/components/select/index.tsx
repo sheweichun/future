@@ -41,8 +41,8 @@ export class SelectAttr extends BaseComponent<SelectProps,SelectState>{
     }
     static getDerivedStateFromProps = getDerivedStateFromProps
     onChangeValue(value:any,actionType:string,item:any){
-        const {schema,mutation} = this.props;
-        schema.update(mutation,Object.assign({},this.state.value,{
+        const {schema,mutation,modelData} = this.props;
+        schema.update(mutation,modelData,Object.assign({},this.state.value,{
             value:value
         }))
     }

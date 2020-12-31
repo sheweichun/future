@@ -33,8 +33,8 @@ export class TextAttr extends BaseComponent<TextProps,TextState>{
     }
     static getDerivedStateFromProps = getDerivedStateFromProps
     onChangeValue(value:any){
-        const {schema,mutation} = this.props;
-        schema.update(mutation,Object.assign({},this.state.value,{
+        const {schema,mutation,modelData} = this.props;
+        schema.update(mutation,modelData,Object.assign({},this.state.value,{
             value:value
         }))
     }
@@ -43,7 +43,8 @@ export class TextAttr extends BaseComponent<TextProps,TextState>{
         const {schema,modelData,renderVarInput,mutation} = this.props
         const {props} = schema
         const {placeholder,...otherProps} = props || {}
-        return <EdiItem title={schema.title} supportVar={!!renderVarInput} checked={value.isExp} onChange={this._onChangeExp}> 
+        // console.log('value :',value);
+        return <EdiItem title={schema.title} supportVar={!!renderVarInput} onlyExp={value.onlyExp} checked={value.isExp} onChange={this._onChangeExp}> 
             {value.isExp ? renderVarInput(modelData,schema,mutation,value) : 
             <Input className={Text_CLZ} {...otherProps} placeholder={modelData.length > 1 ? '多个值' : placeholder} value={value ? value.value : null} onChange={this.onChangeValue}>
 

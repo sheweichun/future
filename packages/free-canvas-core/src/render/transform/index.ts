@@ -1,11 +1,11 @@
 
-import {Model,DSLType,ImgCookDsl} from 'free-canvas-shared'
+import {Model,DSLType,ImgCookDsl, ModelType} from 'free-canvas-shared'
 import {transformImgCookDsl} from './imgcook/index'
 
 
 export function transformDsl(data:(Model | ImgCookDsl)[],type:DSLType):Model{
     return {
-        type:0,
+        type:ModelType.isRoot,
         extra:{},
         props:{style:{value:{}}},
         // isGroup:false,

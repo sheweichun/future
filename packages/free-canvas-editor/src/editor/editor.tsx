@@ -119,9 +119,14 @@ export function createEditor(props:EditorProps){
                 setComStore(result)
             })
         },[])
+        function initContentEl(el:HTMLElement){
+            if(el && head){
+                head.setContentEl(el)
+            }
+        }
         return <div className={`${ROOT_CLASS}`}>
             <HeaderComponent headView={head}></HeaderComponent>
-            <div className={`${CLASS_PREFIX}content`}>
+            <div className={`${CLASS_PREFIX}content`} ref={initContentEl}>
                 <AsideComponent>
                     <MarketComponent componentData={comStore.data} ref={marketRef}  previewEl={previewEl} maskEl={maskEl} runTask={runTask}/>
                     <TreeComponent style={{height:'500px'}} runTask={runTask} showTagName={showTagName}></TreeComponent>

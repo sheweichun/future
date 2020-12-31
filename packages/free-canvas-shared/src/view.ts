@@ -2,15 +2,18 @@ import {ObjectStyleDeclaration,ICommander} from './type';
 // import {Model,ModelProps,ObjectStyleDeclaration,ImutBase as ImutBase,ModelType,ICommander} from './model';
 import {ImgCookDsl} from './imgcook'
 import {IPos,OperationPos} from './pos'
+import { IRenderEngine } from './render';
 export interface ViewOptions{
-    
+    // localData?:any
+    getLocalData?:()=>any
 }
 
 
 export interface ViewModelOptions extends MovableOptions{
     commander?:ICommander,
     artboardId?:string,
-    createView?:CreateView
+    renderEngine:IRenderEngine
+    localData?:any
     addViewModel:(viewModel:IViewModel)=>void
     removeViewModel:(ViewModel:IViewModel)=>void
     getRootViewModel:()=>IViewModel
@@ -37,12 +40,12 @@ export interface MovableOptions extends ViewOptions{
     // isRoot?:boolean
     // isGroup?:boolean
     modelType:ModelType
+    isIterator?:boolean
     isChild?:boolean
-    createView?:CreateView
+    renderEngine?:IRenderEngine
     isOperating:()=>boolean
     vm:IViewModel
 }
-
 
 export interface IView<T>{
     // model:Model
@@ -55,13 +58,12 @@ export interface IView<T>{
     updateStyle(width:number,height:number):void
     destroy():void
 } 
-export type CreateView = (data:Model,options?:ViewOptions)=>IView<Model>
-export type ShowTagName = (md:Model)=>string
+
 
 export class View implements IView<Model>{
     el:HTMLElement
-    private _options:ViewOptions
-    constructor(private _model:Model,options?:ViewOptions){
+    protected _options:ViewOptions
+    constructor(protected _model:Model,options?:ViewOptions){
         this._options = options
     }
     render(){
@@ -77,43 +79,6 @@ export class View implements IView<Model>{
         elStyle.width = `${width}px`
         elStyle.height = `${height}px`
     }
-    // updateAttribute(beforePropSchemas:ModelPropSchemas = {},beforeStyle:ObjectStyleDeclaration={}){
-    //     const {el ,_model} = this;
-    //     const {propSchemas,style} = _model
-    //     if(beforePropSchemas){
-    //         Object.keys(beforePropSchemas).forEach((key)=>{
-    //             if(!propSchemas[key]){
-    //                 propSchemas[key] = null
-    //             }
-    //         })
-    //     }
-    //     if(beforeStyle){
-    //         Object.keys(beforeStyle).forEach((key:any)=>{
-    //             if(!style[key]){
-    //                 style[key] = ''
-    //             }
-    //         })
-    //     }
-    //     propSchemas && Object.keys(propSchemas).forEach((key)=>{
-    //         const item = propSchemas[key];
-    //         if(key === 'style') return;
-    //         if(key === 'children'){
-    //             el.innerHTML = item.value;
-    //             return;
-    //         }
-    //         if(item == null){
-    //             el.removeAttribute(key);
-    //         }else{
-    //             el.setAttribute(key,item.value);
-    //         }
-    //     })
-    //     if(style){
-    //         Object.keys(style).forEach(styleName => {
-    //             //@ts-ignore
-    //             el.style[styleName] = style[styleName];
-    //         });
-    //     }
-    // }
     updateAttribute(beforeProps:ModelProps={},beforeStyle:{value:ObjectStyleDeclaration}={value:{}}){
         const {el ,_model} = this;
         const {props} = _model
@@ -156,11 +121,6 @@ export class View implements IView<Model>{
     getRoot(){
         return this.el;
     }
-    // appendChild(view:IView<Model>){
-    //     if(view == null) return;
-    //     this.el.appendChild(view.getRoot());
-    // }
-
     update(model:Model){
         const {props} = this._model;
         this._model = model
@@ -186,15 +146,19 @@ export interface IViewModelCollection{
     didMount:()=>void
     didUpdate:()=>void
     size:number
-    update:(data:any)=>void
+    update:(model:ImutBase,forceUpdate?:boolean)=>void
+    updateLocalData(data:any):void
     appendViewModel(vm:IViewModel):void
 }
 
 export interface IViewModel{
     modelType:ModelType
     children:IViewModelCollection
+    updateLocalData(data:any):void
+    getNewLocalData():any
     getPrevParent():IViewModel
     mark(flag:boolean):void
+    getListData():any
     getChildOptions():ViewModelOptions
     resetPrevParent():void
     getModel():ImutBase
@@ -205,7 +169,7 @@ export interface IViewModel{
     getTypeParent(type:ModelType):IViewModel
     changeRect(target:string,diffx:number,diffy:number,onlyPos?:boolean):void
     didMount():void
-    update(model:ImutBase):void
+    update(model:ImutBase,forceUpdate?:boolean):void
     isChildren(vm:IViewModel):boolean
     getRect():OperationPos
     updateRect(pos:IPos):void
@@ -214,6 +178,7 @@ export interface IViewModel{
     // setRect(pos:OperationPos):void
     getAbsRect():OperationPos
     getView():IMovable
+    getRootEl():HTMLElement
     remove():void
     separate():void
     removeChildViewModel(vm:IViewModel):void
@@ -236,6 +201,7 @@ export interface IViewModel{
 
 
 export interface IMutation{
+    refreshAllViews():void
     getSelectedBaseModels(pure:boolean):ImutBase[] | Model[]
     getAllSelectedViewModels():IViewModel[]
     getDSLData():ImutBase
@@ -301,9 +267,11 @@ export type AttrStateType = {
 
 export interface ModelAttrValue{
     value:any,
+    // showValue?:any
     expression?:string
     isExp?:boolean
     disabled?:boolean
+    onlyExp?:boolean
 }
 
 export interface ModelProps{
@@ -319,7 +287,7 @@ export interface ModelAttrProto{
         [key:string]:any
     },
     get?(model:Model):void,
-    update?(mutation:IMutation,data:any):void
+    update?(mutation:IMutation,modelData:Model[],data:any):void
 }
 
 
@@ -438,7 +406,7 @@ export interface ModelPropSchema{
     sortIndex:number
     props?:{[key:string]:any}
     get?:(val:Model)=>any
-    update?:(mutation:IMutation,target:any)=>void
+    update?:(mutation:IMutation,model:Model[],target:any)=>void
 }
 
 export interface ModelPropSchemaMap{

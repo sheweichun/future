@@ -17,7 +17,7 @@ export default class DataView extends React.Component<DataViewProps,DataViewStat
         const {} = this.state;
         const {  } = this.props;
         return <div className={s.dataView}>
-            dataview2
+            dataview234
         </div>
     }
 }

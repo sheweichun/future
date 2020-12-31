@@ -1,4 +1,4 @@
-import {OperationPos,ShowTagName} from 'free-canvas-shared'
+import {IRenderEngine, OperationPos,ShowTagName} from 'free-canvas-shared'
 import { IViewModel } from "../../render/type";
 
 
@@ -29,7 +29,8 @@ export interface OperationOptions{
     // margin:number,
     updateMakers:(data?:MakerData[])=>void
     scale:number
-    showTagName?:ShowTagName
+    // showTagName?:ShowTagName
+    renderEngine:IRenderEngine
     getRect:()=>OperationPos
 }
 

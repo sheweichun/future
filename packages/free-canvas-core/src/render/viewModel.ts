@@ -1,11 +1,11 @@
 
 // import {ViewAttribute} from './type';
-import {baseModel2Model,ModelType,modelIsRoot, modelIsArtboard,IPos} from 'free-canvas-shared'
-import {BaseModel,WrapData,isEqual,createList} from './index'
+import {baseModel2Model,ModelType,modelIsRoot, modelIsArtboard,IPos,IViewModel,IViewModelCollection,ViewModelOptions} from 'free-canvas-shared'
+import {BaseModel,WrapData,isEqual} from './index'
 // import {Model} from './model';
 import {getOverlapArtboard} from '../utils/index'
-import {Movable,ArtBoardMovable} from './movable';
-import {IViewModel,IViewModelCollection,ViewModelOptions, IMovable} from './type'
+import {Movable,ArtBoardMovable} from './movable'; 
+// import {IViewModel,IViewModelCollection,ViewModelOptions} from './type'
 import { OperationPos } from '../core/operation/pos';
 
 // const MINI_NUMBER = 0.0000000001
@@ -49,7 +49,12 @@ export class ViewModelCollection implements IViewModelCollection{
             vm.onDidMount();
         })
     }
-    update(newModels:BaseModel){
+    updateLocalData(data:any){
+        this.viewModelList.forEach((vm)=>{
+            vm.updateLocalData(data);
+        })
+    }
+    update(newModels:BaseModel,forceUpdate?:boolean){
         let index = 0;
         let modelIndex = 0;
         const newModelList = []
@@ -72,7 +77,7 @@ export class ViewModelCollection implements IViewModelCollection{
                     continue;
                     // newModelList.push(new ViewModel(newModel,this._parent,this._options))
                 }else{
-                    item.update(newModel);
+                    item.update(newModel,forceUpdate);
                     newModelList.push(item);
                 }
             }else{
@@ -99,51 +104,76 @@ export class ViewModelCollection implements IViewModelCollection{
 
 export class ViewModel implements IViewModel{
     children:IViewModelCollection
+    iteratorChildren:IViewModelCollection
+    iteratorEl:HTMLElement
     view:Movable
     _rect:OperationPos
     modelType:ModelType
+    private _listData:Array<any>
     _initialParent:IViewModel
     private _prevParent:IViewModel
-    // isRoot:boolean
-    // isGroup:boolean
+    private _localData:any
     constructor(public model:BaseModel,private _parent:IViewModel,private _options:ViewModelOptions){
-        // this.isRoot = model.get('isRoot',false)
-        // this.isGroup = model.get('isGroup',false);
         this._prevParent = _parent
         this.modelType = model.get('type',null);
         this._initialParent = _parent;
+        const {renderEngine,localData} = this._options
+        this._localData = localData
+        if(renderEngine){
+            this._listData = renderEngine.getListData(model,this.getScopeValue())
+        }
         const MovableClass = modelIsArtboard(this.modelType) ? ArtBoardMovable : Movable
         this.view = new MovableClass(baseModel2Model(model),Object.assign({},_options || {},{
             modelType:this.modelType,
-            isOperating:this._options.isOperating,
+            isOperating:_options.isOperating,
             getScale:_options.getScale,
-            // id:model._keyPath,
+            isIterator:!!this._listData,
             vm:this,
+            getLocalData:this.getLocalData,
             isChild:_parent != null && !modelIsRoot(_parent.modelType) && !modelIsArtboard(_parent.modelType),
             excute:this.excute.bind(this)
         }))
-        // let childOption = this._options;
-        // if(modelIsArtboard(this.modelType)){
-        //     childOption = Object.assign({},this._options,{
-        //         artboardId:model.get('id',null)
-        //     })
-        // }
-        //@ts-ignore
-        this.children = createViewModels(this,this.getModel().get('children'),this.getChildOptions());
-
+        this.initChildren(model);
         _parent && _parent.appendChild(this)
         this.view.mount();
         this._options.addViewModel(this);
     }
+    getListData(){
+        return this._listData;
+    }
+    initChildren(model:BaseModel){
+        const modelChildren = model.get('children',null);
+        this.children = createViewModels(this,modelChildren,this.getChildOptions());
+    }
+    getLocalData=()=>{
+        return this._localData
+    }
+    updateLocalData(val:any){
+        this._localData = val;
+    }
+    getScopeValue(){
+        const {renderEngine} = this._options
+        return Object.assign({},renderEngine.getData(),this._localData)
+    }
+    getNewLocalData(){
+        const {_listData,_localData} = this;
+        const newLocalData = _listData ? _listData[0] : null;
+        if(newLocalData || _localData){
+            return Object.assign({},_localData || {},newLocalData || {})
+        }
+    }
     getChildOptions(){
         const {model} = this;
         let childOption = this._options;
+        const result = Object.assign({},childOption);
         if(modelIsArtboard(this.modelType)){
-            childOption = Object.assign({},this._options,{
-                artboardId:model.get('id',null)
-            })
+            result.artboardId = model.get('id',null)
         }
-        return childOption
+        const newLocalData = this.getNewLocalData()
+        if(newLocalData){
+            result.localData = newLocalData
+        }
+        return result
     }
     getPrevParent(){
         return this._prevParent
@@ -163,6 +193,12 @@ export class ViewModel implements IViewModel{
         this._parent = parent;
         this._prevParent.mark(false);
         parent.mark(true)
+
+
+        this.updateLocalData(parent.getNewLocalData());  //因为来到了新的父容器，本地变量发送了改变，需要出发重新渲染
+        this.view.update(baseModel2Model(this.model),!!this._listData);
+
+
         parent.children.appendViewModel(this);
         this.view.updatePosAndSize(this.getRelativeRect(this._rect)) //当更改父容器的时候需要还原到新父容器下的相对坐标
         parent.appendChild(this);
@@ -178,17 +214,36 @@ export class ViewModel implements IViewModel{
         this.children && this.children.didMount();
         this.onDidMount();
     }
+    getRootEl(){
+        return this.view.el
+    }
     appendChild(viewModel:ViewModel){
-        this.view.appendChild(viewModel.view);
+        this.view.appendChild(viewModel.getRootEl());
+    }
+    getView(){
+        return this.view;
+    }
+    removeChildViewModel(vm:IViewModel){
+        const {children} = this;
+        if(children == null) return;
+        const {viewModelList} = children;
+        for(let i = 0 ; i < viewModelList.length; i++){
+            const curVm = viewModelList[i];
+            if(curVm === vm){
+                viewModelList.splice(i,1);
+                vm.separate()
+            }
+        }
+    }
+    separate(){
+        if(this._parent == null) return;
+        this.view.separate(this._parent.getView());
     }
     excute(type:number,data:any[]){
         this._options.commander.excute(type,{
             data:data,
             vm:this
         }); 
-    }
-    getView(){
-        return this.view;
     }
     getViewModelByXY(x:number,y:number):IViewModel{
         const {left,top} = this._options.getRect();
@@ -225,29 +280,11 @@ export class ViewModel implements IViewModel{
         if(_parent == vm) return true;
         return _parent.isChildren(vm);
     }
-    removeChildViewModel(vm:IViewModel){
-        const {children} = this;
-        if(children == null) return;
-        const {viewModelList} = children;
-        for(let i = 0 ; i < viewModelList.length; i++){
-            const curVm = viewModelList[i];
-            if(curVm === vm){
-                viewModelList.splice(i,1);
-                vm.separate()
-            }
-        }
-        // if(viewModelList.length === 0){
-        //     this.children = null;
-        // }
-    }
     recalculateRect(){ //更新当前viewModel 是相对画布的坐标 todo 当isGroup的时候需要动态更新
         const {getRect} = this._options
         // const scale = getScale();
         const pos = getRect();
         const cur = this.view.getBoundingClientRect();
-        // this._rect = new OperationPos(fixData(cur.left - pos.left),fixData(cur.top - pos.top),fixData(cur.width),fixData(cur.height),(rect)=>{
-        //     this.view.updatePosAndSize(this.getRelativeRect(rect)) //当更新的时候需要还原到父容器下的相对坐标
-        // })
         this._rect = new OperationPos((cur.left - pos.left),(cur.top - pos.top),(cur.width),(cur.height),(rect)=>{
             this.view.updatePosAndSize(this.getRelativeRect(rect)) //当更新的时候需要还原到父容器下的相对坐标
         })
@@ -256,10 +293,6 @@ export class ViewModel implements IViewModel{
         this._rect.changeValue(pos)
     }
     changeRect(target:string,diffx:number,diffy:number,onlyPos:boolean=false){
-        // const curRect = this._rect;
-        // const hPercent = fixPercent((diffx + curRect._width) / curRect._width),vPercent = fixPercent((diffy + curRect._height) / curRect._height);
-        // console.log('hPercent :',hPercent,diffx);
-        // const curWidth = curRect.width,curHeight = curRect.height;
         const {modelType,children,_parent} = this;
         _parent.mark(true);
         //@ts-ignore
@@ -431,27 +464,27 @@ export class ViewModel implements IViewModel{
         this.view.removeFrom(this._parent.getView());
         this._options.removeViewModel(this);
     }
-    separate(){
-        if(this._parent == null) return;
-        this.view.separate(this._parent.getView());
-    }
     getModel(){
         return this.model;
     }
-    update(model:BaseModel){
+    update(model:BaseModel,forceUpdate?:boolean){
         this._initialParent = this._parent;
         if(model == null) {
             this.remove();
             return;
         };
+        const {renderEngine} = this._options
+        if(renderEngine){
+            this._listData = renderEngine.getListData(model,this.getScopeValue())
+        }
         const prevModel = this.model;
         const prevId = prevModel.get('id',null)
         const curId = model.get('id',null)
         const idNotEqual = prevId !== curId
-        const needUpdate = idNotEqual || !isEqual(model,prevModel)
+        const needUpdate = forceUpdate || idNotEqual || !isEqual(model,prevModel)
         if(needUpdate){
             // this.view.update(model.searialize());
-            this.view.update(baseModel2Model(model));
+            this.view.update(baseModel2Model(model),!!this._listData);
         }
         this.model = model;
         if(idNotEqual){
@@ -461,9 +494,9 @@ export class ViewModel implements IViewModel{
         this.view.setModelType(this.modelType);
         const modelChildren = model.get('children',WrapData([]));
         if(this.children){
-            this.children.update(modelChildren);
+            this.children.update(modelChildren,forceUpdate);
         }else if(modelChildren && modelChildren.size > 0){
-            this.children = createViewModels(this,modelChildren,this._options);
+            this.children = createViewModels(this,modelChildren,this.getChildOptions());
         }
         if(needUpdate){
             this.onDidUpdate();

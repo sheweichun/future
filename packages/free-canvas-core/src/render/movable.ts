@@ -1,9 +1,9 @@
-import {COMMANDERS,Utils,IView,modelIsRoot, ModelType, modelIsArtboard} from 'free-canvas-shared';
+import {COMMANDERS,Utils,IView,modelIsRoot, ModelType, MovableOptions,IMovable} from 'free-canvas-shared';
 import {CanvasEvent} from '../events/event';
 import {ObjectStyleDeclaration} from '../utils/type';
 import {setStyle,getBoundingClientRect} from '../utils/style';
 import {completeOptions} from '../utils/index';
-import {MovableOptions,OnPositionChange,IMovable} from './type';
+import {OnPositionChange} from './type';
 import {FragmentView,createView} from './view';
 import {Model} from './model';
 import {OperationPos} from '../core/operation/pos'
@@ -26,6 +26,36 @@ const {hexAlpha2BackgroundColor} = Utils
 // `
 
 
+function hoistNode(dest:HTMLElement){
+    if(dest == null) return
+    const destChilden = dest.children
+    if(destChilden.length !== 1) return;
+    const src = destChilden[0];
+    const fragment = document.createDocumentFragment();
+    const {children} = src
+    if(children == null) return;
+    const childLen = children.length;
+    for(let i = 0 ; i < childLen; i++){
+        const item = children[i];
+        fragment.appendChild(item)
+    }
+    dest.removeChild(src);
+    dest.appendChild(fragment)
+}
+
+function insertWrapEl(src:HTMLElement,target:HTMLElement){
+    // const fragment = document.createDocumentFragment();
+    const {children} = src
+    if(children == null) return;
+    const childLen = children.length;
+    for(let i = 0 ; i < childLen; i++){
+        const item = children[i];
+        target.appendChild(item)
+    }
+    src.appendChild(target)
+}
+
+
 // let tabIndex = 0;
 
 export class Movable implements IMovable{
@@ -35,6 +65,7 @@ export class Movable implements IMovable{
     protected _options:MovableOptions;
     view:IView<Model>
     el:HTMLElement
+    iteratorEl:HTMLElement
     elRect:OperationPos
     canMove:boolean = false
     changed:boolean = false
@@ -48,6 +79,7 @@ export class Movable implements IMovable{
     style:ObjectStyleDeclaration
     idSpan:HTMLElement
     maskEl:HTMLElement
+    isIterator:boolean
     protected _onPostionChange:OnPositionChange
     constructor(protected _data:Model,options:MovableOptions){
         this._options = completeOptions(options,DEFAULT_OPTIONS);
@@ -55,9 +87,9 @@ export class Movable implements IMovable{
         if(modelIsRoot(modelType)){
             this.view = new FragmentView(this.fixData(_data),mountNode)
         }else{
-            const createViewFn = this._options.createView || createView
+            const {renderEngine} = this._options
+            const createViewFn = renderEngine ? renderEngine.createView : createView
             this.view = createViewFn(this.fixData(_data),this._options);
-            // this.view = new View(this.fixData(_data),this._options);
         }
         this.view.render();
         this.parsePosition();
@@ -69,6 +101,11 @@ export class Movable implements IMovable{
             lineHeight:'0px'
         }
         this.el = div;
+        this.isIterator = options.isIterator;
+        if(this.isIterator){
+            this.iteratorEl = this.getNewIterorEl()
+            div.appendChild(this.iteratorEl);
+        }
         this.updateElOverFlow();
         this.createIdSpan();
         // div.appendChild(this.view.getRoot());
@@ -78,6 +115,11 @@ export class Movable implements IMovable{
         //     didMount && didMount();
         // }
         
+    }
+    getNewIterorEl(){
+        const tmpDiv = document.createElement('div');
+        tmpDiv.setAttribute('style','position:relative;width:100%;height:100%')
+        return tmpDiv
     }
     updateElOverFlow(){
         const {_data,el} = this
@@ -151,10 +193,12 @@ export class Movable implements IMovable{
         this.render();
         if(modelIsRoot(modelType)){
             mountNode.appendChild((this.view as FragmentView).getFragmentAndChange());
-            // const {didMount} = this._options;
-            // didMount && didMount();
         }else{
-            this.el.appendChild(this.view.getRoot());
+            if(this.iteratorEl){
+                this.iteratorEl.appendChild(this.view.getRoot());
+            }else{
+                this.el.appendChild(this.view.getRoot());
+            }
         }
         this.listen();
     }
@@ -193,9 +237,13 @@ export class Movable implements IMovable{
         this.width = position.width || 0;
         this.height = position.height || 0;
     }
-    appendChild(movable:Movable){
-        if(movable == null) return;
-        this.view.getRoot().appendChild(movable.el);
+    // appendChild(movable:Movable){
+    //     if(movable == null) return;
+    //     this.view.getRoot().appendChild(movable.el);
+    // }
+    appendChild(el:HTMLElement){
+        if(el == null) return;
+        this.view.getRoot().appendChild(el);
     }
     // removeChild(movable:Movable){ //todo add removeFrom
     //     if(movable == null) return;
@@ -282,7 +330,7 @@ export class Movable implements IMovable{
     //     this.setStyle();
     //     e.stopPropagation();
     // }
-    update(_newModel:Model){
+    update(_newModel:Model,isIterator:boolean = false){
         // if(this.changed){
         //     // this.canMove = false;
         // }
@@ -296,6 +344,16 @@ export class Movable implements IMovable{
         //     this.el.focus();
         //     this.addEvent(CanvasEvent.FOUCS,this.onFoucs);
         // }
+        const prevIsIterator = this.isIterator
+        const curIsIterator = isIterator;
+        this.isIterator = isIterator;
+        if(prevIsIterator && !curIsIterator){
+            hoistNode(this.el);
+            this.iteratorEl = null;
+        }else if(!prevIsIterator && curIsIterator){
+            this.iteratorEl = this.getNewIterorEl();
+            insertWrapEl(this.el,this.iteratorEl)
+        }
         const newModel = this.fixData(_newModel);
         const {extra} = newModel;
         if(!extra.isSelect){

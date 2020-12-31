@@ -2,14 +2,14 @@ import {Model,ModelPropSchema,IMutation,ModelAttrValue} from '@pkg/free-canvas-s
 import React from 'react'
 import {Select} from '@alife/next'
 
-
+export * from './schema'
 
 
 function onChange(data:Model[],schema:ModelPropSchema,mut:IMutation,state:ModelAttrValue,value:any){
     const {update} = schema
-    update(mut,Object.assign({},state,{
-        expression:value,
-        value
+    update(mut,data,Object.assign({},state,{
+        expression:value
+        // value
     }))
 }
 

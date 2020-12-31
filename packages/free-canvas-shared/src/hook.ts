@@ -1,5 +1,5 @@
 
-import {Model,IPlugin} from './view'
+import {Model,IPlugin, IMutation} from './view'
 
 
 export interface CallbackFunction {
@@ -14,10 +14,12 @@ export interface HistoryApi {
 }
 
 export interface IHookCore{
+    getMutation():IMutation
     registerHookManager(hookManager:IHookManager):void
     update(data:Model):void
     getStore():HistoryApi
     installPlugin(plugin:IPlugin):void
+    refreshAllViews():void
 }
 
 export interface IHookManager{
@@ -39,6 +41,7 @@ export interface IPluginView{
 export interface IHeadView extends HeadViewHook,IPluginView{
     initCanvasEl(el:HTMLElement):void
     setRefreshCallback(cb:()=>void):void
+    setContentEl:(el:HTMLElement)=>void
 }
 
 export interface HeadViewHook{

@@ -10,7 +10,7 @@ import {Model,createViewModel,Store,completeData} from '../render/index'
 // import {Store,WrapData} from '../render/index'
 import {KeyBoard} from './keyboard';
 import {Commander} from './commander'
-import {COMMANDERS, IPlugin} from 'free-canvas-shared'
+import {COMMANDERS, IPlugin, IRenderEngine} from 'free-canvas-shared'
 import {Mutation} from './mutation'
 import {Operation} from './operation/index'
 import {OperationPos} from './operation/pos'
@@ -133,7 +133,7 @@ export class Content{
         this._keyboard.listen();
         this._operation = new Operation(this._el,this._mutation,this._guideManager,this._keyboard.createNameSpace('operation'),{
             // margin:this._options.margin,
-            showTagName:this._options.showTagName,
+            renderEngine:this._options.renderEngine,
             getRect:this.getRect,
             scale:this._scale,
             updateMakers:this._options.updateMakers
@@ -144,7 +144,7 @@ export class Content{
         this._viewModel = createViewModel(null,storeData.get('data'),{
             mountNode:this._wrapEl,
             commander:this._commander,
-            createView:this._options.createView,
+            renderEngine:this._options.renderEngine,
             getScale:this.getScale,
             addViewModel:this._operation.addViewModel,
             getViewModel:this._operation.getViewModel,
@@ -156,6 +156,7 @@ export class Content{
             isOperating:this.isOperating,
             onModelStructureChange:this.onModelStructureChange,
         });
+        this._mutation.setRootViewModel(this._viewModel)
         this._rectSelect = new RectSelect(document.body,{
             updateRectSelect:this.updateRectSelect.bind(this)
         })
@@ -165,6 +166,12 @@ export class Content{
         this.registerShortCuts();
         this.registerCommands();
         // this.test();
+    }
+    getMutation(){
+        return this._mutation
+    }
+    refresh(){
+        this._viewModel.update(this._mutation.getDSLData(),true);
     }
     onModelStructureChange(){
         const { _operation } = this

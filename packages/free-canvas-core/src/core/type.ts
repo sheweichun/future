@@ -1,7 +1,7 @@
 import { MakerData } from "./operation/type"
 import {MoveEventData} from '../events/type'
 import { OperationPos } from "./operation/pos"
-import {DSL,CreateView,ShowTagName} from 'free-canvas-shared' 
+import {DSL,CreateView,ShowTagName, IRenderEngine} from 'free-canvas-shared' 
 
 export interface CanvasOption {
     onMouseEvent?:(eventName:string,e:MouseEvent)=>void
@@ -92,8 +92,9 @@ export interface ContentOptions{
     // wheelSpeedX:number,
     // wheelSpeedY:number,
     // margin:number,
-    showTagName?:ShowTagName
-    createView?:CreateView,
+    // showTagName?:ShowTagName
+    // createView?:CreateView,
+    renderEngine?:IRenderEngine
     eventEl:HTMLElement
     scale:number,
     // x?:number,
@@ -110,9 +111,10 @@ export interface MutationOptions{
 
 export interface CoreOptions  {
     canvas?:CanvasOption
-    data:DSL
-    createView?:CreateView
-    showTagName?:ShowTagName
+    data?:DSL
+    // createView?:CreateView
+    // showTagName?:ShowTagName
+    renderEngine?:IRenderEngine
     rulerBackgroundColor?:string
     wheelSpeedX?:number
     wheelSpeedY?:number
