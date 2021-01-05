@@ -15,9 +15,9 @@ export class FragmentView implements IView<Model>{
     rootEl:Node = document.createDocumentFragment()
     constructor(private _model:Model,private _el:HTMLElement){}
     render(){}
-    appendChild(view:IView<Model>){
-        this.rootEl.appendChild(view.getRoot());
-    }
+    // appendChild(view:IView<Model>){
+    //     this.rootEl.appendChild(view.getRoot());
+    // }
     getModel(){
         return this._model
     }

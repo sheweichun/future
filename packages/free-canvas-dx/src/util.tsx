@@ -13,6 +13,7 @@ export function calExpression(expression:string,value:any):any{
     const result = dataParser(expression,{  //@data{}会返回schema_value
         data:value
     })
+    // console.log('expression :',expression,value,result);
     if(result === value) return;
     return result
 }
@@ -63,11 +64,11 @@ export function calExpression(expression:string,value:any):any{
 
 
 // export function getDxValueFromModelAttr(item:ModelAttrValue,data:any,defaultValue:any=''){
-export function getDxValueFromModelAttr(item:ModelAttrValue,defaultValue:any=''){
+export function getDxValueFromModelAttr(item:ModelAttrValue,data:any,defaultValue:any=''){
     if(item == null) return defaultValue;
     const {isExp,expression,value,disabled} = item
     if(disabled) return defaultValue;
-    // let val = isExp ? calExpression(expression,data) : value;
-    let val = isExp ? expression : value;
+    let val = isExp ? calExpression(expression,data) : value;
+    // let val = isExp ? expression : value;
     return val || defaultValue
 }

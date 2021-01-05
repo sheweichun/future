@@ -8,6 +8,10 @@ import {getDxValueFromModelAttr,DxViewOpt} from './util'
 // }
 
 
+const BLACKLIST_MAP:{[key:string]:boolean} = {
+    listData:true
+}
+
 
 export class NormalView extends View{
     private getData:()=>any
@@ -35,6 +39,7 @@ export class NormalView extends View{
             })
         }
         props && Object.keys(props).forEach((key)=>{
+            if(BLACKLIST_MAP[key]) return;
             const item = props[key];
             if(key === 'style') return;
             if(key === 'children'){
@@ -51,7 +56,7 @@ export class NormalView extends View{
             Object.keys(style).forEach(styleName => {
                 const styleItem = style[styleName]
                 //@ts-ignore
-                el.style[styleName] = getDxValueFromModelAttr(styleItem);
+                el.style[styleName] = getDxValueFromModelAttr(styleItem,newData);
             });
         }
     }

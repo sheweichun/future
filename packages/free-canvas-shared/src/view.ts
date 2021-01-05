@@ -40,20 +40,24 @@ export interface MovableOptions extends ViewOptions{
     // isRoot?:boolean
     // isGroup?:boolean
     modelType:ModelType
+    isSilent?:boolean
+    silentId?:number
     isIterator?:boolean
+    iteratorSize?:{width:number,height:number}
     isChild?:boolean
     renderEngine?:IRenderEngine
     isOperating:()=>boolean
     vm:IViewModel
 }
 
+
 export interface IView<T>{
     // model:Model
     // appendChild(view:IView<T>):void
-    update(model:T):void
+    update(model:T,opt:Partial<ViewOptions>):void
     render():void
     // getRect():DOMRect
-    getRoot():Node
+    getRoot():HTMLElement
     getModel():T
     updateStyle(width:number,height:number):void
     destroy():void
@@ -121,7 +125,7 @@ export class View implements IView<Model>{
     getRoot(){
         return this.el;
     }
-    update(model:Model){
+    update(model:Model,opt:Partial<ViewOptions>){
         const {props} = this._model;
         this._model = model
         this.updateAttribute(props,props.style);
@@ -135,6 +139,9 @@ export class View implements IView<Model>{
 
 export interface IMovable{
     view:IView<Model>
+    el:HTMLElement
+    getRootEl():Node
+    destroy():void
     mark(flag:boolean):void
     updateIsChild(isChild:boolean):void
     focus(x:number,y:number,shiftKey:boolean):void
@@ -145,6 +152,7 @@ export interface IViewModelCollection{
     viewModelList:IViewModel[]
     didMount:()=>void
     didUpdate:()=>void
+    remove():void
     size:number
     update:(model:ImutBase,forceUpdate?:boolean)=>void
     updateLocalData(data:any):void

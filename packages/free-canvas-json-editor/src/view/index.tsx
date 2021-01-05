@@ -47,7 +47,7 @@ export class JSONSchemaView extends React.Component<SchemaViewProps,SchemaViewSt
         }
         this._onChangeFlag = true
     }
-    onSchemaChange=(schema:ValueSchema,type:SchemaChangeType)=>{
+    reRenderView(){
         if(!this._onChangeFlag) return
         if(this._updateId){
             clearTimeout(this._updateId)
@@ -55,6 +55,9 @@ export class JSONSchemaView extends React.Component<SchemaViewProps,SchemaViewSt
         this._updateId = setTimeout(()=>{
             this.setState({})
         })
+    }
+    onSchemaChange=(schema:ValueSchema,type:SchemaChangeType)=>{
+        this.reRenderView()
         const {onValueChange} = this.props;
         // if(type === SchemaChangeType.isData){
         onValueChange && onValueChange(this.state.schema,type)
@@ -71,7 +74,8 @@ export class JSONSchemaView extends React.Component<SchemaViewProps,SchemaViewSt
         this.hoverName = name
         if(value){
             value.focus()
-            this.onSchemaChange(value,SchemaChangeType.isSchema)
+            this.reRenderView()
+            // this.onSchemaChange(value,SchemaChangeType.isSchema)
         }
     }
     onCopy=(value:ValueSchema,name:string,view:BaseComponent<any,any>)=>{

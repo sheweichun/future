@@ -1,5 +1,7 @@
 import {
     MOVABLE_CLASSNAME,
+    MOVABLE_ITERATOR_CLASSNAME,
+    MOVABLE_ITERATOR_HOVER_CLASSNAME,
     OPERATION_CLASSNAME,
     OPERATION_SIZE_CLASSNAME,
     styleSizeSize,
@@ -78,6 +80,19 @@ export default `
     .${MOVABLE_CLASSNAME}{
         box-sizing:border-box;
  
+    }
+    .${MOVABLE_ITERATOR_CLASSNAME}{
+        cursor: not-allowed;
+    }
+    .${MOVABLE_ITERATOR_CLASSNAME}:hover:after{
+        content:'';
+        display:block;
+        position:absolute;
+        width:100%;
+        height:100%;
+        left:0;
+        top:0;
+        background: #efefef91;
     }
     .${OPERATION_CLASSNAME}{
         z-index:10000;

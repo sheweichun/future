@@ -77,6 +77,7 @@ export class HeadView implements IHeadView{
     }
     onChangeJson=(val:ObjectSchema,type:SchemaChangeType)=>{
         this._schemaChangeFlag = true
+        // console.log('onChangeJson !! :',val.toValue());
         updateSchemaValue(val.toValue());
     }
     toggleDataPanel=()=>{

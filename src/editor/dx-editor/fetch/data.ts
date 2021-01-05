@@ -137,7 +137,7 @@ export function createComponentProtos(opt:CreateComponetProtoOpts){
                                     listData:{
                                         isExp:true,
                                         onlyExp:true,
-                                        expression:'list',
+                                        expression:'',
                                         value:''
                                     }
                                 },

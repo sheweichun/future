@@ -1,9 +1,10 @@
 
 // import {ViewAttribute} from './type';
-import {baseModel2Model,ModelType,modelIsRoot, modelIsArtboard,IPos,IViewModel,IViewModelCollection,ViewModelOptions} from 'free-canvas-shared'
+import {baseModel2Model,ModelType,modelIsRoot, modelIsArtboard,IPos,IViewModel,IViewModelCollection,ViewModelOptions, CanvasEvent} from 'free-canvas-shared'
 import {BaseModel,WrapData,isEqual} from './index'
 // import {Model} from './model';
-import {getOverlapArtboard} from '../utils/index'
+import {MOVABLE_ITERATOR_CLASSNAME,MOVABLE_ITERATOR_HOVER_CLASSNAME} from '../utils/constant'
+import {getOverlapArtboard, getWrapSize, stopPropagation} from '../utils/index'
 import {Movable,ArtBoardMovable} from './movable'; 
 // import {IViewModel,IViewModelCollection,ViewModelOptions} from './type'
 import { OperationPos } from '../core/operation/pos';
@@ -32,6 +33,12 @@ export class ViewModelCollection implements IViewModelCollection{
         })
         this.viewModelList = viewModels;
     }
+    mount(el:HTMLElement){
+        const {viewModelList} = this
+        viewModelList && viewModelList.forEach((vm)=>{
+            el.appendChild(vm.getRootEl())
+        })
+    }
     get size(){
         return this.viewModelList.length;
     }
@@ -54,9 +61,16 @@ export class ViewModelCollection implements IViewModelCollection{
             vm.updateLocalData(data);
         })
     }
+    remove(){
+        this.viewModelList.forEach((vm)=>{
+            vm.remove()
+        })
+    }
     update(newModels:BaseModel,forceUpdate?:boolean){
         let index = 0;
         let modelIndex = 0;
+        const addModels = [];
+        const removeModels = []
         const newModelList = []
         for(;index < this.viewModelList.length; index++){
             const item = this.viewModelList[index];
@@ -74,6 +88,7 @@ export class ViewModelCollection implements IViewModelCollection{
                 if(prevModel.get('id',null) !== newModel.get('id',null)){ //当次数据按照顺序复用原来ID一致的数据，确保顺序一致
                     // console.log('id ==> ',prevModel.get('id',null),newModel.get('id',null));
                     item.remove();
+                    removeModels.push(item)
                     continue;
                     // newModelList.push(new ViewModel(newModel,this._parent,this._options))
                 }else{
@@ -82,6 +97,7 @@ export class ViewModelCollection implements IViewModelCollection{
                 }
             }else{
                 item.remove();
+                removeModels.push(item)
             }
             modelIndex++;
         }
@@ -92,20 +108,136 @@ export class ViewModelCollection implements IViewModelCollection{
                 const newModel = newModels.get(modelIndex);
                 const newViewModel = new ViewModel(newModel,this._parent,this._options);
                 this.viewModelList.push(newViewModel);
+                addModels.push(newViewModel);
                 newViewModel.didMount();
             }
         }
         this._models = newModels;
+        return {
+            addModels,
+            removeModels
+        }
+    }
+}
+
+class SilentViewModel{
+    private _vmCollection:ViewModelCollection
+    private _el:HTMLElement
+    constructor(private _parentEl:HTMLElement,modelChildren:BaseModel,_size:{width:number,height:number},private _option:ViewModelOptions){
+        this._vmCollection = createViewModels(null,modelChildren,_option)
+        const div = document.createElement('div');
+        div.className = MOVABLE_ITERATOR_CLASSNAME
+        div.setAttribute('style',`position:relative;width:${_size.width}px;height:${_size.height}px`)
+        this._el = div
+        this._vmCollection.mount(div);
+        // this.onMouseEnter = this.onMouseEnter.bind(this)
+        // this.onMouseLeave = this.onMouseLeave.bind(this)
+    }
+    mount(){
+        const {_el} = this;
+        this._parentEl.appendChild(_el);
+        _el.addEventListener(CanvasEvent.MOUSEDOWN,stopPropagation)
+        // _el.addEventListener(CanvasEvent.MOUSELEAVE,this.onMouseLeave)
+        // this._el.addEventListener(CanvasEvent.CLICK,(e)=>{
+        //     debugger
+        //     console.log('click!!');
+        //     // stopPropagation(e)
+        // })
+    }
+    update(modelChildren:BaseModel,size:{width:number,height:number},option:ViewModelOptions,forceUpdate:boolean){
+        const {_vmCollection,_el} = this
+        const {localData} = option
+        _el.setAttribute('style',`position:relative;width:${size.width}px;height:${size.height}px`)
+        _vmCollection.updateLocalData(localData);
+        const {addModels,removeModels} = _vmCollection.update(modelChildren,forceUpdate);
+        removeModels.forEach((vm)=>{
+            const view = vm.getView();
+            view.destroy()
+            this._el.removeChild(view.el);
+        })
+        addModels.forEach((vm)=>{
+            this._el.appendChild(vm.getRootEl())
+        })
+    }
+    unmount(){
+        const {_vmCollection,_parentEl,_el} = this
+        _el.removeEventListener(CanvasEvent.MOUSEDOWN,stopPropagation)
+        _vmCollection.remove()
+        _parentEl.removeChild(this._el)
+    }
+}
+
+interface SilentViewModelCollectionOpt{
+    size:{width:number,height:number}
+    listData:Array<any>
+    modelChildren:BaseModel
+}
+
+class SilentViewModelCollection{
+    private _vms:Array<SilentViewModel>
+    private _listData:Array<any>
+    constructor(private _parentEl:HTMLElement,private _getOption:(index:number)=>ViewModelOptions,_option:SilentViewModelCollectionOpt){
+        const {size,listData,modelChildren} = _option
+        const vms:Array<SilentViewModel> = [null]
+        this._listData = listData
+        listData.forEach((item,index)=>{
+            if(index === 0){
+                return
+            }else{
+                vms[index] = new SilentViewModel(_parentEl,modelChildren,size,this.getOption(index))
+            }
+        })
+        this._vms = vms
+    }
+    getOption(index:number){
+        const {_getOption} = this;
+        const opt = _getOption(index)
+        return Object.assign({},opt,{ //考虑复写没有问题，getoption可能会有isSilent,silentId
+            isSilent:true,
+            silentId:opt.silentId ? `${opt.silentId}-${index}` : index
+        })
+    }
+    update(option:SilentViewModelCollectionOpt,forceUpdate:boolean){
+        const {_listData,_vms,_getOption,_parentEl} = this
+        const {modelChildren,size,listData:newListData} = option
+        let newVms:Array<SilentViewModel> = [null]
+        let i = 0 ;
+        for(; i < _listData.length ; i++){
+            if(i === 0) continue;
+            const vm = _vms[i];
+            if(i < newListData.length){
+                vm.update(modelChildren,size,_getOption(i),forceUpdate)  //新增节点没有挂在，删除节点也没有移除
+                newVms[i] = vm;
+            }else{
+                vm.unmount()
+            }
+        }
+        for(; i < newListData.length; i++){
+            newVms[i] = new SilentViewModel(_parentEl,modelChildren,size,this.getOption(i))
+        }
+        this._vms = newVms
+        this._listData = newListData;
+    }
+    mount(){
+        const {_vms} = this;
+        _vms.forEach((vm)=>{
+            vm && vm.mount()
+        })
+    }
+    unmount(){
+        const {_vms} = this;
+        _vms.forEach((vm)=>{
+            vm && vm.unmount()
+        })
     }
 }
 
 
-
-
 export class ViewModel implements IViewModel{
     children:IViewModelCollection
-    iteratorChildren:IViewModelCollection
+    iteratorChildren:SilentViewModelCollection
     iteratorEl:HTMLElement
+    iteratorSize:{width:number,height:number}
     view:Movable
     _rect:OperationPos
     modelType:ModelType
@@ -117,33 +249,69 @@ export class ViewModel implements IViewModel{
         this._prevParent = _parent
         this.modelType = model.get('type',null);
         this._initialParent = _parent;
-        const {renderEngine,localData} = this._options
+        const {localData,isSilent} = this._options
         this._localData = localData
-        if(renderEngine){
-            this._listData = renderEngine.getListData(model,this.getScopeValue())
-        }
+        this.updateListData(model)
         const MovableClass = modelIsArtboard(this.modelType) ? ArtBoardMovable : Movable
+        this.updateIteratorSize(model);
+        const upOpt = this.getMovableUpdateOpt()
         this.view = new MovableClass(baseModel2Model(model),Object.assign({},_options || {},{
             modelType:this.modelType,
             isOperating:_options.isOperating,
             getScale:_options.getScale,
-            isIterator:!!this._listData,
             vm:this,
             getLocalData:this.getLocalData,
             isChild:_parent != null && !modelIsRoot(_parent.modelType) && !modelIsArtboard(_parent.modelType),
-            excute:this.excute.bind(this)
+            excute:this.excute.bind(this),
+            ...upOpt
         }))
-        this.initChildren(model);
+        this.getChildOptions = this.getChildOptions.bind(this);
+        const modelChildren = model.get('children',WrapData([]));
+        this.initChildren(modelChildren);
         _parent && _parent.appendChild(this)
         this.view.mount();
-        this._options.addViewModel(this);
+        this.updateSilenChildren(modelChildren)
+        !isSilent && this._options.addViewModel(this);
     }
     getListData(){
         return this._listData;
     }
-    initChildren(model:BaseModel){
-        const modelChildren = model.get('children',null);
+    initChildren(modelChildren:BaseModel){
+        // const {_listData,iteratorSize} = this;
+        // const modelChildren = model.get('children',WrapData([]));
         this.children = createViewModels(this,modelChildren,this.getChildOptions());
+        // if(_listData && _listData.length > 1){
+        //     this.iteratorChildren = new SilentViewModelCollection(
+        //         this.view.view.getRoot(),
+        //         this.getChildOptions,
+        //         {
+        //             size:iteratorSize,
+        //             listData:_listData,
+        //             modelChildren
+        //         }
+        //     )
+        // }
+    }
+    updateSilenChildren(modelChildren:BaseModel){
+        const {_listData,iteratorSize} = this;
+        if(_listData){
+            if(this.iteratorChildren) return;
+            this.iteratorChildren = new SilentViewModelCollection(
+                this.view.view.getRoot(),
+                this.getChildOptions,
+                {
+                    size:iteratorSize,
+                    listData:_listData,
+                    modelChildren
+                }
+            )
+            this.iteratorChildren.mount();
+        }else{
+            if(this.iteratorChildren){
+                this.iteratorChildren.unmount()
+                this.iteratorChildren = null
+            }
+        }
     }
     getLocalData=()=>{
         return this._localData
@@ -155,21 +323,21 @@ export class ViewModel implements IViewModel{
         const {renderEngine} = this._options
         return Object.assign({},renderEngine.getData(),this._localData)
     }
-    getNewLocalData(){
+    getNewLocalData(index:number=0){
         const {_listData,_localData} = this;
-        const newLocalData = _listData ? _listData[0] : null;
+        const newLocalData = _listData ? _listData[index] : null;
         if(newLocalData || _localData){
             return Object.assign({},_localData || {},newLocalData || {})
         }
     }
-    getChildOptions(){
+    getChildOptions(index:number=0){
         const {model} = this;
         let childOption = this._options;
         const result = Object.assign({},childOption);
         if(modelIsArtboard(this.modelType)){
             result.artboardId = model.get('id',null)
         }
-        const newLocalData = this.getNewLocalData()
+        const newLocalData = this.getNewLocalData(index)
         if(newLocalData){
             result.localData = newLocalData
         }
@@ -181,6 +349,18 @@ export class ViewModel implements IViewModel{
     resetPrevParent(){
         this._prevParent = this._parent
         this._parent.mark(false)
+    }
+    updateIteratorSize(model:BaseModel){
+        const {_listData} = this;
+        this.iteratorSize = _listData ? getWrapSize(model) : null
+    }
+    getMovableUpdateOpt(){
+        const {_listData,iteratorSize} = this;
+        const isIterator = !!_listData
+        return {
+            isIterator,
+            iteratorSize
+        }
     }
     changeParent(parent:IViewModel,artboardId:string){
         const {onModelStructureChange} = this._options
@@ -196,7 +376,7 @@ export class ViewModel implements IViewModel{
 
 
         this.updateLocalData(parent.getNewLocalData());  //因为来到了新的父容器，本地变量发送了改变，需要出发重新渲染
-        this.view.update(baseModel2Model(this.model),!!this._listData);
+        this.view.update(baseModel2Model(this.model),this.getMovableUpdateOpt());
 
 
         parent.children.appendViewModel(this);
@@ -447,6 +627,8 @@ export class ViewModel implements IViewModel{
         return this._rect.moveLeftAndTop_immutation(pos.left,pos.top)
     }
     onDidUpdate(){
+        const {isSilent} = this._options
+        if(isSilent) return
         this.view.onDidUpdate();
         this.children && this.children.didUpdate();
         // console.log(`【${this.model.get('id',null)}】updated!`);
@@ -454,18 +636,37 @@ export class ViewModel implements IViewModel{
         // this._rect = this.view.getRect();
     }
     onDidMount(){
+        const {isSilent} = this._options
+        if(isSilent) return
         this.view.onDidMount();
         // console.log(`【${this.model.get('id',null)}】mounted!`);
         this.recalculateRect();
         // ViewModel.updateChildrenPosAndSize(this);
     }
     remove(){  //销毁
+        const {isSilent} = this._options
+        this.children.remove();
         if(this._parent == null) return;
         this.view.removeFrom(this._parent.getView());
-        this._options.removeViewModel(this);
+        !isSilent && this._options.removeViewModel(this);
     }
     getModel(){
         return this.model;
+    }
+    updateListData(model:BaseModel){
+        const {renderEngine} = this._options
+        if(renderEngine){
+            const result = renderEngine.getListData(model,this.getScopeValue())
+            if(result != null){
+                if(Object.prototype.toString.call(result) === "[object Array]"){
+                    this._listData = result
+                }else{
+                    this._listData = []
+                }
+                return;
+            }
+        }
+        this._listData = null;
     }
     update(model:BaseModel,forceUpdate?:boolean){
         this._initialParent = this._parent;
@@ -473,36 +674,47 @@ export class ViewModel implements IViewModel{
             this.remove();
             return;
         };
-        const {renderEngine} = this._options
-        if(renderEngine){
-            this._listData = renderEngine.getListData(model,this.getScopeValue())
-        }
+        const {isSilent} = this._options
+        const modelChildren = model.get('children',WrapData([]));
         const prevModel = this.model;
         const prevId = prevModel.get('id',null)
         const curId = model.get('id',null)
         const idNotEqual = prevId !== curId
         const needUpdate = forceUpdate || idNotEqual || !isEqual(model,prevModel)
+        this.updateListData(model)
+        this.updateIteratorSize(model);
         if(needUpdate){
             // this.view.update(model.searialize());
-            this.view.update(baseModel2Model(model),!!this._listData);
+            this.view.update(baseModel2Model(model),this.getMovableUpdateOpt());
         }
         this.model = model;
-        if(idNotEqual){
+        if(idNotEqual && !isSilent){
             this._options.updateViewModel(prevId,this);
         }
         this.modelType = model.get('type',false)
         this.view.setModelType(this.modelType);
-        const modelChildren = model.get('children',WrapData([]));
         if(this.children){
+            this.children.updateLocalData(this.getNewLocalData());
             this.children.update(modelChildren,forceUpdate);
         }else if(modelChildren && modelChildren.size > 0){
             this.children = createViewModels(this,modelChildren,this.getChildOptions());
+        }
+        
+        this.updateSilenChildren(modelChildren)
+        if(this.iteratorChildren){
+            this.iteratorChildren.update({
+                size:this.iteratorSize,
+                listData:this._listData,
+                modelChildren:modelChildren
+            },forceUpdate)
         }
         if(needUpdate){
             this.onDidUpdate();
         }
     }
 }
+
+
 
 function createViewModels(parent:IViewModel,models:BaseModel,_options:ViewModelOptions):ViewModelCollection{
     // if(models == null) return;

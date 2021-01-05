@@ -23,12 +23,12 @@ Dinamic.utils.env.deviceWidth = 375
 //     [key:string]:any
 // }
 
-function fixAttr(attrs:any){
+function fixAttr(attrs:any,data:any){
     return Object.keys(attrs).reduce((ret,val)=>{
         const item = attrs[val]
         // const retVal = item && !item.disabled ? item.value : ''
         // console.log('val :',val,item,data);
-        const retVal = getDxValueFromModelAttr(item)
+        const retVal = getDxValueFromModelAttr(item,data)
         // @ts-ignore
         ret[val] = retVal 
         return ret;
@@ -51,8 +51,12 @@ function extraDxSource(md:Model,data?:any){
     const dxSourceVal = dxSource.value;
     // const {name} = dxSourceVal
     const ret = Object.assign({},dxSourceVal,{
-        attrs:fixAttr(Object.assign({},dxSourceVal.attrs,style.value))
+        attrs:fixAttr(Object.assign({},dxSourceVal.attrs,style.value),data)
     })
+    // console.log('dxSourceVal.name  :',dxSourceVal.name ,ret.attrs.text)
+    if(dxSourceVal.name === 'TextView' && !ret.attrs.text){
+        ret.attrs.text = '请填写文本'
+    }
     // if(name === 'ImageView' && ret.attrs.backgroundColor == null){
     //     ret.attrs.backgroundColor = '#ccc'
     // }
@@ -63,7 +67,7 @@ function updateDxSource(md:Model,width:number,height:number,data?:any){
     const {dxSource} = md.props
     const dxSourceVal = dxSource.value;
     const ret = Object.assign({},dxSourceVal,{
-        attrs:fixAttr(Object.assign({},dxSourceVal.attrs,{width:{value:width},height:{value:height}}))
+        attrs:fixAttr(Object.assign({},dxSourceVal.attrs,{width:{value:width},height:{value:height}}),data)
     })
     return ret;
 }
@@ -122,11 +126,13 @@ export class DxView implements IView<Model>{
                 const {_dxSource,_el,_option} = this
                 // console.log('_dxSource :',_dxSource,mockData);
                 // console.log('wrapRender =>',_option.getData(),_dxSource);
-                Dinamic.render(<Template ref={this.initWrap} data={this.getViewData()}  tpl={{
+                // Dinamic.render(<Template ref={this.initWrap} data={this.getViewData()}  tpl={{
+                Dinamic.render(<Template ref={this.initWrap}  tpl={{
                     bizCode:'swc',
                     template:[_dxSource]
                 }}></Template>
                     ,_el)
+                // console.log('after wrapRender!!')
             }catch(e){
                 console.error(e)
             }
@@ -144,17 +150,17 @@ export class DxView implements IView<Model>{
                     bizCode:'swc',
                     template:[_dxSource]
                 }
-                _wrapIns.shadow.data = this.getViewData()
+                // _wrapIns.shadow.data = this.getViewData()
                 _wrapIns.setState({})
             }
         }
-        update(model:Model){
+        update(model:Model,opt:Partial<ViewOptions>){
             this._data = model;
-            this._dxSource = extraDxSource(model);
+            this._dxSource = extraDxSource(model,this.getViewData());
             this.renderTemplate()
         }
         updateStyle(width:number,height:number){
-            this._dxSource = updateDxSource(this._data,width,height)
+            this._dxSource = updateDxSource(this._data,width,height,this.getViewData())
             this.renderTemplate()
         }
         getRoot(){

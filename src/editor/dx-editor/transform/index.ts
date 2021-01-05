@@ -184,7 +184,7 @@ export function template2Model(data:string,title:string):Model{
     arboard.displayName = title;
     // arboard.extra.label = title;
     model.children.push(arboard)
-    // console.log('arboard :',arboard);
+    // console.log('arboard :',JSON.stringify(arboard,null,'  '));
     return model;
 }
 

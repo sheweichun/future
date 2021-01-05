@@ -25,7 +25,7 @@ export interface UniversalObject{
 }
 
 
-let maxId = -Infinity;
+let maxId = 0;
 
 function nextId(){
     return (++maxId) + ''

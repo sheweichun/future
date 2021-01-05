@@ -5,6 +5,7 @@ import {CanvasOption,CoreOptions} from './type';
 import {Line,Point, Entity,IEvent,LineMark,Rect} from '../entities/index';
 import {RulerGroup} from '../components/index';
 import {Content} from './content'
+import {completeData} from '../render/model'
 import {completeOptions,debounce,controlDelta} from '../utils/index';
 import {createStyle} from '../utils/style'
 import {CanvasEvent,EventHandler} from '../events/event';
@@ -49,7 +50,7 @@ function calcualteTransition(data:Model):{left:number,top:number,width:number,he
         if(modelIsArtboard(item.type)){
             if(item.extra && item.extra.position){
                 const {left,top,width,height} = item.extra.position
-                boards.push(new OperationPos(left,top,width,height))
+                boards.push(new OperationPos(left || 0,top || 0,width || 0,height || 0))
             }
         }
     })
@@ -275,13 +276,16 @@ export default class Core extends EventHandler implements IHookCore{
         this.draw()
     }
     update(data:Model){
+        const newData = completeData(data);
         // update(data:Model):void
-        this._onRefreshClick(data);
+        // console.log('before _onRefreshClick');
+        this._onRefreshClick(newData);
+        // console.log('after _onRefreshClick');
         this._content.getStore().updateData({
-            data,
+            data:newData,
             selectedKeyPaths:[]
         })
-        
+        // console.log('after updateData');
     }
     getStore(){
         return this._content.getStore()
@@ -297,6 +301,7 @@ export default class Core extends EventHandler implements IHookCore{
         const rect = this._parentEl.getBoundingClientRect();
         // this._translateX = Math.floor((rect.width - margin - pos.width) / 2 - pos.left);
         // this._translateY = Math.floor((rect.height - margin - pos.height) / 2 - pos.top);
+        // console.log('rect :',rect,pos);
         const ret = {
             x:Math.floor((rect.width - margin - pos.width) / 2 - pos.left),
             y:Math.floor((rect.height - margin - pos.height) / 2 - pos.top)

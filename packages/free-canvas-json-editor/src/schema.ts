@@ -501,8 +501,8 @@ export class ArraySchema extends ValueSchema{
         _items.forEach((item)=>{
             const itemKeys = Object.keys(item)
             itemKeys.forEach((name)=>{
-                const item = _objectSchema[name];
-                item.onChange(cb)
+                const itemSchema = item[name];
+                itemSchema.onChange(cb)
             })
         })
         this._onChangeCallback = cb;
