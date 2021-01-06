@@ -232,6 +232,10 @@ export interface ImutBase{
     get(key:string, notSetValue:any):any 
   
     getIn(keyPath:string[], notSetValue:any):any
+
+    rget(key:string, notSetValue:any):any 
+  
+    rgetIn(keyPath:string[], notSetValue:any):any
   
     set(key:string, value:any):ImutBase
     setIn(keyPath:string[],value:any):ImutBase
@@ -346,6 +350,7 @@ function getJSValFromImutBase(key:string,data:ImutBase,defaultValue?:any){
 
 
 export function baseModel2Model(data:ImutBase):Model{
+    // console.log('data :',data.searialize());
     const ret = {
         id:getValFromImutBase('id',data),
         name:getValFromImutBase('name',data),

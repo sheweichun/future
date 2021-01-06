@@ -1,4 +1,10 @@
-module.exports = {
-    'canvas':'./lib/canvas/index.js',
-    'editor':'./lib/editor/index.js'
-}
+module.exports = [
+    {
+        name:'canvas',
+        path:'./lib/canvas/index.js'
+    },
+    {
+        name:'editor',
+        path:'./lib/editor/index.js'
+    }
+]

@@ -59,7 +59,8 @@ export class DXRenderEngine implements IRenderEngine{
 // }
 
 export function showTagName(data:Model){
-    const {name,props} = data
+    const {name,props,displayName} = data
+    if(displayName && displayName !== name) return displayName
     if(name === 'div'){
         return 'FrameLayout'
     }else if(name === 'dx-template'){

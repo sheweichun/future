@@ -1,4 +1,7 @@
+const path = require('path')
+const entry = require('./entry');
 const baseConfigGen = require('./webpack.base');
+const ExtractTextPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
@@ -11,15 +14,18 @@ module.exports = function(){
     });
     config.plugins = config.plugins.concat([
         new CleanWebpackPlugin(),
-        new HtmlWebpackPlugin({
-            title: 'index.html',
-            template:path.resolve(__dirname,'../demo/index.html')
-        }),
-        new HtmlWebpackPlugin({
-            title: 'canvas.html',
-            template:path.resolve(__dirname,'../demo/canvas.html')
-        }),
-    ]);
+        new ExtractTextPlugin({
+            filename:'[name].bundle.css'
+        })
+    ],entry.map((item)=>{
+        const {name} = item;
+        return new HtmlWebpackPlugin({
+            title: name,
+            filename:`${name}.html`,
+            chunks: [name],
+            template:path.resolve(__dirname,`../template/${name}.html`)
+        })
+    }));
     return config
 }
 

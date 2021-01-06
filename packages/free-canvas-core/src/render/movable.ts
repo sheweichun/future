@@ -426,7 +426,8 @@ export class Movable implements IMovable{
         this.style.top = `${this.top}px`;
 
         setStyle(target,this.style);
-        if(isSelect && !isSilent){
+        // if(isSelect && !isSilent){
+        if(isSelect){
             target.style.outline = `1px solid ${styleSizeColor}`
         }else{
             target.style.outline = `none`

@@ -17,11 +17,12 @@ module.exports = function(){
     });
     config.plugins = config.plugins.concat([
         new CleanWebpackPlugin(),
-        new webpack.HotModuleReplacementPlugin(),
         new ExtractTextPlugin({
             filename:'[name].bundle.css'
-        })
-    ],Object.keys(entry).map((name)=>{
+        }),
+        new webpack.HotModuleReplacementPlugin()
+    ],entry.map((item)=>{
+        const {name} = item;
         return new HtmlWebpackPlugin({
             title: name,
             filename:`${name}.html`,

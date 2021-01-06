@@ -120,6 +120,23 @@ function getBaseModelById(id:string,target:BaseModel):BaseModel{
     }
 }
 
+function getRealBaseModelById(id:string,target:BaseModel):BaseModel{
+    if(target == null) return;
+    const targetId = target.rget('id',null);
+    if(targetId === id) return target;
+    const children = target.rget('children',null);
+    if(children == null || children.size === 0){
+        return
+    }
+    for(let i = 0; i < children.size; i++){
+        const child = children.rget(i);
+        const ret = getRealBaseModelById(id,child);
+        if(ret){
+            return ret;
+        }
+    }
+}
+
 
 
 // function extractAllModel(model:BaseModel,ret:BaseModel[]=[]){
@@ -843,7 +860,7 @@ export class Mutation extends EventHandler implements IMutation{
         const dslData = this.getDSLData();
         const needChangePosVMMap:{[key:string]:IViewModel} = {}
         const needRemoveVms:IViewModel[] = [];
-        const needAddItems:{[key:string]:{parentModel:BaseModel,target:BaseModel[]}} = {}
+        const needAddItems:{[key:string]:{target:BaseModel[]}} = {}
         this.transition(()=>{
             vms.forEach((vm)=>{
                 const {modelType} = vm;
@@ -857,9 +874,10 @@ export class Mutation extends EventHandler implements IMutation{
                         needRemoveVms.push(vm);
                         const parentModel = pvm.getModel();
                         const pid = parentModel.get('id',null);
+                        // console.log('pid :',pid,parentModel.searialize());
                         let addItem = needAddItems[pid]
                         if(addItem == null){
-                            addItem = {parentModel:parentModel,target:[]}
+                            addItem = {target:[]}
                             needAddItems[pid] = addItem
                         }
                         const newVmModel = changeNormalVmPos(vm).deref(null);
@@ -872,9 +890,14 @@ export class Mutation extends EventHandler implements IMutation{
             })
             this.updateGroupVm(needChangePosVMMap,true)
 
-            this._removeModelsFromEachModel(needRemoveVms,dslData); //先删除待删除的节点
+            this._removeModelsFromEachModel(needRemoveVms,dslData); //先删除待删除的节点，删除后会导致原节点序列错乱
             Object.keys(needAddItems).forEach((pid:string)=>{
-                const {parentModel,target} = needAddItems[pid]
+
+                const parentModel = getRealBaseModelById(pid,dslData); // 重新索引，确保keypath准确
+                if(parentModel == null) return;
+                const {target} = needAddItems[pid]
+                //@ts-ignore
+                // debugger;
                 parentModel.updateIn(['children'],null,(childs:BaseModel)=>{
                     if(childs){
                          //@ts-ignore

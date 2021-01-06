@@ -8,14 +8,14 @@ exports.getCssLoader = function(isProd,noModel){
           modules: !noModel
         }
     }];
-    if(!isProd){
+    // if(!isProd){
       ret.unshift({
         loader:ExtractTextPlugin.loader,
         options:{
 
         }
       })
-    }
+    // }
     return ret
 }
 

@@ -2,8 +2,8 @@
   "name": "free-canvas",
   "scripts": {
     "start": "node scripts/build.js --dev",
-    "build": "tsc -b ./",
-    "buildsrc": "tsc",
+    "build": "node scripts/build.js",
+    "buildts": "tsc -b ./",
     "clean": "rm -rf lib",
     "watch": "tsc -b ./ -w & gulp -f ./scripts/gulpfile.js watch",
     "watchts": "tsc -b ./ -w"

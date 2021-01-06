@@ -115,6 +115,7 @@ export class Content{
         this.getScale = this.getScale.bind(this);
         this.onModelStructureChange = this.onModelStructureChange.bind(this)
         this._store.subscribe((nextState:any)=>{
+            // console.log('data :',nextState.get('data').toJS());
             this._viewModel.update(nextState.get('data'));
             this._operation.update();
             this._pluginManager.update();

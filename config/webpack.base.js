@@ -7,7 +7,10 @@ const {getCssLoader,getPostcssLoader,getLessLoader} = require('./util')
 module.exports = function(mergeConfig){
     const isProd = mergeConfig.mode === 'production'
     return Object.assign({},{
-        entry:entry,
+        entry:entry.reduce((ret,item)=>{
+          ret[item.name] = item.path
+          return ret;
+        },{}),
         module: {
           rules: [
             {
@@ -59,7 +62,7 @@ module.exports = function(mergeConfig){
         },
         output: {
           filename: '[name].js',
-          path: path.resolve(__dirname, '../dist'),
+          path: path.resolve(__dirname, '../build'),
         },
     },mergeConfig)
 }

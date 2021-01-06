@@ -49,6 +49,17 @@ class Base{
     const value = this._rootData.getIn(newKeyPath(this._keyPath, constructKeyPath), NOT_SET);
     return value === NOT_SET ? notSetValue : wrappedValue(this, constructKeyPath, value);
   }
+  rget(key, notSetValue) {
+    return this.rgetIn([key], notSetValue);
+  }
+  rgetIn(keyPath, notSetValue) {
+    const constructKeyPath = listToKeyPath(keyPath);
+    if (constructKeyPath.length === 0) {
+      return this;
+    }
+    const value = this._deref().getIn(newKeyPath(this._keyPath, constructKeyPath), NOT_SET);
+    return value === NOT_SET ? notSetValue : wrappedValue(this, constructKeyPath, value);
+  }
 
   set(key, value) {
     if (arguments.length === 1) {
@@ -90,9 +101,12 @@ class Base{
   }
 
   updateIn(keyPath, notSetValue, updater) {
-    return updateCursor(this, m =>
-      m.updateIn(keyPath, notSetValue, updater)
-      , keyPath);
+    return updateCursor(this, (m) =>{
+      // console.log('m :',m.toJS(),keyPath);
+        return m.updateIn(keyPath, notSetValue, updater)
+      }
+      , keyPath)
+      
   }
 
   merge() {

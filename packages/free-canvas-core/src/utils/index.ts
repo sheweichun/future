@@ -69,6 +69,7 @@ export function getWrapSize(model:BaseModel):{width:number,height:number}{
 
 
 export function fixData(data:Model){
+    // console.log('data :',data);
     const {position} = data.extra
     let style = data.props.style;
     if(style == null){
