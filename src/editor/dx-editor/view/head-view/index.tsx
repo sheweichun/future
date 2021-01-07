@@ -7,7 +7,7 @@ import IconButton from './icon-button/index'
 import JSONEditor from './json-editor/index'
 import {model2Template} from '../../transform/index'
 // import {schemaData,schemaValue,emptySchemaData,emptyValue} from '../../data/schema'
-import {schema,updateSchemaValue} from '../store/index'
+import {schema,Store} from '../store/index'
 
   
 import s from './index.less';      
@@ -29,8 +29,10 @@ export class HeadView implements IHeadView{
     private _dataOpenFlag:boolean = false
     private _refreshCallback:()=>void
     private _schemaChangeFlag:boolean = false;
+    // private _store:Store
     constructor(){
         // console.log(3)
+        // this._store = Store.getInstance()
     }
     initCanvasEl(el:HTMLElement){
         this._canvasEl = el;
@@ -75,10 +77,10 @@ export class HeadView implements IHeadView{
         const data = _core.getStore().currentState.toJS().data
         console.log('_core.getStore().currentState :',model2Template(data))
     }
-    onChangeJson=(val:ObjectSchema,type:SchemaChangeType)=>{
+    onChangeJson=(val:ObjectSchema)=>{
         this._schemaChangeFlag = true
         // console.log('onChangeJson !! :',val.toValue());
-        updateSchemaValue(val.toValue());
+        // updateSchemaValue(val.toValue());
     }
     toggleDataPanel=()=>{
         // const {_dataOpenFlag} = this;
@@ -86,7 +88,7 @@ export class HeadView implements IHeadView{
         if(this._dataOpenFlag){
             this._schemaChangeFlag = false;
             this.showLeftPanel((el:HTMLElement)=>{
-                ReactDOM.render(<JSONEditor value={schema} onChange={this.onChangeJson}>
+                ReactDOM.render(<JSONEditor store={Store.getInstance()} onChange={this.onChangeJson}>
                 {/* ReactDOM.render(<JSONEditor data={emptySchemaData} value={emptyValue} onChange={this.onChangeJson}> */}
                 </JSONEditor>,el)
                 return ()=>{

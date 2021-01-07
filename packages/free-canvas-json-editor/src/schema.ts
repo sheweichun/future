@@ -427,12 +427,12 @@ export class ObjectSchema extends ValueSchema{
         this.triggerChange()
     }
     setValue(value:any){
-        value = value || {}
+        // value = value || {}
         const {_properties} = this
         this._value = value;
         Object.keys(_properties).forEach((name:string)=>{
             const item = _properties[name]
-            item.setValue(value[name])
+            item.setValue(value ? value[name] : null)
         })
         super.setValue(value)
     }
@@ -583,21 +583,23 @@ export class ArraySchema extends ValueSchema{
         this.triggerChange()
     }
     setValue(value:Array<any>){
-        if(value == null){
-            value = []
-        }
         const {_objectSchema} = this;
-        this._value = value;
-        this._items = value.map((valItem,index)=>{
-            return Object.keys(_objectSchema).reduce((ret,name:string)=>{
-                const schema = _objectSchema[name]
-                const scVal = valItem ? valItem[name] : null;
-                // console.log('schema.toSchema() :',schema.toSchema(),scVal);
-                //@ts-ignore
-                ret[name] = createValueSchema(this,schema.toSchema(),scVal,this._onChangeCallback)
-                return ret
-            },{})
-        })
+        if(value == null){
+            this._value = value;
+            this._items = []
+        }else{
+            this._value = value;
+            this._items = value.map((valItem,index)=>{
+                return Object.keys(_objectSchema).reduce((ret,name:string)=>{
+                    const schema = _objectSchema[name]
+                    const scVal = valItem ? valItem[name] : null;
+                    // console.log('schema.toSchema() :',schema.toSchema(),scVal);
+                    //@ts-ignore
+                    ret[name] = createValueSchema(this,schema.toSchema(),scVal,this._onChangeCallback)
+                    return ret
+                },{})
+            })
+        }
         super.setValue(value)
     }
     addItem(){
@@ -648,7 +650,8 @@ export class ArraySchema extends ValueSchema{
         this.triggerChange()
     }
     toValue():any{
-        const {_items} = this;
+        const {_items,_value} = this;
+        if(_value == null) return null;
         return _items.map((item)=>{
             return Object.keys(item).reduce((ret,name)=>{
                 //@ts-ignore

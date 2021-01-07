@@ -5,6 +5,17 @@
   overflow: hidden;
 }
 
+.fc-editor-button {
+  display: inline-block;
+  cursor: pointer;
+  background-color: var(--BACKGROUND_4);
+  color: var(--TEXT_COLOR);
+}
+.fc-editor-button:hover {
+  background-color: var(--BACKGROUND_1);
+  color: var(--ACTIVE_TEXT_COLOR);
+}
+
 ::-webkit-scrollbar {
   background: transparent;
   width: 4px;
@@ -45,17 +56,6 @@
   width: 100%;
   height: 100%;
   border: 0;
-}
-
-.fc-editor-button {
-  display: inline-block;
-  cursor: pointer;
-  background-color: var(--BACKGROUND_4);
-  color: var(--TEXT_COLOR);
-}
-.fc-editor-button:hover {
-  background-color: var(--BACKGROUND_1);
-  color: var(--ACTIVE_TEXT_COLOR);
 }
 
 .fc-editor-header {
@@ -140,8 +140,8 @@
 @font-face {
   font-family: 'iconfont';
   /* project id 1991465 */
-  src: url('//at.alicdn.com/t/font_1991465_lsncbvj3wa.eot');
-  src: url('//at.alicdn.com/t/font_1991465_lsncbvj3wa.eot?#iefix') format('embedded-opentype'), url('//at.alicdn.com/t/font_1991465_lsncbvj3wa.woff2') format('woff2'), url('//at.alicdn.com/t/font_1991465_lsncbvj3wa.woff') format('woff'), url('//at.alicdn.com/t/font_1991465_lsncbvj3wa.ttf') format('truetype'), url('//at.alicdn.com/t/font_1991465_lsncbvj3wa.svg#iconfont') format('svg');
+  src: url('//at.alicdn.com/t/font_1991465_hi11tr8pmwu.eot');
+  src: url('//at.alicdn.com/t/font_1991465_hi11tr8pmwu.eot?#iefix') format('embedded-opentype'), url('//at.alicdn.com/t/font_1991465_hi11tr8pmwu.woff2') format('woff2'), url('//at.alicdn.com/t/font_1991465_hi11tr8pmwu.woff') format('woff'), url('//at.alicdn.com/t/font_1991465_hi11tr8pmwu.ttf') format('truetype'), url('//at.alicdn.com/t/font_1991465_hi11tr8pmwu.svg#iconfont') format('svg');
 }
 body {
   overflow-x: hidden;
@@ -218,6 +218,9 @@ body {
   display: inline-block;
   content: '\E665';
 }
+.fc-editor-icon-close:before {
+  content: '\E615';
+}
 
 .fc-editor-tree {
   height: 100%;
@@ -269,24 +272,6 @@ body {
 }
 
 
-.fc-editor-tab ul {
-  display: flex;
-  flex-direction: row;
-  cursor: pointer;
-}
-.fc-editor-tab-item {
-  height: 40px;
-  line-height: 40px;
-  padding: 0px 12px;
-  flex: 1;
-  text-align: center;
-  color: var(--DISABLED_COLOR);
-}
-.fc-editor-tab-active-item {
-  color: var(--TEXT-COLOR);
-}
-
-
 .fc-editor-editItem {
   border-bottom: 1px solid var(--BOARDER_COLOR);
   padding: 8px 0;
@@ -304,6 +289,23 @@ body {
 }
 .fc-editor-editItem-content {
   padding: 0px 8px;
+}
+
+.fc-editor-tab ul {
+  display: flex;
+  flex-direction: row;
+  cursor: pointer;
+}
+.fc-editor-tab-item {
+  height: 40px;
+  line-height: 40px;
+  padding: 0px 12px;
+  flex: 1;
+  text-align: center;
+  color: var(--DISABLED_COLOR);
+}
+.fc-editor-tab-active-item {
+  color: var(--TEXT-COLOR);
 }
 
 .fc-editor-attribute .next-before {
@@ -326,6 +328,7 @@ body {
   padding: 0 8px;
   align-items: center;
 }
+
 
 .fc-editor-color {
   display: flex;
@@ -365,6 +368,10 @@ body {
   text-align: right;
 }
 
+.fc-editor-select {
+  width: 100%;
+}
+
 .fc-editor-measure {
   display: grid;
   grid-template-rows: 32px;
@@ -376,14 +383,10 @@ body {
   width: 28px;
 }
 
-.fc-editor-select {
+.fc-editor-text {
   width: 100%;
 }
 
 .fc-editor-switch {
-  width: 100%;
-}
-
-.fc-editor-text {
   width: 100%;
 }

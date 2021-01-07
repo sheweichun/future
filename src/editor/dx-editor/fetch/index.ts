@@ -54,14 +54,14 @@ function templatePostJSON(path: string, data?: { [key: string]: any }) {
 const MOCK_DATA = {
     source:`
     <FrameLayout cornerRadius="" backgroundColor="" marginLeft="0" marginTop="0" width="813ap" height="491ap">
-        <FrameLayout cornerRadius="" marginLeft="9ap" marginTop="30ap" width="245ap" height="305ap" listData="@data{data}">
-            <ImageView imageUrl="https://img.alicdn.com/tfs/TB14XguhbY1gK0jSZTEXXXDQVXa-540-1110.png" marginLeft="0" marginTop="0" width="97ap" height="153ap"></ImageView>
-            <TextView textSize="16ap" lineBreakMode="end" text="你大爷12" textColor="#111111" isBold="" marginLeft="80ap" marginTop="40ap" width="151ap" height="23ap"></TextView>
-            <FrameLayout listData="@data{data}" backgroundColor="" marginLeft="54ap" marginTop="72ap" width="100ap" height="100ap">
-                <TextView text="请输入文本" textSize="14ap" marginLeft="17ap" marginTop="25ap" width="100ap" height="24ap"></TextView>
-            </FrameLayout>
+    <FrameLayout cornerRadius="" marginLeft="9ap" marginTop="30ap" width="245ap" height="305ap" listData="@data{data}">
+        <ImageView imageUrl="https://img.alicdn.com/tfs/TB14XguhbY1gK0jSZTEXXXDQVXa-540-1110.png" marginLeft="0" marginTop="0" width="97ap" height="63ap"></ImageView>
+        <TextView textSize="16ap" lineBreakMode="end" text="你大爷12" textColor="#111111" isBold="" marginLeft="80ap" marginTop="40ap" width="151ap" height="23ap"></TextView>
+        <FrameLayout marginLeft="136ap" marginTop="0" width="100ap" height="100ap" listData="@data{data}">
+            <TextView text="请输入文本" textSize="14ap" marginLeft="17ap" marginTop="25ap" width="100ap" height="24ap"></TextView>
         </FrameLayout>
     </FrameLayout>
+</FrameLayout>
     `,
     name:'luodan_test'
 }

@@ -3,9 +3,9 @@ import {IPlugin,IEditorHook,IHookCore, IHeadView, ComponentMarketStore, RenderVa
 import {showTagName} from '@pkg/free-canvas-dx'
 import {setup,HookManager} from '@pkg/free-canvas-editor'
 import {initTheme} from '@pkg/free-canvas-theme'
-import {getSchemaValue} from './dx-editor/view/store/schema'
+import {Store} from './dx-editor/view/store/schema'
 
-
+const store = Store.getInstance()
 const taskList:IPlugin[] = []
 let freeCanvas:IHookCore
 const mountNode = document.querySelector('.root') as HTMLElement
@@ -43,7 +43,7 @@ export function init(hooks:IEditorHook[],opt:InitOption){
         head && head.setCore(freeCanvas)
     }
     //@ts-ignore
-    window.$$getSchemaValue = getSchemaValue
+    window.$$getSchemaValue = store.getValue
     return setup(mountNode,{
         head:head,
         components:{},//components

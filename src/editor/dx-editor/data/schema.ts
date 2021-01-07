@@ -89,6 +89,58 @@ export const schemaValue = {
   ]
 }
 
+export type SchemaValue = {
+  title:string,
+  isEditing?:boolean,
+  value:any
+}
+
+export const schemaValues:Array<SchemaValue> = [{
+  title:'数据1',
+  value:{
+    "bg": "https://img.alicdn.com/tfs/TB1IkFjD1H2gK0jSZJnXXaT1FXa-900-500.png",
+    "content": "你大爷大活动卡号",
+    "shop": {
+      "name": "测试店铺1",
+      "logo": "大姐大框架"
+    },
+    data:[
+      {
+        label:'测试1',
+        url:'https://img.alicdn.com/tfs/TB1IkFjD1H2gK0jSZJnXXaT1FXa-900-500.png'
+      },{
+        label:'测试2',
+        url:'https://img.alicdn.com/tfs/TB1IkFjD1H2gK0jSZJnXXaT1FXa-900-500.png'
+      },{
+        label:'测试3',
+        url:'https://img.alicdn.com/tfs/TB1IkFjD1H2gK0jSZJnXXaT1FXa-900-500.png'
+      }
+    ]
+  }
+},{
+  title:'数据2',
+  value:{
+    "bg": "https://img.alicdn.com/tfs/TB1IkFjD1H2gK0jSZJnXXaT1FXa-900-500.png",
+    "content": "xxxxxxx",
+    "shop": {
+      "name": "测试店铺aaaa",
+      "logo": "大姐大框架bbbb"
+    },
+    data:[
+      {
+        label:'测试vvvvv',
+        url:'https://img.alicdn.com/tfs/TB1IkFjD1H2gK0jSZJnXXaT1FXa-900-500.png'
+      },{
+        label:'测试zzzzz',
+        url:'https://img.alicdn.com/tfs/TB1IkFjD1H2gK0jSZJnXXaT1FXa-900-500.png'
+      }
+    ]
+  }
+},{
+  title:'数据3',
+  value:{}
+}]
+
 export const schemaData1:any = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",

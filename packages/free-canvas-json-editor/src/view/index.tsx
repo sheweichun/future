@@ -7,7 +7,7 @@ import Operation from './operation'
 import {PREFIX, ROOT_CLASS} from './constant'
 import {ROOT_IDENTIFY} from './util'
 
-
+export {default as Icon} from './icon'
 // export {ROOT_IDENTIFY} from './util'
 // import {} from './factory'
 

@@ -1,5 +1,5 @@
 
-import {Model,ModelType,ModelPos,ModelPosKeys,ModelAttrValue} from '@pkg/free-canvas-shared';
+import {Model,ModelType,ModelPos,ModelPosKeys,ModelAttrValue, ModelProps} from '@pkg/free-canvas-shared';
 import {DX_TEMPLATE} from '../utils/contant'
 
 let curId = 1;
@@ -206,12 +206,25 @@ function filterArboardStyle(style:CSSStyleDeclaration){
         //@ts-ignore
         const item = style[name]
         let val:string
-        if(item != null && item.value){
-            val = item.value.replace(/px$/,'ap');
+        if(item != null && !item.isExp && item.value){
+            item.value = item.value.replace(/px$/,'ap');
         }
         const newName = reverseAttributeTransformMap[name] || name
         //@ts-ignore
-        ret[newName] = val
+        ret[newName] = item
+        return ret;
+    },{})
+}
+
+function filterArboardProps(props:ModelProps){
+    if(props == null) return {}
+    return Object.keys(props).reduce((ret,name)=>{
+        const item = props[name]
+        if(item){
+            const newName = reverseAttributeTransformMap[name] || name
+            //@ts-ignore
+            ret[newName] = item
+        }
         return ret;
     },{})
 }
@@ -251,7 +264,8 @@ export interface DXDSLAttribute{
 
 function attributes2Str(attrs:DXDSLAttribute){
     if(attrs == null) return ''
-    return Object.keys(attrs).map((name)=>{
+    const result:Array<string> = []
+    Object.keys(attrs).forEach((name)=>{
         const item = attrs[name];
         // console.log('item :',item);
         let itemValue = '';
@@ -259,17 +273,21 @@ function attributes2Str(attrs:DXDSLAttribute){
             const {isExp,expression,value} = item;
             itemValue = (isExp ? expression : value) || ''
         }
-        return `${name}="${itemValue}"`;
-    }).join(' ')
+        if(itemValue){
+            result.push(`${name}="${itemValue}"`)
+        }
+    })
+    return result.join(' ')
 }
 
 export function model2Template(md:Model):string{
-    const {type,children,extra,name,props} = md
+    const {type,children,extra,name,props={}} = md
     if(type === ModelType.isRoot){
         return children.map((item)=>{
             return model2Template(item)
         }).join('')
     }
+    const {style,...otherProps} = props;
     let tagName:string = name;
     let attributes:DXDSLAttribute = {} 
     if(name === 'div'){
@@ -279,7 +297,8 @@ export function model2Template(md:Model):string{
             pos.left = 0;
             pos.top = 0;
         }
-        attributes = Object.assign({},filterArboardStyle(props && props.style && props.style.value),postion2Attribute(pos))
+        const otherAttr = filterArboardProps(otherProps);
+        attributes = Object.assign({},otherAttr,filterArboardStyle(style && style.value),postion2Attribute(pos))
     }else if(name === DX_TEMPLATE){
         if(props && props.dxSource && props.dxSource.value){
             const dxSourceValue = props.dxSource.value

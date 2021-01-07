@@ -213,7 +213,9 @@ class SilentViewModelCollection{
             }
         }
         for(; i < newListData.length; i++){
-            newVms[i] = new SilentViewModel(_parentEl,modelChildren,size,this.getOption(i))
+            const newSvm = new SilentViewModel(_parentEl,modelChildren,size,this.getOption(i))
+            newVms[i] = newSvm
+            newSvm.mount()
         }
         this._vms = newVms
         this._listData = newListData;
@@ -352,7 +354,7 @@ export class ViewModel implements IViewModel{
     }
     updateIteratorSize(model:BaseModel){
         const {_listData} = this;
-        this.iteratorSize = _listData ? getWrapSize(model) : null
+        this.iteratorSize = _listData  ? getWrapSize(model) : null
     }
     getMovableUpdateOpt(){
         const {_listData,iteratorSize} = this;
